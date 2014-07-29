@@ -147,26 +147,20 @@ class Entity
 	/**
 	 * The total number of descendants.
 	 */
-	public var size(get_size, set_size):Int;
+	public var size(get_size, never):Int;
 	@:noCompletion inline function get_size():Int
 	{
 		return ES.getSize(this);
 	}
-	@:noCompletion inline function set_size(value:Int):Int
-	{
-		ES.setSize(this, value);
-		return value;
-	}
 	
-	public var depth(get_depth, set_depth):Int;
+	/**
+		The length of the path from the root node to this node.
+		The root node is at depth 0.
+	**/
+	public var depth(get_depth, never):Int;
 	@:noCompletion function get_depth():Int
 	{
 		return ES.getDepth(this);
-	}
-	@:noCompletion function set_depth(value:Int):Int
-	{
-		ES.setDepth(this, value);
-		return value;
 	}
 	
 	/**
@@ -289,11 +283,12 @@ class Entity
 		
 		//update size on ancestors
 		var k = x.size + 1;
-		size += k;
+		setSize(size + k);
+		
 		var p = parent;
 		while (p != null)
 		{
-			p.size += k;
+			p.setSize(p.size + k);
 			p = p.parent;
 		}
 		
@@ -327,7 +322,7 @@ class Entity
 		var i = x.size + 1;
 		while (i-- > 0)
 		{
-			e.depth += d;
+			e.setDepth(e.depth + d);
 			e = e.preorder;
 		}
 		
@@ -358,11 +353,12 @@ class Entity
 		
 		//update size on ancestors
 		var k = x.size + 1;
-		size -= k;
+		setSize(size - k);
+		
 		var p = parent;
 		while (p != null)
 		{
-			p.size -= k;
+			p.setSize(p.size - k);
 			p = p.parent;
 		}
 		
@@ -408,7 +404,7 @@ class Entity
 		var i = x.size + 1;
 		while (i-- > 0)
 		{
-			e.depth -= d;
+			e.setDepth(e.depth - d);
 			e = e.preorder;
 		}
 		
@@ -946,6 +942,16 @@ class Entity
 			sibling;
 		else
 			findLastLeaf(this).preorder;
+	}
+	
+	@:noCompletion inline function setSize(value:Int)
+	{
+		ES.setSize(this, value);
+	}
+	
+	@:noCompletion inline function setDepth(value:Int)
+	{
+		ES.setDepth(this, value);
 	}
 	
 	@:noCompletion function _getType() return 0; //overriden by macro
