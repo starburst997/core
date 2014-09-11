@@ -18,10 +18,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
+@:allow(de.polygonal.core.es.EntitySystem)
 class EntityId
 {
-	public var index:Int;
-	public var inner:Int;
+	public var index(default, null):Int;
+	public var inner(default, null):Int;
 	
 	public function new() {}
 	
