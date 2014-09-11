@@ -165,6 +165,7 @@ class MsgQue
 	var mCurrBundleOut:MsgBundle;
 	var mFreeBundle:Int;
 	var mBundles:Array<MsgBundle>;
+	var mSending:Bool = false;
 	
 	public function new(capacity:Int)
 	{
@@ -253,9 +254,9 @@ class MsgQue
 		L.d(Printf.format('enqueue message %30s -> %-30s: %-20s (remaining: $remaining)', [senderName, recipientName, msgName]), "es");
 		#end
 		
-		//dir > 0 = dispatch to descendants
-		//dir < 0 = dispatch to ancestors
-		if (dir > 0) type |= 0x8000;
+		if (dir > 0) type |= 0x8000; //dispatch to descendants
+		else
+		if (dir < 0) type |= 0x4000; //dispatch to ancestors
 		
 		var senderId = sender.id;
 		var recipientId = recipient.id;
@@ -296,7 +297,8 @@ class MsgQue
 	
 	public function dispatch()
 	{
-		if (mSize == 0) return;
+		if (mSize == 0 || mSending) return;
+		mSending = true;
 		
 		var a = ES.mFreeList;
 		
@@ -319,7 +321,10 @@ class MsgQue
 		#end
 		
 		#if (verbose == "extra")
-		L.d('dispatching $mSize messages ...', "es");
+		if (mSize == 1)
+			L.d("sending one message ...", "es");
+		else
+			L.d('sending $mSize messages ...', "es");
 		#end
 		
 		while (mSize > 0) //while there are buffered messages
@@ -344,8 +349,19 @@ class MsgQue
 			mCurrBundleIn  = q[addr + 6];
 			#end
 			
-			dir = type & 0x8000 != 0 ? 1 : -1;
-			type &= ~0x8000;
+			if (type & 0x8000 > 0)
+			{
+				dir = 1;
+				type &= ~0x8000;
+			}
+			else
+			if (type & 0x4000 > 0)
+			{
+				dir =-1;
+				type &= ~0x4000;
+			}
+			else
+				dir = 0;
 			
 			//ignore message?
 			if (senderInner == -1)
@@ -391,7 +407,7 @@ class MsgQue
 			var msgName = Msg.name(type);
 			if (msgName.length > 20) msgName = StringUtil.ellipsis(msgName, 20, 1, true);
 			
-			L.d(Printf.format('message %30s -> %-30s: %-20s $data', [senderId, recipientId, msgName]), "es");
+			L.d(Printf.format('message %30s -> %-30s: %-20s $data (remaining: $skipCount)', [senderId, recipientId, msgName, skipCount]), "es");
 			#end
 			
 			//notify recipient
@@ -412,17 +428,18 @@ class MsgQue
 			{
 				if (dir > 0)
 				{
+					//just skip the subtree rooted at the recipient, not the subtree of the sender
 					skipCount = recipient.size;
 					
 					#if (verbose == "extra")
-					trace('stop message propagation to descendants at ${recipient.name} (skipping $skipCount messages)');
+					trace('stop message propagation to descendants at "${recipient.name}" (skipping $skipCount messages)');
 					#end
 				}
 				else
 				if (dir < 0)
 				{
 					#if (verbose == "extra")
-					trace('stop message propagation to ancestors at ${recipient.name} (skipping $skipCount messages)');
+					trace('stop message propagation to ancestors at "${recipient.name}" (skipping $skipCount messages)');
 					#end
 				}
 				
@@ -448,5 +465,7 @@ class MsgQue
 		}
 		mFreeBundle = 0;
 		mCurrBundleIn = -1;
+		
+		mSending = false;
 	}
 }
