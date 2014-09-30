@@ -22,33 +22,34 @@ import de.polygonal.core.math.interpolation.Interpolation;
 import de.polygonal.core.math.Mathematics;
 
 /**
- * <p>Back easing in/out.</p>
- * <p>Borrowed from Robert Penner Easing Equations v1.5</p>
- * <p>See <a href="http://snippets.dzone.com/posts/show/4005" target="_blank">http://snippets.dzone.com/posts/show/4005</a>.</p>
- */
+	Back easing in+out.
+	
+	Borrowed from Robert Penner Easing Equations v1.5
+	See http://snippets.dzone.com/posts/show/4005
+**/
 class BackEaseInOut implements Interpolation<Float>
 {
-	var _overshoot:Float;
+	public var overshoot:Float;
 	
 	/**
 	 * @param overshoot overshoot amount. Default value of 0.1 produces an overshoot of 10%.
 	 */
 	public function new(overshoot = .1)
 	{
-		_overshoot = M.lerp(0, 17.0158, overshoot) * 1.525;
+		this.overshoot = M.lerp(0, 17.0158, overshoot) * 1.525;
 	}
 	
 	/**
-	 * @param t interpolation parameter in the interval <arg>&#091;0, 1&#093;</arg>.
-	 */
+		Computes the easing value using the given parameter `t` in the interval [0,1].
+	**/
 	public function interpolate(t:Float):Float
 	{
 		if (t < .5)
-			return .5 * (4 * t * t * ((_overshoot + 1) * 2 * t - _overshoot));
+			return .5 * (4 * t * t * ((overshoot + 1) * 2 * t - overshoot));
 		else
 		{
 			t = t * 2 - 2;
-			return .5 * (t * t * ((_overshoot + 1) * t + _overshoot) + 2);
+			return .5 * (t * t * ((overshoot + 1) * t + overshoot) + 2);
 		}
 	}
 }

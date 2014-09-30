@@ -21,17 +21,18 @@ package de.polygonal.core.tween.ease;
 import de.polygonal.core.math.interpolation.Interpolation;
 
 /**
- * <p>Circular easing in.</p>
- * <p>Borrowed from Robert Penner Easing Equations v1.5</p>
- * <p>See <a href="http://snippets.dzone.com/posts/show/4005" target="_blank">http://snippets.dzone.com/posts/show/4005</a>.</p>
- */
+	Circular easing in.
+	
+	Borrowed from Robert Penner Easing Equations v1.5
+	See http://snippets.dzone.com/posts/show/4005
+**/
 class CircularEaseIn implements Interpolation<Float>
 {
 	public function new() {}
 	
 	/**
-	 * @param t interpolation parameter in the interval <arg>&#091;0, 1&#093;</arg>.
-	 */
+		Computes the easing value using the given parameter `t` in the interval [0,1].
+	**/
 	public function interpolate(t:Float):Float
 	{
 		return -(Math.sqrt(1 - t * t) - 1);

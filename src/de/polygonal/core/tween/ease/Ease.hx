@@ -19,12 +19,13 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween.ease;
 
 /**
- * <p>Enumeration of all easing interpolations.</p>
- * <p>An easing interpolator defines the rate of change of an animation.</p>
- */
+	Enumeration of all easing interpolations.
+	An easing interpolator defines the rate of change of an animation.
+**/
 enum Ease
 {
 	None;
+	Flash(acceleration:Int);
 	PowIn(degree:Int);
 	PowOut(degree:Int);
 	PowInOut(degree:Int);

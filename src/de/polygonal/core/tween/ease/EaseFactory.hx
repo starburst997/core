@@ -19,145 +19,153 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.interpolation.Interpolation;
-import de.polygonal.core.math.Mathematics;
 
-/**
- * <p>Creates different easing interpolations.</p>
- */
 class EaseFactory
 {
-	static var _instance:EaseFactory;
+	static var mInstance:EaseFactory;
 	public  static function create(type:Ease):Interpolation<Float>
 	{
-		if (_instance == null)
-			_instance = new EaseFactory();
-		return _instance._create(type);
+		if (mInstance == null)
+			mInstance = new EaseFactory();
+		return mInstance.mCreate(type);
 	}
 	
-	var _none:NullEase;
-	var _powEaseIn2:PowEaseIn;
-	var _powEaseIn3:PowEaseIn;
-	var _powEaseIn4:PowEaseIn;
-	var _powEaseIn5:PowEaseIn;
-	var _powEaseOut2:PowEaseOut;
-	var _powEaseOut3:PowEaseOut;
-	var _powEaseOut4:PowEaseOut;
-	var _powEaseOut5:PowEaseOut;
-	var _powEaseInOut2:PowEaseInOut;
-	var _powEaseInOut3:PowEaseInOut;
-	var _powEaseInOut4:PowEaseInOut;
-	var _powEaseInOut5:PowEaseInOut;
-	var _sinEaseIn:SinEaseIn;
-	var _sinEaseOut:SinEaseOut;
-	var _sinEaseInOut:SinEaseInOut;
-	var _expEaseIn:ExpEaseIn;
-	var _expEaseOut:ExpEaseOut;
-	var _expEaseInOut:ExpEaseInOut;
-	var _circularEaseIn:CircularEaseIn;
-	var _circularEaseOut:CircularEaseOut;
-	var _circularEaseInOut:CircularEaseInOut;
-	var _backEaseIn:BackEaseIn;
-	var _backEaseOut:BackEaseOut;
-	var _backEaseInOut:BackEaseInOut;
-	var _elasticEaseIn:ElasticEaseIn;
-	var _elasticEaseOut:ElasticEaseOut;
-	var _elasticEaseInOut:ElasticEaseInOut;
-	var _bounceEaseIn:BounceEaseIn;
-	var _bounceEaseOut:BounceEaseOut;
-	var _bounceEaseInOut:BounceEaseInOut;
+	var mNone:NullEase;
+	var mFlashEaseOut:FlashEase;
+	var mFlashEaseIn:FlashEase;
+	var mPowEaseIn2:PowEaseIn;
+	var mPowEaseIn3:PowEaseIn;
+	var mPowEaseIn4:PowEaseIn;
+	var mPowEaseIn5:PowEaseIn;
+	var mPowEaseOut2:PowEaseOut;
+	var mPowEaseOut3:PowEaseOut;
+	var mPowEaseOut4:PowEaseOut;
+	var mPowEaseOut5:PowEaseOut;
+	var mPowEaseInOut2:PowEaseInOut;
+	var mPowEaseInOut3:PowEaseInOut;
+	var mPowEaseInOut4:PowEaseInOut;
+	var mPowEaseInOut5:PowEaseInOut;
+	var mSinEaseIn:SinEaseIn;
+	var mSinEaseOut:SinEaseOut;
+	var mSinEaseInOut:SinEaseInOut;
+	var mExpEaseIn:ExpEaseIn;
+	var mExpEaseOut:ExpEaseOut;
+	var mExpEaseInOut:ExpEaseInOut;
+	var mCircularEaseIn:CircularEaseIn;
+	var mCircularEaseOut:CircularEaseOut;
+	var mCircularEaseInOut:CircularEaseInOut;
+	var mBackEaseIn:BackEaseIn;
+	var mBackEaseOut:BackEaseOut;
+	var mBackEaseInOut:BackEaseInOut;
+	var mElasticEaseIn:ElasticEaseIn;
+	var mElasticEaseOut:ElasticEaseOut;
+	var mElasticEaseInOut:ElasticEaseInOut;
+	var mBounceEaseIn:BounceEaseIn;
+	var mBounceEaseOut:BounceEaseOut;
+	var mBounceEaseInOut:BounceEaseInOut;
 	
 	function new()
 	{
-		_none               = new NullEase();
-		_powEaseIn2         = new PowEaseIn(2);
-		_powEaseIn3         = new PowEaseIn(3);
-		_powEaseIn4         = new PowEaseIn(4);
-		_powEaseIn5         = new PowEaseIn(5);
-		_powEaseOut2        = new PowEaseOut(2);
-		_powEaseOut3        = new PowEaseOut(3);
-		_powEaseOut4        = new PowEaseOut(4);
-		_powEaseOut5        = new PowEaseOut(5);
-		_powEaseInOut2      = new PowEaseInOut(2);
-		_powEaseInOut3      = new PowEaseInOut(3);
-		_powEaseInOut4      = new PowEaseInOut(4);
-		_powEaseInOut5      = new PowEaseInOut(5);
-		_sinEaseIn          = new SinEaseIn();
-		_sinEaseOut         = new SinEaseOut();
-		_sinEaseInOut       = new SinEaseInOut();
-		_expEaseIn          = new ExpEaseIn();
-		_expEaseOut         = new ExpEaseOut();
-		_expEaseInOut       = new ExpEaseInOut();
-		_circularEaseIn     = new CircularEaseIn();
-		_circularEaseOut    = new CircularEaseOut();
-		_circularEaseInOut  = new CircularEaseInOut();
-		_backEaseIn         = new BackEaseIn();
-		_backEaseOut        = new BackEaseOut();
-		_backEaseInOut      = new BackEaseInOut();
-		_elasticEaseIn      = new ElasticEaseIn();
-		_elasticEaseOut     = new ElasticEaseOut();
-		_elasticEaseInOut   = new ElasticEaseInOut();
-		_bounceEaseIn       = new BounceEaseIn();
-		_bounceEaseOut      = new BounceEaseOut();
-		_bounceEaseInOut    = new BounceEaseInOut();
+		mNone = new NullEase();
+		mFlashEaseOut = new FlashEase(100);
+		mFlashEaseIn = new FlashEase(-100);
+		mPowEaseIn2 = new PowEaseIn(2);
+		mPowEaseIn3 = new PowEaseIn(3);
+		mPowEaseIn4 = new PowEaseIn(4);
+		mPowEaseIn5 = new PowEaseIn(5);
+		mPowEaseOut2 = new PowEaseOut(2);
+		mPowEaseOut3 = new PowEaseOut(3);
+		mPowEaseOut4 = new PowEaseOut(4);
+		mPowEaseOut5 = new PowEaseOut(5);
+		mPowEaseInOut2 = new PowEaseInOut(2);
+		mPowEaseInOut3 = new PowEaseInOut(3);
+		mPowEaseInOut4 = new PowEaseInOut(4);
+		mPowEaseInOut5 = new PowEaseInOut(5);
+		mSinEaseIn = new SinEaseIn();
+		mSinEaseOut = new SinEaseOut();
+		mSinEaseInOut = new SinEaseInOut();
+		mExpEaseIn = new ExpEaseIn();
+		mExpEaseOut = new ExpEaseOut();
+		mExpEaseInOut = new ExpEaseInOut();
+		mCircularEaseIn = new CircularEaseIn();
+		mCircularEaseOut = new CircularEaseOut();
+		mCircularEaseInOut = new CircularEaseInOut();
+		mBackEaseIn = new BackEaseIn();
+		mBackEaseOut = new BackEaseOut();
+		mBackEaseInOut = new BackEaseInOut();
+		mElasticEaseIn = new ElasticEaseIn();
+		mElasticEaseOut = new ElasticEaseOut();
+		mElasticEaseInOut = new ElasticEaseInOut();
+		mBounceEaseIn = new BounceEaseIn();
+		mBounceEaseOut = new BounceEaseOut();
+		mBounceEaseInOut = new BounceEaseInOut();
 	}
 	
-	function _create(x:Ease):Interpolation<Float>
+	function mCreate(x:Ease):Interpolation<Float>
 	{
 		switch (x)
 		{
 			case None:
-				return _none;
+				return mNone;
+			
+			case Flash(acceleration):
+				switch (acceleration)
+				{
+					case  100: if (mFlashEaseOut == null) mFlashEaseOut = new FlashEase(100); return mFlashEaseOut;
+					case -100: if (mFlashEaseIn == null) mFlashEaseIn = new FlashEase(-100); return mFlashEaseIn;
+					case    _: return new FlashEase(acceleration);
+				}
 			
 			case PowIn(degree):
 				switch (degree)
 				{
-					case 2: return _powEaseIn2;
-					case 3: return _powEaseIn3;
-					case 4: return _powEaseIn4;
-					case 5: return _powEaseIn5;
+					case 2: return mPowEaseIn2;
+					case 3: return mPowEaseIn3;
+					case 4: return mPowEaseIn4;
+					case 5: return mPowEaseIn5;
 				}
 			
 			case PowOut(degree):
 				switch (degree)
 				{
-					case 2: return _powEaseOut2;
-					case 3: return _powEaseOut3;
-					case 4: return _powEaseOut4;
-					case 5: return _powEaseOut5;
+					case 2: return mPowEaseOut2;
+					case 3: return mPowEaseOut3;
+					case 4: return mPowEaseOut4;
+					case 5: return mPowEaseOut5;
 				}
-				
+			
 			case PowInOut(degree):
 				switch (degree)
 				{
-					case 2: return _powEaseInOut2;
-					case 3: return _powEaseInOut3;
-					case 4: return _powEaseInOut4;
-					case 5: return _powEaseInOut5;
+					case 2: return mPowEaseInOut2;
+					case 3: return mPowEaseInOut3;
+					case 4: return mPowEaseInOut4;
+					case 5: return mPowEaseInOut5;
 				}
-				
-			case SinIn:    return _sinEaseIn;
-			case SinOut:   return _sinEaseOut;
-			case SinInOut: return _sinEaseInOut;
 			
-			case ExpIn:    return _expEaseIn;
-			case ExpOut:   return _expEaseOut;
-			case ExpInOut: return _expEaseInOut;
+			case SinIn:    return mSinEaseIn;
+			case SinOut:   return mSinEaseOut;
+			case SinInOut: return mSinEaseInOut;
 			
-			case CircularIn:    return _circularEaseIn;
-			case CircularOut:   return _circularEaseOut;
-			case CircularInOut: return _circularEaseInOut;
+			case ExpIn:    return mExpEaseIn;
+			case ExpOut:   return mExpEaseOut;
+			case ExpInOut: return mExpEaseInOut;
 			
-			case BackIn(overshoot):    return overshoot == .1 ? _backEaseIn    : new BackEaseIn(overshoot);
-			case BackOut(overshoot):   return overshoot == .1 ? _backEaseOut   : new BackEaseOut(overshoot);
-			case BackInOut(overshoot): return overshoot == .1 ? _backEaseInOut : new BackEaseInOut(overshoot);
+			case CircularIn:    return mCircularEaseIn;
+			case CircularOut:   return mCircularEaseOut;
+			case CircularInOut: return mCircularEaseInOut;
 			
-			case ElasticIn(period, amplitude):    return (period == 0. && amplitude == .3) ? _elasticEaseIn    : new ElasticEaseIn(amplitude, period);
-			case ElasticOut(period, amplitude):   return (period == 0. && amplitude == .3) ? _elasticEaseOut   : new ElasticEaseOut(amplitude, period);
-			case ElasticInOut(period, amplitude): return (period == 0. && amplitude == .3) ? _elasticEaseInOut : new ElasticEaseInOut(amplitude, period);
+			case BackIn(overshoot):    return overshoot == .1 ? mBackEaseIn    : new BackEaseIn(overshoot);
+			case BackOut(overshoot):   return overshoot == .1 ? mBackEaseOut   : new BackEaseOut(overshoot);
+			case BackInOut(overshoot): return overshoot == .1 ? mBackEaseInOut : new BackEaseInOut(overshoot);
 			
-			case BounceIn:    return _bounceEaseIn;
-			case BounceOut:   return _bounceEaseOut;
-			case BounceInOut: return _bounceEaseInOut;
+			case ElasticIn(period, amplitude):    return (period == 0. && amplitude == .3) ? mElasticEaseIn    : new ElasticEaseIn(amplitude, period);
+			case ElasticOut(period, amplitude):   return (period == 0. && amplitude == .3) ? mElasticEaseOut   : new ElasticEaseOut(amplitude, period);
+			case ElasticInOut(period, amplitude): return (period == 0. && amplitude == .3) ? mElasticEaseInOut : new ElasticEaseInOut(amplitude, period);
+			
+			case BounceIn:    return mBounceEaseIn;
+			case BounceOut:   return mBounceEaseOut;
+			case BounceInOut: return mBounceEaseInOut;
 		}
 		
 		return null;

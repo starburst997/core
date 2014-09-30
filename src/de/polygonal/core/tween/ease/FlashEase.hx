@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2012-2014 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -19,69 +19,34 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.interpolation.Interpolation;
+import de.polygonal.core.math.Mathematics;
 
 /**
-	Bounce easing in+out.
-	
-	Borrowed from Robert Penner Easing Equations v1.5
-	See http://snippets.dzone.com/posts/show/4005
+	The "classic" flash easing with an easing value in the range [-100,100].
 **/
-class BounceEaseInOut implements Interpolation<Float>
+class FlashEase implements Interpolation<Float>
 {
-	public function new() {}
+	public var acceleration:Float;
+	
+	/**
+		`acceleration` defines the easing value in the range [-100,100].
+	**/
+	public function new(acceleration:Float)
+	{
+		this.acceleration = M.fclampSym(acceleration, 100) / 100;
+	}
 	
 	/**
 		Computes the easing value using the given parameter `t` in the interval [0,1].
 	**/
 	public function interpolate(t:Float):Float
 	{
-		if (t < .5)
-		{
-			t = 1 - t * 2;
-			
-			if (t < 1 / 2.75)
-				return (1 - (7.5625 * t * t)) * .5;
-			else
-			if (t < 2 / 2.75)
-			{
-				t -= 1.5 / 2.75;
-				return (1 - (7.5625 * t * t + .75)) * .5;
-			}
-			else
-			if (t < 2.5 / 2.75)
-			{
-				t -= 2.25 / 2.75;
-				return (1 - (7.5625 * t * t + .9375)) * .5;
-			}
-			else
-			{
-				t -= 2.625 / 2.75;
-				return (1 - (7.5625 * t * t + .984375)) * .5;
-			}
-		}
+		return
+		if (acceleration == 0) t;
 		else
-		{
-			t = (t - .5) * 2;
-			
-			if (t < 1 / 2.75)
-				return (7.5625 * t * t) * .5 + .5;
-			else
-			if (t < 2 / 2.75)
-			{
-				t -= 1.5 / 2.75;
-				return (7.5625 * t * t + .75) * .5 + .5;
-			}
-			else
-			if (t < 2.5 / 2.75)
-			{
-				t -= 2.25 / 2.75;
-				return (7.5625 * t * t + .9375) * .5 + .5;
-			}
-			else
-			{
-				t -= 2.625 / 2.75;
-				return (7.5625 * t * t + .984375) * .5 + .5;
-			}
-		}
+		if (acceleration < 0)
+			t * (t * -acceleration + 1 + acceleration);
+		else
+			t * ((2 - t) * acceleration + (1 - acceleration));
 	}
 }

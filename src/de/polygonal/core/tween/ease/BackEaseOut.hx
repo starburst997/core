@@ -22,28 +22,29 @@ import de.polygonal.core.math.interpolation.Interpolation;
 import de.polygonal.core.math.Mathematics;
 
 /**
- * <p>Back easing out.</p>
- * <p>Borrowed from Robert Penner Easing Equations v1.5</p>
- * <p>See <a href="http://snippets.dzone.com/posts/show/4005" target="_blank">http://snippets.dzone.com/posts/show/4005</a>.</p>
- */
+	Back easing out.
+	
+	Borrowed from Robert Penner Easing Equations v1.5
+	See http://snippets.dzone.com/posts/show/4005
+**/
 class BackEaseOut implements Interpolation<Float>
 {
-	var _overshoot:Float;
+	public var overshoot:Float;
 	
 	/**
 	 * @param overshoot overshoot amount. Default value of 0.1 produces an overshoot of 10%.
 	 */
 	public function new(overshoot = .1)
 	{
-		_overshoot = M.lerp(0, 17.0158, overshoot);
+		this.overshoot = M.lerp(0, 17.0158, overshoot);
 	}
 	
 	/**
-	 * @param t interpolation parameter in the interval <arg>&#091;0, 1&#093;</arg>.
-	 */
+		Computes the easing value using the given parameter `t` in the interval [0,1].
+	**/
 	public function interpolate(t:Float):Float
 	{
 		t -= 1;
-		return (t * t * ((_overshoot + 1) * t + _overshoot) + 1);
+		return (t * t * ((overshoot + 1) * t + overshoot) + 1);
 	}
 }

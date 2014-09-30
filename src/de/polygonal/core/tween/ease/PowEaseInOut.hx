@@ -22,10 +22,11 @@ import de.polygonal.core.math.interpolation.Interpolation;
 import de.polygonal.core.math.Mathematics;
 
 /**
- * <p>Power easing in/out (quadratic, cubic, quartic, quintic).</p>
- * <p>Borrowed from Robert Penner Easing Equations v1.5</p>
- * <p>See <a href="http://snippets.dzone.com/posts/show/4005" target="_blank">http://snippets.dzone.com/posts/show/4005</a>.</p>
- */
+	Power easing in+out (quadratic, cubic, quartic, quintic).
+	
+	Borrowed from Robert Penner Easing Equations v1.5
+	See http://snippets.dzone.com/posts/show/4005
+**/
 class PowEaseInOut implements Interpolation<Float>
 {
 	inline public static var DEGREE_QUADRATIC = 2;
@@ -41,8 +42,8 @@ class PowEaseInOut implements Interpolation<Float>
 	}
 	
 	/**
-	 * @param t interpolation parameter in the interval <arg>&#091;0, 1&#093;</arg>.
-	 */
+		Computes the easing value using the given parameter `t` in the interval [0,1].
+	**/
 	public function interpolate(t:Float):Float
 	{
 		if (t < .5)

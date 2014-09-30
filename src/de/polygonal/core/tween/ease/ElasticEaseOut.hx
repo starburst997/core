@@ -22,14 +22,15 @@ import de.polygonal.core.math.interpolation.Interpolation;
 import de.polygonal.core.math.Mathematics;
 
 /**
- * <p>Elastic easing out.</p>
- * <p>Borrowed from Robert Penner Easing Equations v1.5</p>
- * <p>See <a href="http://snippets.dzone.com/posts/show/4005" target="_blank">http://snippets.dzone.com/posts/show/4005</a>.</p>
- */
+	Elastic easing out.
+	
+	Borrowed from Robert Penner Easing Equations v1.5
+	See http://snippets.dzone.com/posts/show/4005
+**/
 class ElasticEaseOut implements Interpolation<Float>
 {
-	var _amplitude:Float;
-	var _period:Float;
+	public var amplitude:Float;
+	public var period:Float;
 	
 	/**
 	 * @param amplitude wave amplitude. Default value equals zero.
@@ -37,27 +38,27 @@ class ElasticEaseOut implements Interpolation<Float>
 	 */
 	public function new(amplitude = .0, period = .3)
 	{
-		_amplitude = amplitude;
-		_period    = period;
+		this.amplitude = amplitude;
+		this.period = period;
 	}
 	
 	/**
-	 * @param t interpolation parameter in the interval <arg>&#091;0, 1&#093;</arg>.
-	 */
+		Computes the easing value using the given parameter `t` in the interval [0,1].
+	**/
 	public function interpolate(t:Float):Float
 	{
 		var s, a;
-		if (_amplitude < 1)
+		if (amplitude < 1)
 		{
 			a = 1.;
-			s = _period * .25;
+			s = period * .25;
 		}
 		else
 		{
-			a = _amplitude;
-			s = _period / M.PI2 * Math.asin(1 / a);
+			a = amplitude;
+			s = period / M.PI2 * Math.asin(1 / a);
 		}
 		
-		return a * Math.pow(2, -10 * t) * Math.sin((t - s) * M.PI2 / _period) + 1;
+		return a * Math.pow(2, -10 * t) * Math.sin((t - s) * M.PI2 / period) + 1;
 	}
 }

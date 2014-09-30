@@ -19,15 +19,17 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.interpolation.Interpolation;
-import de.polygonal.core.math.Mathematics;
 
 /**
- * <p>No easing (linear interpolation)</p>.
- */
+	Linear interpolation (no easing).
+**/
 class NullEase implements Interpolation<Float>
 {
 	public function new() {}
 	
+	/**
+		Returns `t`.
+	**/
 	public function interpolate(t:Float):Float
 	{
 		return t;
