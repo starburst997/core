@@ -18,15 +18,23 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.util;
 
-class ClassTools
+class ClassUtil
 {
 	#if macro
 	/**
-	 * Adds an unique static integer constant named 'TYPE'.
-	 */
-	static var counter:haxe.ds.StringMap<Int> = null;
+		Adds an unique static integer constant named `TYPE`.
+	**/
+	static var mCounter:haxe.ds.StringMap<Int> = null;
+	
 	macro public static function genClassType(fieldName:String = "TYPE"):Array<haxe.macro.Expr.Field>
 	{
+		haxe.macro.Context.onMacroContextReused(
+			function()
+			{
+				mCounter = null;
+				return false;
+			});
+		
 		var key = "";
 		var c = haxe.macro.Context.getLocalClass().get();
 		while (c.superClass != null)
@@ -37,19 +45,19 @@ class ClassTools
 		if (c.interfaces.length > 0)
 			key = c.interfaces.toString();
 		
-		if (counter == null)
-			counter = new haxe.ds.StringMap<Int>();
+		if (mCounter == null)
+			mCounter = new haxe.ds.StringMap<Int>();
 		
 		var i = 0;
-		if (counter.exists(key))
+		if (mCounter.exists(key))
 		{
-			i = counter.get(key);
-			counter.set(key, i + 1);
+			i = mCounter.get(key);
+			mCounter.set(key, i + 1);
 		}
 		else
 		{
-			trace('init counter for $key');
-			counter.set(key, 1);
+			trace('init mCounter for $key');
+			mCounter.set(key, 1);
 		}
 		
 		var p = haxe.macro.Context.currentPos();

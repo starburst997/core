@@ -20,9 +20,8 @@ package de.polygonal.core.es;
 
 import de.polygonal.core.es.Msg;
 import de.polygonal.core.es.MsgQue.MsgBundle;
-import de.polygonal.core.util.Assert;
-import de.polygonal.core.util.ClassTools;
-
+import de.polygonal.core.util.Assert.assert;
+import de.polygonal.core.util.ClassUtil;
 import de.polygonal.core.es.EntitySystem in ES;
 
 @:access(de.polygonal.core.es.EntitySystem)
@@ -82,7 +81,7 @@ class Entity
 		
 		#if debug
 		if (name == null)
-			name = ClassTools.getUnqualifiedClassName(this);
+			name = ClassUtil.getUnqualifiedClassName(this);
 		#end
 		
 		if (name != null) mName = name;
@@ -269,12 +268,14 @@ class Entity
 	
 	public function add<T:Entity>(?cl:Class<T>, ?inst:T):T
 	{
+		assert(cl != null || inst != null);
+		
 		var x:Entity = inst;
 		if (x == null)
 			x = Type.createInstance(cl, []);
 		
-		D.assert(x.parent != this);
-		D.assert(x.parent == null);
+		assert(x.parent != this);
+		assert(x.parent == null);
 		
 		x.parent = this;
 		
@@ -328,7 +329,6 @@ class Entity
 		
 		lastChild = x;
 		
-		onAddChild(x);
 		x.onAdd();
 		
 		return cast x;
@@ -339,14 +339,14 @@ class Entity
 		if (x == null || x == this)
 		{
 			//remove myself
-			D.assert(parent != null);
+			assert(parent != null);
 			parent.remove(this);
 			return;
 		}
 		
-		D.assert(x.parent != null);
-		D.assert(x != this);
-		D.assert(x.parent == this);
+		assert(x.parent != null);
+		assert(x != this);
+		assert(x.parent == this);
 		
 		//update #children
 		numChildren--;
@@ -382,7 +382,7 @@ class Entity
 			//case 2: second to last child is removed
 			var prev = child.findPredecessor(x);
 			
-			D.assert(prev != null);
+			assert(prev != null);
 			
 			//update lastChild
 			if (x.sibling == null)
@@ -751,7 +751,7 @@ class Entity
 	
 	public function getChildAt(index:Int):Entity
 	{
-		D.assert(index >= 0 && index < numChildren, 'index $index out of range');
+		assert(index >= 0 && index < numChildren, 'index $index out of range');
 		
 		var i = 0;
 		var e = child;
@@ -897,11 +897,9 @@ class Entity
 	
 	public function toString():String
 	{
-		if (name == null) name = '[${ClassTools.getClassName(this)}]';
+		if (name == null) name = '[${ClassUtil.getClassName(this)}]';
 		return '{ Entity $name }';
 	}
-	
-	@:noCompletion function onAddChild(child:Entity) {}
 	
 	@:noCompletion function onAdd() {}
 	
@@ -917,7 +915,7 @@ class Entity
 	
 	@:noCompletion inline function findPredecessor(e:Entity):Entity
 	{
-		D.assert(parent == e.parent);
+		assert(parent == e.parent);
 		 
 		var i = this;
 		while (i != null)
