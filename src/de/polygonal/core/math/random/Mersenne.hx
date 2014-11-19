@@ -21,101 +21,106 @@ package de.polygonal.core.math.random;
 import haxe.ds.Vector;
 
 /**
- * <p>Mersenne Twister random number generator.</p>
- * <p>Taken from the book "Essential Mathematics for Games And Interactive Applications"</p>
- * <p>Copyright (C) 2008 by Elsevier, Inc. All rights reserved.</p>
- * <p>This class uses the Mersenne Twister type MT19937, it does not use the faster SIMD-oriented Mersenne Twister as that requires 64-bit integers.</p>
- */
+	Mersenne Twister random number generator.
+	
+	Taken from the book "Essential Mathematics for Games And Interactive Applications".
+	
+	Copyright (C) 2008 by Elsevier, Inc. All rights reserved.
+	
+	This class uses the Mersenne Twister type MT19937, it does not use the faster SIMD-oriented Mersenne Twister as that requires 64-bit integers.
+**/
 class Mersenne extends RNG
 {
-	inline static var kN         = 624;
-	inline static var kM         = 397;
-	inline static var kR         = 31;
-	inline static var kA         = 0x9908B0DF;
-	inline static var kU         = 11;
-	inline static var kS         = 7;
-	inline static var kT         = 15;
-	inline static var kL         = 18;
-	inline static var kB         = 0x9D2C5680;
-	inline static var kC         = 0xEFC60000;
+	inline static var kN = 624;
+	inline static var kM = 397;
+	inline static var kR = 31;
+	inline static var kA = 0x9908B0DF;
+	inline static var kU = 11;
+	inline static var kS = 7;
+	inline static var kT = 15;
+	inline static var kL = 18;
+	inline static var kB = 0x9D2C5680;
+	inline static var kC = 0xEFC60000;
 	inline static var kLowerMask = ((0x00000001) << kR) - 1;
 	inline static var kUpperMask = 0xFFFFFFFF << kR;
 	inline static var kTwistMask = 0x00000001;
 	
 	#if (flash10 && alchemy)
-	var _stateVector:de.polygonal.ds.mem.IntMemory;
-	var _kMag01:de.polygonal.ds.mem.IntMemory;
+	var mStateVector:de.polygonal.ds.mem.IntMemory;
+	var mKmag01:de.polygonal.ds.mem.IntMemory;
 	#else
-	var _stateVector:Vector<Int>;
-	var _kMag01:Vector<Int>;
+	var mStateVector:Vector<Int>;
+	var mKmag01:Vector<Int>;
 	#end
 	
-	var _currentEntry:Int;
+	var mCurrentEntry:Int;
 	
 	/**
-	 * Default seed value is 5489.
-	 */
+		Default seed value is 5489.
+	**/
 	public function new(seed = 5489)
 	{
 		super();
 		
-		_stateVector =
+		mStateVector =
 		#if (flash10 && alchemy)
 		new de.polygonal.ds.mem.IntMemory(kN);
 		#else
 		new Vector<Int>(kN);
 		#end
 		
-		_kMag01 =
+		mKmag01 =
 		#if (flash10 && alchemy)
 		new de.polygonal.ds.mem.IntMemory(2);
 		#else
 		new Vector<Int>(2);
 		#end
-		_kMag01.set(0, 0);
-		_kMag01.set(1, kA);
+		mKmag01.set(0, 0);
+		mKmag01.set(1, kA);
 		
-		setSeed(seed);
+		this.seed = seed;
 	}
 	
 	public function free()
 	{
 		#if (flash10 && alchemy)
-		_stateVector.free();
-		_kMag01.free();
+		mStateVector.free();
+		mKmag01.free();
 		#end
 		
-		_stateVector = null;
-		_kMag01 = null;
+		mStateVector = null;
+		mKmag01 = null;
 	}
 	
-	override public function setSeed(seed:Int)
+	override function set_seed(value:Int):Int
 	{
-		super.setSeed(seed);
+		super.set_seed(value);
 		
-		_setState(0, seed);
+		setState(0, seed);
 		
 		#if js
 		for (i in 1...kN)
 		{
-			_setState(i, add32(mul32(0x6C078965, ui32(_getState(i - 1) ^ (_getState(i - 1) >>> 30))), i));
-			_setState(i, ui32(_getState(i) & 0xFFFFFFFF));
+			setState(i, add32(mul32(0x6C078965, ui32(getState(i - 1) ^ (getState(i - 1) >>> 30))), i));
+			setState(i, ui32(getState(i) & 0xFFFFFFFF));
 		}
 		#else
-		for (i in 1...kN) _setState(i, (0x6C078965 * (_getState(i - 1) ^ (_getState(i - 1) >>> 30)) + i));
+		for (i in 1...kN) setState(i, (0x6C078965 * (getState(i - 1) ^ (getState(i - 1) >>> 30)) + i));
 		#end
 		
-		_currentEntry = kN;
+		mCurrentEntry = kN;
+		
+		return value;
 	}
 	
 	/**
-	 * Initialize by an array of <code>keys</code>.
-	 */
+		Initialize by an array of `keys`.
+	**/
 	public function initByArray(keys:Array<Int>)
 	{
 		var i = 1, j = 0;
 		
-		setSeed(19650218);
+		this.seed = 19650218;
 		
 		var length = keys.length;
 		
@@ -124,10 +129,10 @@ class Mersenne extends RNG
 		while (k > 0)
 		{
 			#if js
-			_setState(i, add32(add32(ui32(_getState(i) ^ mul32(ui32(_getState(i-1) ^ (_getState(i - 1) >>> 30)), 1664525)), keys[j]), j));
-			_setState(i, ui32(_getState(i) & 0xFFFFFFFF));
+			setState(i, add32(add32(ui32(getState(i) ^ mul32(ui32(getState(i-1) ^ (getState(i - 1) >>> 30)), 1664525)), keys[j]), j));
+			setState(i, ui32(getState(i) & 0xFFFFFFFF));
 			#else
-			_setState(i, (_getState(i) ^ ((_getState(i - 1) ^ (_getState(i - 1) >>> 30)) * 1664525)) + keys[j] + j);
+			setState(i, (getState(i) ^ ((getState(i - 1) ^ (getState(i - 1) >>> 30)) * 1664525)) + keys[j] + j);
 			#end
 			
 			i++;
@@ -135,7 +140,7 @@ class Mersenne extends RNG
 			
 			if (i >= kN)
 			{
-				_setState(0, _getState(kN-1));
+				setState(0, getState(kN-1));
 				i = 1;
 			}
 			
@@ -147,68 +152,68 @@ class Mersenne extends RNG
 		while (k > 0)
 		{
 			#if js
-			_setState(i, sub32(ui32((_getState(i)) ^ mul32(ui32(_getState(i - 1) ^ (_getState(i - 1) >>> 30)), 1566083941)), i));
-			_setState(i, ui32(_getState(i) & 0xFFFFFFFF));
+			setState(i, sub32(ui32((getState(i)) ^ mul32(ui32(getState(i - 1) ^ (getState(i - 1) >>> 30)), 1566083941)), i));
+			setState(i, ui32(getState(i) & 0xFFFFFFFF));
 			#else
-			_setState(i, (_getState(i) ^ ((_getState(i - 1) ^ (_getState(i - 1) >>> 30)) * 1566083941)) - i);
+			setState(i, (getState(i) ^ ((getState(i - 1) ^ (getState(i - 1) >>> 30)) * 1566083941)) - i);
 			#end
 			
 			i++;
 			if (i >= kN)
 			{
-				_setState(0, _getState(kN - 1));
+				setState(0, getState(kN - 1));
 				i = 1;
 			}
 			
 			k--;
 		}
 		
-		_setState(0, 0x80000000);
+		setState(0, 0x80000000);
 	}
 	
 	/**
-	 * Returns an integral number in the interval <arg>&#091;0, 0xFFFFFFFF&#093;</arg>.<br/>
-	 */
+		Returns an integral number in the interval [0,0xFFFFFFFF].
+	**/
 	override public function random():Float
 	{
-		if (_currentEntry >= kN)
+		if (mCurrentEntry >= kN)
 		{
 			var temp:Int;
 			
 			for (k in 0...kN - kM)
 			{
 				#if js
-				temp = ui32(((_getState(k) & kUpperMask) | (_getState(k + 1) & kLowerMask)));
-				_setState(k, ui32(_getState(k + kM) ^ (temp >>> 1) ^ _getMag01(temp & kTwistMask)));
+				temp = ui32(((getState(k) & kUpperMask) | (getState(k + 1) & kLowerMask)));
+				setState(k, ui32(getState(k + kM) ^ (temp >>> 1) ^ getMag01(temp & kTwistMask)));
 				#else
-				temp = ((_getState(k) & kUpperMask) | (_getState(k + 1) & kLowerMask));
-				_setState(k, _getState(k + kM) ^ (temp >>> 1) ^ _getMag01(temp & kTwistMask));
+				temp = ((getState(k) & kUpperMask) | (getState(k + 1) & kLowerMask));
+				setState(k, getState(k + kM) ^ (temp >>> 1) ^ getMag01(temp & kTwistMask));
 				#end
 			}
 			
 			for (k in kN - kM...kN - 1)
 			{
 				#if js
-				temp = ui32((_getState(k) & kUpperMask) | (_getState(k + 1) & kLowerMask));
-				_setState(k, ui32(_getState(k + (kM - kN)) ^ (temp >>> 1) ^ _getMag01(temp & kTwistMask)));
+				temp = ui32((getState(k) & kUpperMask) | (getState(k + 1) & kLowerMask));
+				setState(k, ui32(getState(k + (kM - kN)) ^ (temp >>> 1) ^ getMag01(temp & kTwistMask)));
 				#else
-				temp = ((_getState(k) & kUpperMask) | (_getState(k + 1) & kLowerMask));
-				_setState(k, _getState(k + (kM - kN)) ^ (temp >>> 1) ^ _getMag01(temp & kTwistMask));
+				temp = ((getState(k) & kUpperMask) | (getState(k + 1) & kLowerMask));
+				setState(k, getState(k + (kM - kN)) ^ (temp >>> 1) ^ getMag01(temp & kTwistMask));
 				#end
 			}
 			
 			#if js
-			temp = ui32((_getState(kN - 1) & kUpperMask) | (_getState(0) & kLowerMask));
-			_setState(kN - 1, ui32(_getState(kM - 1) ^ (temp >>> 1) ^ _getMag01(temp & kTwistMask)));
+			temp = ui32((getState(kN - 1) & kUpperMask) | (getState(0) & kLowerMask));
+			setState(kN - 1, ui32(getState(kM - 1) ^ (temp >>> 1) ^ getMag01(temp & kTwistMask)));
 			#else
-			temp = ((_getState(kN - 1) & kUpperMask) | (_getState(0) & kLowerMask));
-			_setState(kN - 1, _getState(kM - 1) ^ (temp >>> 1) ^ _getMag01(temp & kTwistMask));
+			temp = ((getState(kN - 1) & kUpperMask) | (getState(0) & kLowerMask));
+			setState(kN - 1, getState(kM - 1) ^ (temp >>> 1) ^ getMag01(temp & kTwistMask));
 			#end
 			
-			_currentEntry = 0;
+			mCurrentEntry = 0;
 		}
 		
-		var y = _getState(_currentEntry++);
+		var y = getState(mCurrentEntry++);
 		
 		#if js
 		y = ui32(y ^ (y >>> kU));
@@ -234,19 +239,19 @@ class Mersenne extends RNG
 		return random() * (1. / 4294967296.);
 	}
 	
-	inline function _getMag01(i:Int)
+	inline function getMag01(i:Int)
 	{
-		return _kMag01.get(i);
+		return mKmag01.get(i);
 	}
 	
-	inline function _getState(i:Int)
+	inline function getState(i:Int)
 	{
-		return _stateVector.get(i);
+		return mStateVector.get(i);
 	}
 	
-	inline function _setState(i:Int, x:Int)
+	inline function setState(i:Int, x:Int)
 	{
-		_stateVector.set(i, x);
+		mStateVector.set(i, x);
 	}
 	
 	#if js

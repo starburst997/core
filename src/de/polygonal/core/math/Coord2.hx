@@ -1,5 +1,5 @@
-﻿/*
-Copyright (c) 2012-2014 Michael Baczynski, http://www.polygonal.de
+/*
+Copyright (c) 2014 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -16,16 +16,60 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.math.interpolation;
+package de.polygonal.core.math;
 
 /**
- * <p>Interpolates between two values using the interpolation parameter <code>t</code>.</p>
- * <p>The simplest form is linear interpolation, which is defined as: <code>(1 - t) * a + t * b</code>.</p>
- */
-interface Interpolation<T>
+	A point representing a location in (`x`,`y`) coordinate space.
+**/
+#if !doc @:generic #end
+class Coord2<T:Float>
 {
-	/**
-	 * Computes the interpolated value using the interpolation parameter <code>t</code>, where <code></code> is in the interval <arg>&#091;0, 1&#093;</arg>.
-	 */
-	function interpolate(t:Float):T;
+	public var x:T;
+	public var y:T;
+	
+	public function new(x:T = untyped 0, y:T = untyped 0)
+	{
+		set(x, y);
+	}
+	
+	inline public function of(other:Coord2<T>)
+	{
+		x = other.x;
+		y = other.y;
+	}
+	
+	inline public function set(x:T, y:T)
+	{
+		this.x = x;
+		this.y = y;
+	}
+	
+	inline public function isZero():Bool
+	{
+		return untyped x == 0 && y == 0;
+	}
+	
+	inline public function zero()
+	{
+		x = cast 0;
+		y = cast 0;
+	}
+	
+	inline public function equals(other:Coord2<T>):Bool
+	{
+		return other.x == x && other.y == y;
+	}
+	
+	public function clone():Coord2<T>
+	{
+		return new Coord2<T>(x, y);
+	}
+	
+	public function toString():String
+	{
+		return Printf.format("{ Coord2 %-.4f %-.4f }", [x, y]);
+	}
 }
+
+typedef Coord2f = Coord2<Float>;
+typedef Coord2i = Coord2<Int>;

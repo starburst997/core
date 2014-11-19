@@ -1,5 +1,5 @@
-﻿/*
-Copyright (c) 2012-2014 Michael Baczynski, http://www.polygonal.de
+/*
+Copyright (c) 2014 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -16,49 +16,64 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.math.random;
-
-import de.polygonal.core.util.Assert.assert;
+package de.polygonal.core.math;
 
 /**
-	A Park-Miller-Carta PRNG (pseudo random number generator).
-	
-	Uses double-precision floating point to prevent overflow. Recommended since the fastest on most platforms.
-	
-	The seed value has to be in the range [0,2^31 - 1].
+	A point representing a location in (`x`,`y`,`z`) coordinate space.
 **/
-class ParkMiller extends RNG
+#if !doc @:generic #end
+class Coord3<T:Float>
 {
-	var mSeedf:Float;
+	public var x:T;
+	public var y:T;
+	public var z:T;
 	
-	/**
-		Default seed value is 1.
-	**/
-	public function new(seed:Int = 1)
+	public function new(x:T = untyped 0, y:T = untyped 0, z:T = untyped 0)
 	{
-		super();
-		this.seed = 1;
+		set(x, y, z);
 	}
 	
-	override function set_seed(value:Int):Int
+	inline public function of(other:Coord3<T>)
 	{
-		assert(seed >= 0 && seed < Limits.INT32_MAX);
-		mSeedf = seed;
-		super.set_seed(value);
-		return value;
+		x = other.x;
+		y = other.y;
+		z = other.z;
 	}
 	
-	/**
-		Returns an integral number in the interval [0,0x7FFFFFFF).
-	**/
-	override public function random():Float
+	inline public function set(x:T, y:T, z:T)
 	{
-		mSeedf = (mSeedf * 16807.) % 2147483647.;
-		return mSeedf;
+		this.x = x;
+		this.y = y;
+		this.z = z;
 	}
 	
-	override public function randomFloat():Float
+	inline public function zero()
 	{
-		return random() / 2147483647.;
+		x = cast 0;
+		y = cast 0;
+		z = cast 0;
+	}
+	
+	inline public function isZero():Bool
+	{
+		return untyped x == 0 && y == 0;
+	}
+	
+	inline public function equals(other:Coord3<T>):Bool
+	{
+		return other.x == x && other.y == y;
+	}
+	
+	public function clone():Coord3<T>
+	{
+		return new Coord3<T>(x, y, z);
+	}
+	
+	public function toString():String
+	{
+		return Printf.format("{ Coord3 %-.4f %-.4f %-.4f }", [x, y, z]);
 	}
 }
+
+typedef Coord3f = Coord3<Float>;
+typedef Coord3i = Coord3<Int>;

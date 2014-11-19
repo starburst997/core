@@ -18,22 +18,17 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
-import de.polygonal.core.math.Mathematics;
+import de.polygonal.core.math.Coord3.Coord3f;
+import de.polygonal.core.math.Mathematics.M;
 
 /**
- * <p>A 3D vector.</p>
- * <p>A geometric object that has both a magnitude (or length) and direction.</p>
- */
-class Vec3
+	A 3d vector; a geometric object that has both a magnitude (or length) and direction.
+**/
+class Vec3 extends Coord3f
 {
 	/**
-	 * Creates a new <code>Vec3</code> object from the values of <code>src</code>.
-	 */
-	inline public static function of(src:Vec3):Vec3
-	{
-		return new Vec3(src.x, src.y, src.z, src.w);
-	}
-	
+		`output` = `a` + `b`.
+	**/
 	inline public static function add(a:Vec3, b:Vec3, output:Vec3):Vec3
 	{
 		output.x = a.x + b.x;
@@ -42,6 +37,9 @@ class Vec3
 		return output;
 	}
 	
+	/**
+		`output` = `a` - `b`.
+	**/
 	inline public static function sub(a:Vec3, b:Vec3, output:Vec3):Vec3
 	{
 		output.x = a.x - b.x;
@@ -50,6 +48,17 @@ class Vec3
 		return output;
 	}
 	
+	/**
+		`output` = `a` · `b`.
+	**/
+	inline public static function dot(a:Vec3, b:Vec3, output:Vec3):Float
+	{
+		return a.x * b.x + a.y * b.y + a.z * b.z;
+	}
+	
+	/**
+		`output` = `a` × `b`.
+	**/
 	inline public static function cross(a:Vec3, b:Vec3, output:Vec3):Vec3
 	{
 		output.x = a.y * b.z - a.z * b.y;
@@ -59,106 +68,84 @@ class Vec3
 	}
 	
 	/**
-	 * The x-component.
-	 */
-	public var x:Float;
-
-	/**
-	 * The y-component.
-	 */
-	public var y:Float;
-	
-	/**
-	 * The z-component.
-	 */
-	public var z:Float;
-	
-	/**
-	 * Homogeneous coordinate. Default is 1.
-	 */
+		Homogeneous coordinate. Default is 1.
+	**/
 	public var w:Float;
 	
-	public function new(x = 0., y = 0., z = 0., w = 1.)
+	public function new(x:Float = 0, y:Float = 0, z:Float = 0)
 	{
-		this.x = x;
-		this.y = y;
-		this.z = z;
-		this.w = w;
-	}
-	
-	inline public function zero():Vec3
-	{
-		x = y = z = 0;
+		super(x, y, z);
 		w = 1;
-		return this;
 	}
 	
-	inline public function flip():Vec3
+	inline public function flip()
 	{
-		x = -x; y = -y; z = -z;
-		return this;
+		x = -x;
+		y = -y;
+		z = -z;
 	}
 	
-	inline public function scale(v:Float):Vec3
-	{
-		x *= v; y *= v; z *= v;
-		return this;
-	}
-	
-	public function normalize():Vec3
-	{
-		var k = length();
-		if (k < M.EPS) k = 0 else k = 1. / k;
-		x *= k;
-		y *= k;
-		z *= k;
-		return this;
-	}
-	
-	inline public function length():Float
+	/**
+		The vector length.
+	**/
+	inline function length():Float
 	{
 		return Math.sqrt(lengthSq());
 	}
 	
-	inline public function lengthSq():Float
+	/**
+		The squared vector length.
+	**/
+	inline function lengthSq():Float
 	{
 		return x * x + y * y + z * z;
 	}
 	
-	inline public function multiplyMatrix(rhs:Mat44):Vec3
+	/**
+		Converts this vector to unit length and returns the original vector length.
+	**/
+	public function normalize():Float
 	{
-		var tx = x;
-		var ty = y;
-		var tz = z;
-		var tw = w;
-		x = tx * rhs.m11 + ty * rhs.m21 + tz * rhs.m31 + tw * rhs.m41;
-		y = tx * rhs.m12 + ty * rhs.m22 + tz * rhs.m32 + tw * rhs.m42;
-		z = tx * rhs.m13 + ty * rhs.m23 + tz * rhs.m33 + tw * rhs.m43;
-		w = tx * rhs.m14 + ty * rhs.m24 + tz * rhs.m34 + tw * rhs.m44;
-		return this;
+		var l = length();
+		l = l < M.EPS ? 0 : 1 / l;
+		x *= l;
+		y *= l;
+		z *= l;
+		return l;
 	}
 	
-	/** Assigns the values of <code>other</code> to this. */
-	inline public function set(other:Vec3):Vec3
+	/**
+		Scales this vector by `value`.
+	**/
+	inline public function scale(value:Float)
 	{
-		x = other.x;
-		y = other.y;
-		z = other.z;
-		w = other.w;
-		return this;
+		x *= value;
+		y *= value;
+		z *= value;
 	}
 	
-	public function clone():Vec3
+	/**
+		Clamps this vector to `max` length.
+	**/
+	inline public function clamp(max:Float)
 	{
-		return new Vec3(x, y, z, w);
+		var l = lengthSq();
+		if (l > max * max)
+		{
+			l = 1 / Math.sqrt(l);
+			x = (x * l) * max;
+			y = (y * l) * max;
+			z = (z * l) * max;
+		}
 	}
 	
-	public function toString():String
+	override public function clone():Vec3
 	{
-		return Printf.format("Vec3:\n" +
-			"[%-+10.4f]\n" +
-			"[%-+10.4f]\n" +
-			"[%-+10.4f]\n" +
-			"[%-+10.4f]", [x, y, z, w]);
+		return new Vec3(x, y, z);
+	}
+	
+	override public function toString():String
+	{
+		return Printf.format("{ Vec3 %-.4f %-.4f %-.4f %-.4f }", [x, y, z, w]);
 	}
 }

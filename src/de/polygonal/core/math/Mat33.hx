@@ -9,7 +9,7 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or
 substantial portions of the Software.
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
 NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
@@ -18,18 +18,18 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
-import de.polygonal.core.math.Mathematics;
-import de.polygonal.core.util.Assert;
+import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.util.Assert.assert;
 
 /**
- * <p>A 3x3 matrix.</p>
- * <p>Matrix operations are applied on the left. E.g. given a matrix M and vector V, matrix*vector is M*V, where V is treated as a column vector.</p>
- */
+	A 3x3 matrix.
+	Matrix operations are applied on the left. E.g. given a matrix M and vector V, matrix*vector is M*V, where V is treated as a column vector.
+**/
 class Mat33
 {
 	/**
-	 * @return <code>c</code> = <code>a</code>*<code>b</code>.
-	 */
+		@return `c` = `a`*`b`.
+	**/
 	inline public static function matrixProduct(a:Mat33, b:Mat33, c:Mat33):Mat33
 	{
 		var b11 = b.m11; var b12 = b.m12; var b13 = b.m13;
@@ -66,10 +66,10 @@ class Mat33
 		setIdentity();
 	}
 	
-	/** Returns the column at index <code>i</code> */
+	/** Returns the column at index `i`**/
 	inline public function getCol(i:Int, output:Vec3):Vec3
 	{
-		D.assert(i >= 0 && i < 3, "i >= 0 && i < 3");
+		assert(i >= 0 && i < 3, "i >= 0 && i < 3");
 		
 		switch (i)
 		{
@@ -92,8 +92,8 @@ class Mat33
 		return output;
 	}
 	
-	/** Assigns the values of <code>other</code> to this. */
-	inline public function set(other:Mat33):Mat33
+	/** Assigns the values of `other` to this.**/
+	inline public function of(other:Mat33):Mat33
 	{
 		m11 = other.m11; m12 = other.m12; m13 = other.m13;
 		m21 = other.m21; m22 = other.m22; m23 = other.m23;
@@ -101,7 +101,7 @@ class Mat33
 		return this;
 	}
 	
-	/** Assign three columns. */
+	/** Assign three columns.**/
 	inline public function setCols(u:Vec3, v:Vec3, w:Vec3):Mat33
 	{
 		m11 = u.x; m12 = v.x; m13 = w.x;
@@ -110,7 +110,7 @@ class Mat33
 		return this;
 	}
 	
-	/** Set to identity matrix. */
+	/** Set to identity matrix.**/
 	inline public function setIdentity():Mat33
 	{
 		m11 = 1; m12 = 0; m13 = 0;
@@ -119,7 +119,7 @@ class Mat33
 		return this;
 	}
 	
-	/** Zero out all matrix elements. */
+	/** Zero out all matrix elements.**/
 	inline public function setZero():Mat33
 	{
 		m11 = 0; m12 = 0; m13 = 0;
@@ -128,43 +128,60 @@ class Mat33
 		return this;
 	}
 	
-	/** Set as rotation matrix, rotating by <code>angle</code> radians around x-axis. */
+	/** Set as rotation matrix, rotating by `angle` radians around x-axis.**/
 	inline public function setRotateX(angle:Float):Mat33
 	{
-		TrigApprox.sinCos(angle);
-		var s = TrigApprox.sin;
-		var c = TrigApprox.cos;
+		var s = Math.sin(angle);
+		var c = Math.cos(angle);
 		m11 = 1; m12 = 0; m13 = 0;
 		m21 = 0; m22 = c; m23 =-s;
 		m31 = 0; m32 = s; m33 = c;
 		return this;
 	}
 	
-	/** Set as rotation matrix, rotating by <code>angle</code> radians around y-axis. */
+	/** Set as rotation matrix, rotating by `angle` radians around y-axis.**/
 	inline public function setRotateY(angle:Float):Mat33
 	{
-		TrigApprox.sinCos(angle);
-		var s = TrigApprox.sin;
-		var c = TrigApprox.cos;
+		var s = Math.sin(angle);
+		var c = Math.cos(angle);
 		m11 = c; m12 = 0; m13 = s;
 		m21 = 0; m22 = 1; m23 = 0;
 		m31 =-s; m32 = 0; m33 = c;
 		return this;
 	}
 	
-	/** Set as rotation matrix, rotating by <code>angle</code> radians around z-axis. */
+	/** Set as rotation matrix, rotating by `angle` radians around z-axis.**/
 	inline public function setRotateZ(angle:Float):Mat33
 	{
-		TrigApprox.sinCos(angle);
-		var s = TrigApprox.sin;
-		var c = TrigApprox.cos;
+		var s = Math.sin(angle);
+		var c = Math.cos(angle);
 		m11 = c; m12 =-s; m13 = 0;
 		m21 = s; m22 = c; m23 = 0;
 		m31 = 0; m32 = 0; m33 = 1;
 		return this;
 	}
 	
-	/** Multiplies all matrix elements by the scalar <code>x</code>. */
+	/**
+		Extracts the angle of rotation around the z-axis.
+		The angle is computed as atan2(sin(alpha), cos(alpha)) = atan2(>m21>, >m11>).
+		*The matrix must be a rotation matrix*.
+	**/
+	inline public function getAngle():Float
+	{
+		return Math.atan2(m21, m11);
+	}
+	
+	/** Set as rotation matrix, rotating by `angle` radians in 2d space.**/
+	inline public function setRotate2(angle:Float):Mat33
+	{
+		var s = Math.sin(angle);
+		var c = Math.cos(angle);
+		m11 = c; m12 =-s;
+		m21 = s; m22 = c;
+		return this;
+	}
+	
+	/** Multiplies all matrix elements by the scalar `x`.**/
 	inline public function timesScalar(x:Float)
 	{
 		m11 *= x; m12 *= x; m13 *= x;
@@ -172,7 +189,7 @@ class Mat33
 		m31 *= x; m32 *= x; m33 *= x;
 	}
 	
-	/** Matrix - column vector multiplication (M*V): <code>rhs</code>' = this * <code>rhs</code>. */
+	/** Matrix - column vector multiplication (M*V): `rhs`' = this * `rhs`.**/
 	inline public function timesVector(rhs:Vec3):Vec3
 	{
 		var x = rhs.x;
@@ -185,9 +202,9 @@ class Mat33
 	}
 	
 	/**
-	 * Same as <code>timesVector()</code>, but without modifying <code>rhs</code>.
-	 * @param output stores the result.
-	 */
+		Same as `timesVector()`, but without modifying `rhs`.
+		@param output stores the result.
+	**/
 	inline public function timesVectorConst(rhs:Vec3, output:Vec3):Vec3
 	{
 		var x = rhs.x;
@@ -199,7 +216,7 @@ class Mat33
 		return output;
 	}
 	
-	/** Matrix - row vector multiplication (M^t*V): <code>lhs</code>' = <code>lhs</code>*this. */
+	/** Matrix - row vector multiplication (M^t*V): `lhs`' = `lhs`*this.**/
 	inline public function vectorTimes(lhs:Vec3):Vec3
 	{
 		var x = lhs.x;
@@ -211,7 +228,7 @@ class Mat33
 		return lhs;
 	}
 	
-	/** Computes the matrix transpose and returns this matrix. */
+	/** Computes the matrix transpose and returns this matrix.**/
 	inline public function transpose():Mat33
 	{
 		var t;
@@ -222,9 +239,9 @@ class Mat33
 	}
 	
 	/**
-	 * Same as <code>transpose()</code>, but without modifying this matrix.
-	 * @param output stores the result.
-	 */
+		Same as `transpose()`, but without modifying this matrix.
+		@param output stores the result.
+	**/
 	inline public function transposeConst(output:Mat33):Mat33
 	{
 		output.m11 = m11; output.m12 = m21; output.m13 = m31;
@@ -233,7 +250,7 @@ class Mat33
 		return output;
 	}
 	
-	/** R = M*D */
+	/** R = M*D**/
 	inline public function timesDiagonal(rhs:Vec3):Mat33
 	{
 		//|m11 m12 m13| |x 0 0|
@@ -248,7 +265,7 @@ class Mat33
 		return this;
 	}
 	
-	/** R = M*D<br/>Stores the result in <code>output</code>. */
+	/** R = M*DStores the result in `output`.**/
 	inline public function timesDiagonalConst(rhs:Vec3, output:Mat33):Mat33
 	{
 		//|m11 m12 m13| |x 0 0|
@@ -263,7 +280,7 @@ class Mat33
 		return output;
 	}
 	
-	/** R = D*M */
+	/** R = D*M**/
 	inline public function diagonalTimes(lhs:Vec3):Mat33
 	{
 		//|x 0 0| |m11 m12 m13|
@@ -278,7 +295,7 @@ class Mat33
 		return this;
 	}
 	
-	/** Post-concatenates <code>lhs</code>: this = <code>lhs</code>*this. */
+	/** Post-concatenates `lhs`: this = `lhs`*this.**/
 	inline public function cat(lhs:Mat33):Mat33
 	{
 		var c11 = m11; var c12 = m12; var c13 = m13;
@@ -306,7 +323,7 @@ class Mat33
 		return this;
 	}
 	
-	/** Pre-concatenates <code>rhs</code>: this = this*<code>rhs</code>. */
+	/** Pre-concatenates `rhs`: this = this*`rhs`.**/
 	inline public function precat(rhs:Mat33):Mat33
 	{
 		var c11 = rhs.m11; var c12 = rhs.m12; var c13 = rhs.m13;
@@ -335,9 +352,9 @@ class Mat33
 	}
 	
 	/**
-	 * Inverts and returns this matrix.
-	 * @throws de.polygonal.core.util.AssertError singular matrix (debug only).
-	 */
+		Inverts and returns this matrix.
+		@throws de.polygonal.core.util.AssertError singular matrix (debug only).
+	**/
 	public function inverse():Mat33
 	{
 		var t11 = m11; var t12 = m12; var t13 = m13;
@@ -347,7 +364,7 @@ class Mat33
 		var cf3 = t13 * t32 - t12 * t33;
 		var cf6 = t12 * t23 - t13 * t22;
 		var det = t11 * cf0 + t21 * cf3 + t31 * cf6;
-		D.assert(!M.cmpZero(det, M.ZERO_TOLERANCE), "singular matrix");
+		assert(!M.cmpZero(det, M.ZERO_TOLERANCE), "singular matrix");
 		var invDet = 1 / det;
 		m11 = invDet * cf0;
 		m12 = invDet * cf3;
@@ -362,18 +379,18 @@ class Mat33
 	}
 	
 	/**
-	 * Computes the matrix inverse and stores the result in <code>output</code>.<br/>
-	 * This matrix is left unchanged.
-	 * @return a reference to <code>output</code>.
-	 * @throws de.polygonal.core.util.AssertError singular matrix (debug only).
-	 */
+		Computes the matrix inverse and stores the result in `output`.
+		This matrix is left unchanged.
+		@return a reference to `output`.
+		@throws de.polygonal.core.util.AssertError singular matrix (debug only).
+	**/
 	public function inverseConst(output:Mat33):Mat33
 	{
 		var cf0 = m22 * m33 - m23 * m32;
 		var cf3 = m13 * m32 - m12 * m33;
 		var cf6 = m12 * m23 - m13 * m22;
 		var det = m11 * cf0 + m21 * cf3 + m31 * cf6;
-		D.assert(!M.cmpZero(det, M.ZERO_TOLERANCE), "singular matrix");
+		assert(!M.cmpZero(det, M.ZERO_TOLERANCE), "singular matrix");
 		var invDet = 1 / det;
 		output.m11 = invDet * cf0;
 		output.m12 = invDet * cf3;
@@ -387,7 +404,7 @@ class Mat33
 		return output;
 	}
 	
-	/** Divides all matrix elements by the scalar <code>x</code>. */
+	/** Divides all matrix elements by the scalar `x`.**/
 	inline public function div(x:Float)
 	{
 		if (M.cmpZero(x, M.ZERO_TOLERANCE))
@@ -405,7 +422,7 @@ class Mat33
 		}
 	}
 	
-	/** Returns the string form of the value that this object represents. */
+	/** Returns the string form of the value that this object represents.**/
 	public function toString():String
 	{
 		return Printf.format("Mat33:\n" +

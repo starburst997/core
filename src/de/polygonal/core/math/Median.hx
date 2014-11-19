@@ -18,28 +18,39 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
-import de.polygonal.core.math.Mathematics;
+import de.polygonal.core.math.Mathematics.M;
 import haxe.ds.Vector;
 
 /**
- * The median of a set of numbers.
- */
+	The median of a set of numbers.
+**/
 class Median
 {
+	/**
+		The total amount of numbers; calling `add()` increases `size` by one.
+	**/
+	public var size(default, null):Int;
+	
+	/**
+		The maximum allowed amount of numbers.
+	**/
+	public var capacity(default, null):Int;
+	
 	var mNext:Int;
-	var mSize:Int;
-	var mCapacity:Int;
 	var mValue:Float;
 	var mSet:Vector<Float>;
 	var mChanged:Bool;
 	
 	public function new(capacity:Int)
 	{
-		mSet = new Vector<Float>(mCapacity = capacity);
+		mSet = new Vector<Float>(this.capacity = capacity);
 		for (i in 0...capacity) mSet[i] = 0;
-		reset();
+		clear();
 	}
 	
+	/**
+		The median of the current set of numbers.
+	**/
 	public var value(get_value, never):Float;
 	inline function get_value():Float
 	{
@@ -47,26 +58,34 @@ class Median
 		return mValue;
 	}
 	
-	inline public function reset()
+	/**
+		Removes all numbers from the set.
+	**/
+	inline public function clear()
 	{
+		size = 0;
 		mNext = 0;
-		mSize = 0;
 		mValue = 0;
 		mChanged = true;
 	}
 	
+	/**
+		Adds `value` to the set of numbers.
+		
+		If `size` equals `capacity`, the oldest numbers is overwritten by `value`.
+	**/
 	inline public function add(value:Float)
 	{
 		mSet.set(mNext, value);
-		mNext = (mNext + 1) % mCapacity;
-		mSize = mSize < mCapacity ? mSize + 1: mSize;
+		mNext = (mNext + 1) % capacity;
+		size = size < capacity ? size + 1: size;
 		mChanged = true;
 	}
 	
 	function compute()
 	{
-		var k = mSize;
-			
+		var k = size;
+		
 		//insertion sort
 		for (i in 1...k)
 		{

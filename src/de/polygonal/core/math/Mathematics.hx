@@ -21,29 +21,31 @@ package de.polygonal.core.math;
 typedef M = de.polygonal.core.math.Mathematics;
 
 /**
- * <p>Various math functions and constants.</p>
- */
+	Various math functions and constants.
+**/
 class Mathematics
 {
 	/**
-	 * IEEE 754 NAN.
-	 */
+		IEEE 754 NAN.
+	**/
 	#if !flash
 	public static var NaN = Math.NaN;
 	#else
 	inline public static var NaN = 0. / 0.;
 	#end
+	
 	/**
-	 * IEEE 754 positive infinity.
-	 */
+		IEEE 754 positive infinity.
+	**/
 	#if !flash
 	public static var POSITIVE_INFINITY = Math.POSITIVE_INFINITY;
 	#else
 	inline public static var POSITIVE_INFINITY = 1. / 0.;
 	#end
+	
 	/**
-	 * IEEE 754 negative infinity.
-	 */
+		IEEE 754 negative infinity.
+	**/
 	#if !flash
 	public static var NEGATIVE_INFINITY = Math.NEGATIVE_INFINITY;
 	#else
@@ -51,64 +53,64 @@ class Mathematics
 	#end
 	
 	/**
-	 * Value below <em>ZERO_TOLERANCE</em> is treated as zero.
-	 */
+		Values below `ZERO_TOLERANCE` are treated as zero.
+	**/
 	inline public static var ZERO_TOLERANCE = 1e-08;
 	
 	/**
-	 * Multiply value by this constant to convert from radians to degrees (180 / PI).
-	 */
+		Multiply a value by this constant to convert from radians to degrees (180 / PI).
+	**/
 	inline public static var RAD_DEG = 57.29577951308232;
 	
 	/**
-	 * Multiply value by this constant to convert from degrees to radians (PI / 180).
-	 */
+		Multiply a value by this constant to convert from degrees to radians (PI / 180).
+	**/
 	inline public static var DEG_RAD = 0.017453292519943295;
 	
 	/**
-	 * The natural logarithm of 2.
-	 */
+		The natural logarithm of 2.
+	**/
 	inline public static var LN2 = 0.6931471805599453;
 	
 	/**
-	 * The natural logarithm of 10.
-	 */
+		The natural logarithm of 10.
+	**/
 	inline public static var LN10 = 2.302585092994046;
 	
 	/**
-	 * PI / 2.
-	 */
+		PI / 2.
+	**/
 	inline public static var PI_OVER_2 = 1.5707963267948966;
 	
 	/**
-	 * PI / 4.
-	 */
+		PI / 4.
+	**/
 	inline public static var PI_OVER_4 = 0.7853981633974483;
 	
 	/**
-	 * PI.
-	 */
+		PI.
+	**/
 	inline public static var PI = 3.141592653589793;
 	
 	/**
-	 * 2 * PI.
-	 */
+		2 * PI.
+	**/
 	inline public static var PI2 = 6.283185307179586;
 	
 	/**
-	 * Default system epsilon.
-	 */
+		Default system epsilon.
+	**/
 	inline public static var EPS = 1e-6;
 	
 	/**
-	 * The square root of 2.
-	 */
+		The square root of 2.
+	**/
 	inline public static var SQRT2 = 1.414213562373095;
 	
-	#if (flash10 && alchemy)
+	#if flash10
 	/**
-	 * Returns the 32-bit integer representation of a IEEE 754 single precision floating point.
-	 */
+		Returns the 32-bit integer representation of a IEEE 754 single precision floating point.
+	**/
 	inline public static function floatToInt(x:Float):Int
 	{
 		flash.Memory.setFloat(0, x);
@@ -116,8 +118,8 @@ class Mathematics
 	}
 	
 	/**
-	 * Returns the IEEE 754 single precision floating point representation of a 32-bit integer.
-	 */
+		Returns the IEEE 754 single precision floating point representation of a 32-bit integer.
+	**/
 	inline public static function intToFloat(x:Int):Float
 	{
 		flash.Memory.setI32(0, x);
@@ -126,130 +128,128 @@ class Mathematics
 	#end
 	
 	/**
-	 * Converts <code>deg</code> to radians.
-	 */
+		Converts `deg` to radians.
+	**/
 	inline public static function toRad(deg:Float):Float
 	{
 		return deg * DEG_RAD;
 	}
 	
 	/**
-	 * Converts <code>rad</code> to degrees.
-	 */
+		Converts `rad` to degrees.
+	**/
 	inline public static function toDeg(rad:Float):Float
 	{
 		return rad * RAD_DEG;
 	}
 	
 	/**
-	 * Returns min(<code>x</code>, <code>y</code>).
-	 */
+		Returns min(`x`,`y`).
+	**/
 	inline public static function min(x:Int, y:Int):Int
 	{
 		return x < y ? x : y;
 	}
 	
 	/**
-	 * Returns max(<code>x</code>, <code>y</code>).
-	 */
+		Returns max(`x`,`y`).
+	**/
 	inline public static function max(x:Int, y:Int):Int
 	{
 		return x > y ? x : y;
 	}
 	
 	/**
-	 * Returns the absolute value of <code>x</code>.
-	 */
+		Returns the absolute value of `x`.
+	**/
 	inline public static function abs(x:Int):Int
 	{
 		return x < 0 ? -x : x;
 	}
 	
 	/**
-	 * Returns the sign of <code>x</code>.<br/>
-	 * <em>sgn</em>(0) = 0.
-	 */
+		Returns the sign of `x` (sgn(0) = 0).
+	**/
 	inline public static function sgn(x:Int):Int
 	{
 		return (x > 0) ? 1 : (x < 0 ? -1 : 0);
 	}
 	
 	/**
-	 * Clamps <code>x</code> to the interval &#091;<code>min</code>, <code>max</code>&#093; so <code>min</code> <= <code>x</code> <= <code>max</code>.
-	 */
+		Clamps `x` to the interval [`min`,`max`].
+	**/
 	inline public static function clamp(x:Int, min:Int, max:Int):Int
 	{
 		return (x < min) ? min : (x > max) ? max : x;
 	}
 	
 	/**
-	 * Clamps <code>x</code> to the interval &#091;<code>-i</code>, <code>+i</code>&#093; so <code>-i</code> <= <code>x</code> <= <code>i</code>.
-	 */
+		Clamps `x` to the interval [-`i`,`i`].
+	**/
 	inline public static function clampSym(x:Int, i:Int):Int
 	{
 		return (x < -i) ? -i : (x > i) ? i : x;
 	}
 	
 	/**
-	 * Wraps <code>x</code> to the interval &#091;<code>min</code>, <code>max</code>&#093; so <code>min</code> <= <code>x</code> <= <code>max</code>.
-	 */
+		Wraps `x` to the interval [`min`,`max`] so `min` <= `x` <= `max`.
+	**/
 	inline public static function wrap(x:Int, min:Int, max:Int):Int
 	{
 		return x < min ? (x - min) + max + 1: ((x > max) ? (x - max) + min - 1: x);
 	}
 	
 	/**
-	 * Fast version of <em>Math.min</em>(<code>x</code>, <code>y</code>).
-	 */
+		Fast version of Math.min(`x`,`y`).
+	**/
 	inline public static function fmin(x:Float, y:Float):Float
 	{
 		return x < y ? x : y;
 	}
 	
 	/**
-	 * Returns max(<code>x</code>, <code>y</code>).
-	 */
+		Returns max(`x`,`y`).
+	**/
 	inline public static function fmax(x:Float, y:Float):Float
 	{
 		return x > y ? x : y;
 	}
 	
 	/**
-	 * Fast version of <em>Math.abs</em>(<code>x</code>).
-	 */
+		Fast version of Math.abs(`x`).
+	**/
 	inline public static function fabs(x:Float):Float
 	{
 		return x < 0 ? -x : x;
 	}
 	
 	/**
-	 * Extracts the sign of <code>x</code>.<br/>
-	 * <em>fsgn</em>(0) = 0.
-	 */
+		Extracts the sign of `x` (fsgn(0) = 0).
+	**/
 	inline public static function fsgn(x:Float):Int
 	{
 		return (x > 0.) ? 1 : (x < 0. ? -1 : 0);
 	}
 	
 	/**
-	 * Clamps <code>x</code> to the interval &#091;<code>min</code>, <code>max</code>&#093; so <code>min</code> <= <code>x</code> <= <code>max</code>.
-	 */
+		Clamps `x` to the interval [`min`,`max`].
+	**/
 	inline public static function fclamp(x:Float, min:Float, max:Float):Float
 	{
 		return (x < min) ? min : (x > max) ? max : x;
 	}
 	
 	/**
-	 * Clamps <code>x</code> to the interval &#091;<code>-i</code>, <code>+i</code>&#093; so -<code>i</code> <= <code>x</code> <= <code>i</code>.
-	 */
+		Clamps `x` to the interval [-`i`,`i`].
+	**/
 	inline public static function fclampSym(x:Float, i:Float):Float
 	{
 		return (x < -i) ? -i : (x > i) ? i : x;
 	}
 	
 	/**
-	 * Wraps <code>x</code> to the interval &#091;<code>min</code>, <code>max</code>&#093; so <code>min</code> <= <code>x</code> <= <code>max</code>.
-	 */
+		Wraps `x` to the interval [`min`,`max`].
+	**/
 	inline public static function fwrap(value:Float, lower:Float, upper:Float):Float
 	{
 		#if cpp
@@ -260,53 +260,49 @@ class Mathematics
 	}
 
 	/**
-	 * Returns true if the sign of <code>x</code> and <code>y</code> is equal.
-	 */
+		Returns true if the signs of `x` and `y` are equal.
+	**/
 	inline public static function eqSgn(x:Int, y:Int):Bool
 	{
 		return (x ^ y) >= 0;
 	}
 	
 	/**
-	 * Returns true if <code>x</code> is even.
-	 */
+		Returns true if `x` is even.
+	**/
 	inline public static function isEven(x:Int):Bool
 	{
 		return (x & 1) == 0;
 	}
 	
 	/**
-	 * Returns true if <code>x</code> is a power of two.
-	 */
+		Returns true if `x` is a power of two.
+	**/
 	inline public static function isPow2(x:Int):Bool
 	{
 		return x > 0 && (x & (x - 1)) == 0;
 	}
 	
 	/**
-	 * Linear interpolation over interval &#091;<code>a</code>, <code>b</code>&#093; with <code>t</code> = &#091;0, 1&#093;.
-	 */
+		Linear interpolation over interval [`a`,`b`] with `t` = [0,1].
+	**/
 	inline public static function lerp(a:Float, b:Float, t:Float):Float
 	{
 		return a + (b - a) * t;
 	}
 	
 	/**
-	 * Spherically interpolates between two angles.<br/>
-	 * See <a href="http://www.paradeofrain.com/2009/07/interpolating-2d-rotations/" target="_blank">http://www.paradeofrain.com/2009/07/interpolating-2d-rotations/</a>.
-	 */
+		Spherically interpolates between two angles.
+	**/
 	inline public static function slerp(a:Float, b:Float, t:Float)
 	{
 		var m = Math;
-		
-        var c1 = m.sin(a * .5);
-        var r1 = m.cos(a * .5);
+		var c1 = m.sin(a * .5);
+		var r1 = m.cos(a * .5);
 		var c2 = m.sin(b * .5);
-        var r2 = m.cos(b * .5);
-
-       var c = r1 * r2 + c1 * c2;
-
-        if (c < 0.)
+		var r2 = m.cos(b * .5);
+		var c = r1 * r2 + c1 * c2;
+		if (c < 0.)
 		{
 			if ((1. + c) > EPS)
 			{
@@ -343,10 +339,11 @@ class Mathematics
 	}
 	
 	/**
-	 * Calculates the next highest power of 2 of <code>x</code>.<br/>
-	 * <code>x</code> must be in the range 0...(2^30)<br/>
-	 * Returns <code>x</code> if already a power of 2.
-	 */
+		Calculates the next highest power of 2 of `x`.
+		
+		- `x` must be in the range [0,2^30].
+		- returns `x` if `x` is already a power of 2.
+	**/
 	inline public static function nextPow2(x:Int):Int
 	{
 		var t = x - 1;
@@ -359,8 +356,8 @@ class Mathematics
 	}
 	
 	/**
-	 * Fast integer exponentiation for base <code>a</code> and exponent <code>n</code>.
-	 */
+		Fast integer exponentiation for base `a` and exponent `n`.
+	**/
 	inline public static function exp(a:Int, n:Int):Int
 	{
 		var t = 1;
@@ -381,16 +378,16 @@ class Mathematics
 	}
 	
 	/**
-	 * Returns the base-10 logarithm of <code>x</code>.
-	 */
+		Returns the base-10 logarithm of `x`.
+	**/
 	inline public static function log10(x:Float):Float
 	{
 		return Math.log(x) * 0.4342944819032517;
 	}
 	
 	/**
-	 * Rounds <code>x</code> to the iterval <code>y</code>.
-	 */
+		Rounds `x` to the iterval `y`.
+	**/
 	inline public static function roundTo(x:Float, y:Float):Float
 	{
 		#if js
@@ -411,17 +408,18 @@ class Mathematics
 	}
 	
 	/**
-	 * Fast version of <em>Math.round</em>(<code>x</code>).<br/>
-	 * Half-way cases are rounded away from zero.
-	 */
+		Fast version of Math.round(`x`).
+		
+		Half-way cases are rounded away from zero.
+	**/
 	inline public static function round(x:Float):Int
 	{
 		return Std.int(x + (0x4000 + .5)) - 0x4000;
 	}
 	
 	/**
-	 * Fast version of <em>Math.ceil</em>(<code>x</code>).
-	 */
+		Fast version of Math.ceil(`x`).
+	**/
 	inline public static function ceil(x:Float):Int
 	{
 		var f:Int =
@@ -446,8 +444,8 @@ class Mathematics
 	}
 	
 	/**
-	 * Fast version of <em>Math.floor</em>(<code>x</code>).
-	 */
+		Fast version of Math.floor(`x`).
+	**/
 	inline public static function floor(x:Float):Int
 	{
 		var f:Int =
@@ -461,28 +459,11 @@ class Mathematics
 	}
 	
 	/**
-	 * Computes the "quake-style" fast square root of <code>x</code>.
-	 */
-	inline public static function sqrt(x:Float):Float
-	{
-		#if (flash10 && alchemy)
-		var xt = x;
-		var half = .5 * xt;
-		var i = floatToInt(xt);
-		i = 0x5F3759DF - (i >> 1);
-		var xt = intToFloat(i);
-		return 1 / (xt * (1.5 - half * xt * xt));
-		#else
-		return Math.sqrt(x);
-		#end
-	}
-	
-	/**
-	 * Computes the "quake-style" fast inverse square root of <code>x</code>.
-	 */
+		Computes the "quake-style" fast inverse square root of `x`.
+	**/
 	inline public static function invSqrt(x:Float):Float
 	{
-		#if (flash10 && alchemy)
+		#if flash10
 		var xt = x;
 		var half = .5 * xt;
 		var i = floatToInt(xt);
@@ -495,8 +476,8 @@ class Mathematics
 	}
 	
 	/**
-	 * Compares <code>x</code> and <code>y</code> using an absolute tolerance of <code>eps</code>.
-	 */
+		Compares `x` and `y` using an absolute tolerance of `eps`.
+	**/
 	inline public static function cmpAbs(x:Float, y:Float, eps:Float):Bool
 	{
 		var d = x - y;
@@ -504,32 +485,32 @@ class Mathematics
 	}
 	
 	/**
-	 * Compares <code>x</code> to zero using an absolute tolerance of <code>eps</code>.
-	 */
+		Compares `x` to zero using an absolute tolerance of `eps`.
+	**/
 	inline public static function cmpZero(x:Float, eps:Float):Bool
 	{
 		return x > 0 ? x < eps : -x < eps;
 	}
 	
 	/**
-	 * Snaps <code>x</code> to the grid <code>y</code>.
-	 */
+		Snaps `x` to the grid `y`.
+	**/
 	inline public static function snap(x:Float, y:Float):Float
 	{
 		return (floor((x + y * .5) / y));
 	}
 	
 	/**
-	 * Returns true if <code>min</code> <= <code>x</code> <= <code>max</code>.
-	 */
+		Returns true if `min` <= `x` <= `max`.
+	**/
 	inline public static function inRange(x:Float, min:Float, max:Float):Bool
 	{
 		return x >= min && x <= max;
 	}
 	
 	/**
-	 * Wraps an angle <code>x</code> to the range -PI...PI.
-	 */
+		Wraps an angle `x` to the range [-PI,PI].
+	**/
 	inline public static function wrapToPI(x:Float):Float
 	{
 		x += PI;
@@ -537,17 +518,16 @@ class Mathematics
 	}
 	
 	/**
-	 * Wraps an angle <code>x</code> to the range 0...2*PI.
-	 */
+		Wraps an angle `x` to the range [0,2*PI].
+	**/
 	inline public static function wrapToPI2(x:Float):Float
 	{
 		return (x - PI2 * Math.floor(x / PI2));
 	}
 	
 	/**
-	 * Computes the greatest common divisor of <code>x</code> and <code>y</code>.<br/>
-	 * See <a href="http://www.merriampark.com/gcd.htm" target="_blank">http://www.merriampark.com/gcd.htm</a>.
-	 */
+		Computes the greatest common divisor of `x` and `y`.
+	**/
 	inline public static function gcd(x:Int, y:Int):Int
 	{
 		var d = 0;
@@ -572,19 +552,10 @@ class Mathematics
 	}
 	
 	/**
-	 * Removes excess floating point decimal precision from <code>x</code>.
-	 */
+		Removes excess floating point decimal precision from `x`.
+	**/
 	inline public static function maxPrecision(x:Float, precision:Int):Float
 	{
 		return roundTo(x, Math.pow(10, -precision));
-	}
-	
-	/**
-	 * Converts the boolean expression <code>x</code> to an integer.
-	 * @return 1 if <code>x</code> is true and zero if <code>x</code> is false.
-	 */
-	inline public static function ofBool(x:Bool):Int
-	{
-		return (x ? 1 : 0);
 	}
 }

@@ -19,43 +19,43 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.math;
 
 /**
- * <p>Limits for integer and float types.</p>
- */
+	Limits for integer and float types.
+**/
 class Limits
 {
 	/**
-	 * Min value, signed byte.
-	 */
-	inline public static var INT8_MIN =-0x80;
+		Min value, signed byte.
+	**/
+	inline public static var INT8_MIN = -0x80;
 	
 	/**
-	 * Max value, signed byte.
-	 */
+		Max value, signed byte.
+	**/
 	inline public static var INT8_MAX = 0x7F;
 	
 	/**
-	 * Max value, unsigned byte.
-	 */
+		Max value, unsigned byte.
+	**/
 	inline public static var UINT8_MAX = 0xFF;
 	
 	/**
-	 * Min value, signed short.
-	 */
-	inline public static var INT16_MIN =-0x8000;
+		Min value, signed short.
+	**/
+	inline public static var INT16_MIN = -0x8000;
 	
 	/**
-	 * Max value, signed short.
-	 */
+		Max value, signed short.
+	**/
 	inline public static var INT16_MAX = 0x7FFF;
 	
 	/**
-	 * Max value, unsigned short.
-	 */
+		Max value, unsigned short.
+	**/
 	inline public static var UINT16_MAX = 0xFFFF;
 	
 	/**
-	 * Min value, signed integer.
-	 */
+		Min value, signed integer.
+	**/
 	inline public static var INT32_MIN =
 	#if cpp
 	//warning: this decimal constant is unsigned only in ISO C90
@@ -65,37 +65,37 @@ class Limits
 	#end
 	
 	/**
-	 * Max value, signed integer.
-	 */
+		Max value, signed integer.
+	**/
 	inline public static var INT32_MAX = 0x7FFFFFFF;
 	
 	/**
-	 * Max value, unsigned integer.
-	 */
+		Max value, unsigned integer.
+	**/
 	inline public static var UINT32_MAX = 0xFFFFFFFF;
 	
 	/**
-	 * Number of bits using for representing integers.
-	 */
+		Number of bits using for representing integers.
+	**/
 	inline public static var INT_BITS =	32;
 	
 	/**
-	 * The largest representable number (single-precision IEEE-754).
-	 */
+		The largest representable number (single-precision IEEE-754).
+	**/
 	inline public static var FLOAT_MAX = 3.4028234663852886e+38;
 	
 	/**
-	 * The smallest representable number (single-precision IEEE-754).
-	 */
+		The smallest representable number (single-precision IEEE-754).
+	**/
 	inline public static var FLOAT_MIN = -3.4028234663852886e+38;
 	
 	/**
-	 * The largest representable number (double-precision IEEE-754).
-	 */
+		The largest representable number (double-precision IEEE-754).
+	**/
 	inline public static var DOUBLE_MAX = 1.7976931348623157e+308;
 	
 	/**
-	 * The smallest representable number (double-precision IEEE-754).
-	 */
+		The smallest representable number (double-precision IEEE-754).
+	**/
 	inline public static var DOUBLE_MIN = -1.7976931348623157e+308;
 }

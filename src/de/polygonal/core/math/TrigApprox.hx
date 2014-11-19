@@ -18,27 +18,28 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
-import de.polygonal.core.util.Assert;
-import de.polygonal.core.math.Mathematics;
+import de.polygonal.core.math.Coord2.Coord2f;
+import de.polygonal.core.util.Assert.assert;
+import de.polygonal.core.math.Mathematics.M;
 
 /**
- * <p>Fast and accurate sine/cosine approximations.</p>
- * <p>See <a href="http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation/" target="_blank">http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation/</a></p>
- * <p>Example:</p>
- * <pre class="prettyprint">
- * var sin = TrigApprox.hqSin(angle);
- * var cos = TrigApprox.hqCos(angle);</pre>
- */
+	Fast and accurate sine/cosine approximations.
+	
+	Example:
+	<pre>
+	var sin = TrigApprox.hqSin(angle);
+	var cos = TrigApprox.hqCos(angle);
+	</pre>
+**/
 class TrigApprox
 {
 	/**
-	 * Computes a low-precision sine approximation from an angle <code>x</code> measured in radians.<br/>
-	 * The input angle has to be in the range &#091;-PI, PI&#093;.
-	 * @throws de.polygonal.core.util.AssertError <code>x</code> out of range (debug only).
-	 */
+		Computes a low-precision sine approximation from an angle `x` measured in radians.
+		The input angle has to be in the range [-PI,PI].
+	**/
 	inline public static function lqSin(x:Float):Float
 	{
-		D.assert(x >= -Math.PI && x <= Math.PI, Printf.format("x out of range (%.3f)", [x]));
+		assert(x >= -Math.PI && x <= Math.PI);
 		
 		if (x < 0)
 			return 1.27323954 * x + .405284735 * x * x;
@@ -47,15 +48,12 @@ class TrigApprox
 	}
 	
 	/**
-	 * Computes a low-precision cosine approximation from an angle <code>x</code> measured in radians.<br/>
-	 * The input angle has to be in the range &#091;-PI, PI&#093;.
-	 * @throws de.polygonal.core.util.AssertError <code>x</code> out of range (debug only).
-	 */
+		Computes a low-precision cosine approximation from an angle `x` measured in radians.
+		The input angle has to be in the range [-PI,PI].
+	**/
 	inline public static function lqCos(x:Float):Float
 	{
-		#if debug
-		D.assert(x >= -Math.PI && x <= Math.PI, Printf.format("x out of range (%.3f)", [x]));
-		#end
+		assert(x >= -Math.PI && x <= Math.PI);
 		
 		x += M.PI_OVER_2; if (x > M.PI) x -= M.PI2;
 		
@@ -66,15 +64,12 @@ class TrigApprox
 	}
 	
 	/**
-	 * Computes a high-precision sine approximation from an angle <code>x</code> measured in radians.<br/>
-	 * The input angle has to be in the range &#091;-PI, PI&#093;.
-	 * @throws de.polygonal.core.util.AssertError <code>x</code> out of range (debug only).
-	 */
+		Computes a high-precision sine approximation from an angle `x` measured in radians.
+		The input angle has to be in the range [-PI,PI].
+	**/
 	inline public static function hqSin(x:Float):Float
 	{
-		#if debug
-		D.assert(x >= -Math.PI && x <= Math.PI, Printf.format("x out of range (%.3f)", [x]));
-		#end
+		assert(x >= -Math.PI && x <= Math.PI);
 		
 		if (x <= 0)
 		{
@@ -95,15 +90,12 @@ class TrigApprox
 	}
 	
 	/**
-	 * Computes a high-precision cosine approximation from an angle <code>x</code> in radians.<br/>
-	 * The input angle has to be in the range &#091;-PI, PI&#093;.
-	 * @throws de.polygonal.core.util.AssertError <code>x</code> out of range (debug only).
-	 */
+		Computes a high-precision cosine approximation from an angle `x` in radians.
+		The input angle has to be in the range [-PI,PI].
+	**/
 	inline public static function hqCos(x:Float):Float
 	{
-		#if debug
-		D.assert(x >= -Math.PI && x <= Math.PI, Printf.format("x out of range (%.3f)", [x]));
-		#end
+		assert(x >= -Math.PI && x <= Math.PI, Printf.format("x out of range (%.3f)", [x]));
 		
 		x += M.PI_OVER_2; if (x > M.PI) x -= M.PI2;
 		
@@ -126,14 +118,11 @@ class TrigApprox
 	}	
 	
 	/**
-	 * Fast arctan2 approximation.<br/>
-	 * See <a href="http://www.dspguru.com/dsp/tricks/fixed-point-atan2-with-self-normalization" target="_blank">http://www.dspguru.com/dsp/tricks/fixed-point-atan2-with-self-normalization</a>.
-	 */
+		Fast arctan2 approximation.
+	**/
 	inline public static function arctan2(y:Float, x:Float):Float
 	{
-		#if debug
-		D.assert(!(M.cmpZero(x, 1e-6) && M.cmpZero(y, 1e-6)), "M.compareZero(x, 1e-6) && M.compareZero(y, 1e-6);");
-		#end
+		assert(!(M.cmpZero(x, 1e-6) && M.cmpZero(y, 1e-6)));
 		
 		var t = M.fabs(y);
 		if (x >= 0.)
@@ -153,19 +142,15 @@ class TrigApprox
 	}
 	
 	/**
-	 * Computes the floating-point sine and cosine of the argument <code>a</code>.<br/>
-	 * The result is stored in TrigApprox.sin and TrigApprox.cos.
-	 * This method uses a polynomial approximation.<br/>
-	 * Borrowed from the book ESSENTIAL MATHEMATICS FOR GAMES & INTERACTIVE APPLICATIONS
-	 * Copyright (C) 2008 by Elsevier, Inc. All rights reserved.
-	 */
+		Computes the floating-point sine and cosine of the argument `a`.
+		This method uses a polynomial approximation.
+		Borrowed from the book ESSENTIAL MATHEMATICS FOR GAMES & INTERACTIVE APPLICATIONS
+		Copyright (C) 2008 by Elsevier, Inc. All rights reserved.
+	**/
 	inline static var INV_PIHALF = 0.6366197723675814;
 	inline static var CONST_A = 1.5703125; //201 / 128
 	
-	public static var sin:Float;
-	public static var cos:Float;
-	
-	inline public static function sinCos(a:Float)
+	inline public static function sinCos(a:Float, output:Coord2f)
 	{
 		if (a < 0.)
 		{
@@ -175,20 +160,20 @@ class TrigApprox
 			switch (ia & 3)
 			{
 				case 0:
-					sin =-IvPolynomialSinQuadrant(fa);
-					cos = IvPolynomialSinQuadrant(-((fa - CONST_A) - 4.8382679e-4));
+					output.y =-IvPolynomialSinQuadrant(fa);
+					output.x = IvPolynomialSinQuadrant(-((fa - CONST_A) - 4.8382679e-4));
 				
 				case 1:
-					sin =-IvPolynomialSinQuadrant(-((fa - CONST_A) - 4.8382679e-4));
-					cos = IvPolynomialSinQuadrant(-fa);
+					output.y =-IvPolynomialSinQuadrant(-((fa - CONST_A) - 4.8382679e-4));
+					output.x = IvPolynomialSinQuadrant(-fa);
 				
 				case 2:
-					sin =-IvPolynomialSinQuadrant(-fa);
-					cos = IvPolynomialSinQuadrant(((fa - CONST_A) - 4.8382679e-4));
+					output.y =-IvPolynomialSinQuadrant(-fa);
+					output.x = IvPolynomialSinQuadrant(((fa - CONST_A) - 4.8382679e-4));
 				
 				case 3:
-					sin =-IvPolynomialSinQuadrant(((fa - CONST_A) - 4.8382679e-4));
-					cos = IvPolynomialSinQuadrant(fa);
+					output.y =-IvPolynomialSinQuadrant(((fa - CONST_A) - 4.8382679e-4));
+					output.x = IvPolynomialSinQuadrant(fa);
 			}
 		}
 		else
@@ -199,20 +184,20 @@ class TrigApprox
 			switch (ia & 3)
 			{
 				case 0:
-					sin = IvPolynomialSinQuadrant(fa);
-					cos = IvPolynomialSinQuadrant(-((fa - CONST_A) - 4.8382679e-4));
+					output.y = IvPolynomialSinQuadrant(fa);
+					output.x = IvPolynomialSinQuadrant(-((fa - CONST_A) - 4.8382679e-4));
 				
 				case 1:
-					sin = IvPolynomialSinQuadrant(-((fa - CONST_A) - 4.8382679e-4));
-					cos = IvPolynomialSinQuadrant(-fa);
+					output.y = IvPolynomialSinQuadrant(-((fa - CONST_A) - 4.8382679e-4));
+					output.x = IvPolynomialSinQuadrant(-fa);
 				
 				case 2:
-					sin = IvPolynomialSinQuadrant(-fa);
-					cos = IvPolynomialSinQuadrant(((fa - CONST_A) - 4.8382679e-4));
+					output.y = IvPolynomialSinQuadrant(-fa);
+					output.x = IvPolynomialSinQuadrant(((fa - CONST_A) - 4.8382679e-4));
 				
 				case 3:
-					sin = IvPolynomialSinQuadrant(((fa - CONST_A) - 4.8382679e-4));
-					cos = IvPolynomialSinQuadrant(fa);
+					output.y = IvPolynomialSinQuadrant(((fa - CONST_A) - 4.8382679e-4));
+					output.x = IvPolynomialSinQuadrant(fa);
 			}
 		}
 	}

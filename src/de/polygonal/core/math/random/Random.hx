@@ -19,24 +19,24 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.math.random;
 
 import de.polygonal.core.math.Limits;
-import de.polygonal.core.math.Mathematics;
+import de.polygonal.core.math.Mathematics.M;
 
 /**
- * <p>Generates random numbers using the platform-specific <em>Math.random()</em> implementation.</p>
- */
+	Generates random numbers using the (platform-specific) *Math.random()* implementation.
+**/
 class Random
 {
 	/**
-	 * Returns a random integral number in the interval <arg>&#091;0, 0x7FFFFFFF)</arg>.
-	 */
+		Returns a random integral number in the interval [0,0x7FFFFFFF).
+	**/
 	inline public static function rand():Int
 	{
 		return cast (frand() * Limits.INT32_MAX);
 	}
 	
 	/**
-	 * Returns a random integral number in the interval <arg>&#091;min, max&#093;</arg>.
-	 */
+		Returns a random integral number in the interval [`min`,`max`].
+	**/
 	inline public static function randRange(min:Int, max:Int):Int
 	{
 		var l = min - .4999;
@@ -45,40 +45,40 @@ class Random
 	}
 	
 	/**
-	 * Returns a random integral number in the interval <arg>&#091;-range, range&#093;</arg>.
-	 */
+		Returns a random integral number in the interval [-`range`,`range`].
+	**/
 	inline public static function randSym(range:Int):Float
 	{
 		return randRange(-range, range);
 	}
 	
 	/**
-	 * Returns a random boolean value.
-	 */
+		Returns a random boolean value.
+	**/
 	inline public static function randBool():Bool
 	{
 		return frand() < .5;
 	}
 	
 	/**
-	 * Returns a random real number in the interval <arg>&#091;0, 1)</arg>.
-	 */
+		Returns a random real number in the interval [0,1).
+	**/
 	inline public static function frand():Float
 	{
 		return Math.random();
 	}
 	
 	/**
-	 * Returns a random real number in the interval <arg>&#091;min, max)</arg>.
-	 */
+		Returns a random real number in the interval [`min`,`max`).
+	**/
 	inline public static function frandRange(min:Float, max:Float):Float
 	{
 		return min + (max - min) * frand();
 	}
 	
 	/**
-	 * Returns a random real number in the interval <arg>&#091;-range, range)</arg>.
-	 */
+		Returns a random real number in the interval [-`range`,`range`).
+	**/
 	inline public static function frandSym(range:Float):Float
 	{
 		return frandRange(-range, range);

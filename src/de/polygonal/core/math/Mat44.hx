@@ -9,7 +9,7 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or
 substantial portions of the Software.
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
 NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
@@ -18,19 +18,25 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
-import de.polygonal.core.util.Assert;
-import de.polygonal.core.math.Mathematics;
+import de.polygonal.core.util.Assert.assert;
+import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.util.Assert.assert;
 
 /**
- * <p>A 4x4 matrix.</p>
- * <p> Matrix operations are applied on the left. E.g. given a matrix M and vector V, matrix*vector is M*V, where V is treated as a column vector.</p>
- */
+	A 4x4 matrix.
+	
+	Matrix operations are applied on the left.
+	
+	E.g. given a matrix __M__ and vector __V__, matrix times vector is __MV__, where __V__ is treated as a column vector.
+**/
 class Mat44
 {
 	/**
-	 * @return <code>c</code> = <code>a</code>*<code>b</code>.
-	 */
-	inline public static function matrixProduct(a:Mat44, b:Mat44, c:Mat44):Mat44
+		Matrix multiplication: `output` = `a``b`.
+		
+		- `a` and `output` can refer to the same object in memory.
+	**/
+	public static function matrixProduct(a:Mat44, b:Mat44, output:Mat44):Mat44
 	{
 		var b11 = b.m11; var b12 = b.m12; var b13 = b.m13; var b14 = b.m14;
 		var b21 = b.m21; var b22 = b.m22; var b23 = b.m23; var b24 = b.m24;
@@ -41,93 +47,167 @@ class Mat44
 		t2 = a.m12;
 		t3 = a.m13;
 		t4 = a.m14;
-		c.m11 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
-		c.m12 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
-		c.m13 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
-		c.m14 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
+		output.m11 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
+		output.m12 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
+		output.m13 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
+		output.m14 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
 		t1 = a.m21;
 		t2 = a.m22;
 		t3 = a.m23;
 		t4 = a.m24;
-		c.m21 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
-		c.m22 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
-		c.m23 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
-		c.m24 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
+		output.m21 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
+		output.m22 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
+		output.m23 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
+		output.m24 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
 		t1 = a.m31;
 		t2 = a.m32;
 		t3 = a.m33;
 		t4 = a.m34;
-		c.m31 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
-		c.m32 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
-		c.m33 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
-		c.m34 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
+		output.m31 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
+		output.m32 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
+		output.m33 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
+		output.m34 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
 		t1 = a.m41;
 		t2 = a.m42;
 		t3 = a.m43;
 		t4 = a.m44;
-		c.m41 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
-		c.m42 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
-		c.m43 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
-		c.m44 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
-		return c;
+		output.m41 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
+		output.m42 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
+		output.m43 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
+		output.m44 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
+		return output;
 	}
 	
 	/**
-	 * @return <code>result</code> = <code>matrix</code>*<code>scale</code>.
-	 */
-	inline public static function catMatrixAndScale(matrix:Mat44, scale:Mat44, result:Mat44):Mat44
+		Matrix multiplication for two **affine transformations**: `output` = `a``b`.
+		
+		- since (m41,m42,m43,m44) is always (0,0,0,1) for an affine transformation the 4th row is left untouched for `a` and `b`.
+		- `a` and `output` can refer to the same object in memory.
+	**/
+	public static function affineMatrixProduct(a:Mat44, b:Mat44, output:Mat44):Mat44
 	{
-		var t;
-		t = scale.m11;
-		result.m11 = matrix.m11 * t;
-		result.m21 = matrix.m21 * t;
-		result.m31 = matrix.m31 * t;
-		result.m41 = matrix.m41 * t;
-		t = scale.m22;
-		result.m12 = matrix.m12 * t;
-		result.m22 = matrix.m22 * t;
-		result.m32 = matrix.m32 * t;
-		result.m42 = matrix.m42 * t;
-		t = scale.m33;
-		result.m13 = matrix.m13 * t;
-		result.m23 = matrix.m23 * t;
-		result.m33 = matrix.m33 * t;
-		result.m43 = matrix.m43 * t;
-		t = scale.m44;
-		result.m14 = matrix.m14 * t;
-		result.m24 = matrix.m24 * t;
-		result.m34 = matrix.m34 * t;
-		result.m44 = matrix.m44 * t;
-		return result;
+		var b11 = b.m11; var b12 = b.m12; var b13 = b.m13; var b14 = b.m14;
+		var b21 = b.m21; var b22 = b.m22; var b23 = b.m23; var b24 = b.m24;
+		var b31 = b.m31; var b32 = b.m32; var b33 = b.m33; var b34 = b.m34;
+		var t1, t2, t3;
+		t1 = a.m11;
+		t2 = a.m12;
+		t3 = a.m13;
+		output.m11 = t1 * b11 + t2 * b21 + t3 * b31;
+		output.m12 = t1 * b12 + t2 * b22 + t3 * b32;
+		output.m13 = t1 * b13 + t2 * b23 + t3 * b33;
+		output.m14 = t1 * b14 + t2 * b24 + t3 * b34 + a.m14;
+		t1 = a.m21;
+		t2 = a.m22;
+		t3 = a.m23;
+		output.m21 = t1 * b11 + t2 * b21 + t3 * b31;
+		output.m22 = t1 * b12 + t2 * b22 + t3 * b32;
+		output.m23 = t1 * b13 + t2 * b23 + t3 * b33;
+		output.m24 = t1 * b14 + t2 * b24 + t3 * b34 + a.m24;
+		t1 = a.m31;
+		t2 = a.m32;
+		t3 = a.m33;
+		output.m31 = t1 * b11 + t2 * b21 + t3 * b31;
+		output.m32 = t1 * b12 + t2 * b22 + t3 * b32;
+		output.m33 = t1 * b13 + t2 * b23 + t3 * b33;
+		output.m34 = t1 * b14 + t2 * b24 + t3 * b34 + a.m34;
+		return output;
 	}
 	
 	/**
-	 * @return <code>result</code> = <code>scale</code>*<code>matrix</code>.
-	 */
-	inline public static function catScaleAndMatrix(scale:Mat44, matrix:Mat44, result:Mat44):Mat44
+		Matrix multiplication for two **2d affine transformations**: `output` = `a``b`
+		
+		- (m41,m42,m43,m44) is always (0,0,0,1)
+		- (m13,m23,m33) is always (0,0,1)
+		- `a` and `output` can refer to the same object in memory.
+	**/
+	inline public static function affineMatrixProduct2d(a:Mat44, b:Mat44, output:Mat44):Mat44
+	{
+		assert(a.m41 == 0 && a.m42 == 0 && a.m43 == 0 && a.m44 == 1);
+		assert(b.m41 == 0 && b.m42 == 0 && b.m43 == 0 && b.m44 == 1);
+		assert(a.m31 == 0 && a.m32 == 0 && a.m33 == 1 && a.tz == 0);
+		assert(b.m31 == 0 && b.m32 == 0 && b.m33 == 1 && b.tz == 0);
+		assert(a != b);
+		
+		var b11 = b.m11; var b12 = b.m12; var b14 = b.m14;
+		var b21 = b.m21; var b22 = b.m22; var b24 = b.m24;
+		var t1, t2;
+		
+		t1 = a.m11;
+		t2 = a.m12;
+		output.m11 = t1 * b11 + t2 * b21;
+		output.m12 = t1 * b12 + t2 * b22;
+		output.m14 = t1 * b14 + t2 * b24 + a.m14;
+		
+		t1 = a.m21;
+		t2 = a.m22;
+		output.m21 = t1 * b11 + t2 * b21;
+		output.m22 = t1 * b12 + t2 * b22;
+		output.m24 = t1 * b14 + t2 * b24 + a.m24;
+		
+		return output;
+	}
+	
+	/**
+		`output` = `m``s`, where `s` represents a scaling matrix.
+		
+		- `m` and `output` can refer to the same object in memory.
+	**/
+	inline public static function catMatrixAndScale(m:Mat44, s:Mat44, output:Mat44):Mat44
 	{
 		var t;
-		t = scale.m11;
-		result.m11 = t * matrix.m11;
-		result.m12 = t * matrix.m12;
-		result.m13 = t * matrix.m13;
-		result.m14 = t * matrix.m14;
-		t = scale.m22;
-		result.m21 = t * matrix.m21;
-		result.m22 = t * matrix.m22;
-		result.m23 = t * matrix.m23;
-		result.m24 = t * matrix.m24;
-		t = scale.m33;
-		result.m31 = t * matrix.m31;
-		result.m32 = t * matrix.m32;
-		result.m33 = t * matrix.m33;
-		result.m34 = t * matrix.m34;
-		t = scale.m44;
-		result.m41 = t * matrix.m41;
-		result.m42 = t * matrix.m42;
-		result.m43 = t * matrix.m43;
-		result.m44 = t * matrix.m44;
-		return result;
+		t = s.m11;
+		output.m11 = m.m11 * t;
+		output.m21 = m.m21 * t;
+		output.m31 = m.m31 * t;
+		output.m41 = m.m41 * t;
+		t = s.m22;
+		output.m12 = m.m12 * t;
+		output.m22 = m.m22 * t;
+		output.m32 = m.m32 * t;
+		output.m42 = m.m42 * t;
+		t = s.m33;
+		output.m13 = m.m13 * t;
+		output.m23 = m.m23 * t;
+		output.m33 = m.m33 * t;
+		output.m43 = m.m43 * t;
+		t = s.m44;
+		output.m14 = m.m14 * t;
+		output.m24 = m.m24 * t;
+		output.m34 = m.m34 * t;
+		output.m44 = m.m44 * t;
+		return output;
+	}
+	
+	/**
+		`output` = `s``m`, where `s` represents a scaling matrix.
+		
+		- `m` and `output` can refer to the same object in memory.
+	**/
+	inline public static function catScaleAndMatrix(s:Mat44, m:Mat44, output:Mat44):Mat44
+	{
+		var t;
+		t = s.m11;
+		output.m11 = t * m.m11;
+		output.m12 = t * m.m12;
+		output.m13 = t * m.m13;
+		output.m14 = t * m.m14;
+		t = s.m22;
+		output.m21 = t * m.m21;
+		output.m22 = t * m.m22;
+		output.m23 = t * m.m23;
+		output.m24 = t * m.m24;
+		t = s.m33;
+		output.m31 = t * m.m31;
+		output.m32 = t * m.m32;
+		output.m33 = t * m.m33;
+		output.m34 = t * m.m34;
+		t = s.m44;
+		output.m41 = t * m.m41;
+		output.m42 = t * m.m42;
+		output.m43 = t * m.m43;
+		output.m44 = t * m.m44;
+		return output;
 	}
 	
 	public var m11:Float; public var m12:Float; public var m13:Float; public var m14:Float;
@@ -195,14 +275,18 @@ class Mat44
 		return m34 = value;
 	}
 	
-	/** Creates a 4x4 identity matrix. */
+	/**
+		Creates a 4x4 identity matrix.
+	**/
 	public function new()
 	{
-		setIdentity();
+		setAsIdentity();
 	}
 
-	/** Assigns the values of <code>other</code> to this. */
-	inline public function set(other:Mat44):Mat44
+	/**
+		Copies the values of `other` to this.
+	**/
+	inline public function of(other:Mat44):Mat44
 	{
 		m11 = other.m11; m12 = other.m12; m13 = other.m13; m14 = other.m14;
 		m21 = other.m21; m22 = other.m22; m23 = other.m23; m24 = other.m24;
@@ -211,17 +295,10 @@ class Mat44
 		return this;
 	}
 	
-	/** Copy all elements of <code>other</code> to this. */
-	inline public function set33(other:Mat33):Mat44
-	{
-		m11 = other.m11; m12 = other.m12; m13 = other.m13;
-		m21 = other.m21; m22 = other.m22; m23 = other.m23;
-		m31 = other.m31; m32 = other.m32; m33 = other.m33;
-		return this;
-	}
-	
-	/** Set to identity matrix. */
-	inline public function setIdentity():Mat44
+	/**
+		Set to identity matrix.
+	**/
+	public function setAsIdentity():Mat44
 	{
 		m11 = 1; m12 = 0; m13 = 0; m14 = 0;
 		m21 = 0; m22 = 1; m23 = 0; m24 = 0;
@@ -230,8 +307,10 @@ class Mat44
 		return this;
 	}
 	
-	/** Set as scaling matrix, scaling by <code>x</code>, <code>y</code>, <code>z</code>. */
-	inline public function setScale(x:Float, y:Float, z:Float):Mat44
+	/**
+		Set as scaling matrix, scaling by `x`, `y`, `z`.
+	**/
+	public function setAsScale(x:Float, y:Float, z:Float):Mat44
 	{
 		m11 = x; m12 = 0; m13 = 0; m14 = 0;
 		m21 = 0; m22 = y; m23 = 0; m24 = 0;
@@ -240,8 +319,10 @@ class Mat44
 		return this;
 	}
 	
-	/** Set as translation matrix, translating by <code>x</code>, <code>y</code>, <code>z</code>. */
-	inline public function setTranslate(x:Float, y:Float, z:Float):Mat44
+	/**
+		Set as translation matrix, translating by `x`, `y`, `z`.
+	**/
+	public function setAsTranslate(x:Float, y:Float, z:Float):Mat44
 	{
 		m11 = 1; m12 = 0; m13 = 0; m14 = x;
 		m21 = 0; m22 = 1; m23 = 0; m24 = y;
@@ -251,10 +332,11 @@ class Mat44
 	}
 	
 	/**
-	 * Set as rotation matrix, rotating by <code>angle</code> radians around x-axis.<br/>
-	 * The (x,y,z) coordinate system is assumed to be right-handed, so <code>angle</code> > 0 indicates a counterclockwise rotation in the yz-plane.
-	 */
-	inline public function setRotateX(angle:Float):Mat44
+		Set as rotation matrix, rotating by `angle` radians around the x-axis.
+		
+		The (x,y,z) coordinate system is assumed to be right-handed, so `angle` > 0 indicates a CCW rotation in the yz-plane.
+	**/
+	public function setAsRotateX(angle:Float):Mat44
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -266,10 +348,11 @@ class Mat44
 	}
 	
 	/**
-	 * Set as rotation matrix, rotating by <code>angle</code> radians around y-axis.<br/>
-	 * The (x,y,z) coordinate system is assumed to be right-handed, so <code>angle</code> > 0 indicates a counterclockwise rotation in the zx-plane.
-	 */
-	inline public function setRotateY(angle:Float):Mat44
+		Set as rotation matrix, rotating by `angle` radians around y-axis.
+		
+		The (x,y,z) coordinate system is assumed to be right-handed, so angle > 0 indicates a CCW rotation in the zx-plane.
+	**/
+	public function setAsRotateY(angle:Float):Mat44
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -281,10 +364,11 @@ class Mat44
 	}
 	
 	/**
-	 * Set as rotation matrix, rotating by <code>angle</code> radians around z-axis.<br/>
-	 * The (x,y,z) coordinate system is assumed to be right-handed, so <code>angle</code> > 0 indicates a counterclockwise rotation in the xy-plane.
-	 */
-	inline public function setRotateZ(angle:Float):Mat44
+		Set as rotation matrix, rotating by `angle` radians around z-axis.
+		
+		The (x,y,z) coordinate system is assumed to be right-handed, so `angle` > 0 indicates a CCW rotation in the xy-plane.
+	**/
+	public function setAsRotateZ(angle:Float):Mat44
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -295,8 +379,10 @@ class Mat44
 		return this;
 	}
 	
-	/** Sets the matrix to a rotation matrix by euler angles. */
-	public function setRotationEulerAngles(zAngle:Float, yAngle:Float, xAngle:Float)
+	/**
+		Sets the matrix to a rotation matrix by euler angles.
+	**/
+	public function setAsRotationEulerAngles(zAngle:Float, yAngle:Float, xAngle:Float)
 	{
 		var sx = Math.sin(xAngle);
 		var cx = Math.cos(xAngle);
@@ -324,8 +410,10 @@ class Mat44
 		return this;
 	}
 	
-	/** Post-concatenate a x-axis rotation matrix, rotating by <code>angle</code> radians around x-axis. */
-	inline public function catRotateX(angle:Float):Mat44
+	/**
+		__RM__, where __R__ is a rotation matrix rotating by `angle` radians around the x-axis, 
+	**/
+	public function catRotateX(angle:Float):Mat44
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -351,8 +439,10 @@ class Mat44
 		return this;
 	}
 	
-	/** Pre-concatenate a x-axis rotation matrix, rotating by <code>angle</code> radians around x-axis. */
-	inline public function precatRotateX(angle:Float):Mat44
+	/**
+		__MR__, where __R__ is a rotation matrix rotating by `angle` radians around the x-axis, 
+	**/
+	public function precatRotateX(angle:Float):Mat44
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -372,8 +462,10 @@ class Mat44
 		return this;
 	}
 	
-	/** Post-concatenate a y-axis rotation matrix, rotating by <code>angle</code> radians around y-axis. */
-	inline public function catRotateY(angle:Float):Mat44
+	/**
+		__RM__, where __R__ is a rotation matrix rotating by `angle` radians around the y-axis, 
+	**/
+	public function catRotateY(angle:Float):Mat44
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -399,8 +491,10 @@ class Mat44
 		return this;
 	}
 	
-	/** Pre-concatenate a y-axis rotation matrix, rotating by <code>angle</code> radians around y-axis. */
-	inline public function precatRotateY(angle:Float):Mat44
+	/**
+		__MR__, where __R__ is a rotation matrix rotating by `angle` radians around the y-axis, 
+	**/
+	public function precatRotateY(angle:Float):Mat44
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -422,9 +516,9 @@ class Mat44
 	}
 	
 	/**
-	 * R*M, where R is a rotation matrix around the z-axis.
-	 */
-	public function catRotateZ(angle:Float):Mat44
+		__RM__, where __R__ is a rotation matrix rotating by `angle` radians around the z-axis, 
+	**/
+	public function catRotateZ(angle:Float)
 	{
 		/*
 		|cosΦ -sinΦ 0 0| |m11 m12 m13 tx|
@@ -438,28 +532,36 @@ class Mat44
 		var u = m11;
 		var v = m21;
 		m11 = (c * u) - (s * v);
-		m21 = (s * u) + (c * v); 
+		m21 = (s * u) + (c * v);
 		
 		u = m12;
 		v = m22;
-		m12 = (c * u) - (s * v); 
-		m22 = (s * u) + (c * v); 
+		m12 = (c * u) - (s * v);
+		m22 = (s * u) + (c * v);
 		
 		u = m13;
 		v = m23;
-		m13 = (c * u) - (s * v); 
+		m13 = (c * u) - (s * v);
 		m23 = (s * u) + (c * v);
 		
 		u = m14;
 		v = m24;
 		m14 = (c * u) - (s * v);
 		m24 = (s * u) + (c * v);
-		return this;
 	}
 	
-	/** Pre-concatenate a z-axis rotation matrix, rotating by <code>angle</code> radians around z-axis. */
-	inline public function precatRotateZ(angle:Float):Mat44
+	/**
+		__MR__, where __R__ is a rotation matrix rotating by `angle` radians around the z-axis, 
+	**/
+	public function precatRotateZ(angle:Float):Mat44
 	{
+		/*
+		|cosΦ -sinΦ 0 0| |m11 m12 m13 tx|
+		|sinΦ  cosΦ 0 0| |m21 m22 m23 ty|
+		|0        0 1 0| |m31 m32 m33 tz|
+		|0        0 0 1| |  0   0   0  1|
+		*/
+		
 		var t11 = m11; var t12 = m12; var t13 = m13; var t14 = m14;
 		var t21 = m21; var t22 = m22; var t23 = m23; var t24 = m24;
 		var t31 = m31; var t32 = m32; var t33 = m33; var t34 = m34;
@@ -477,7 +579,9 @@ class Mat44
 		return this;
 	}
 	
-	/** Post-concatenates <code>lhs</code>: this = <code>lhs</code>*this. */
+	/**
+		Matrix multiplication: this = `lhs` · this.
+	**/
 	inline public function cat(lhs:Mat44):Mat44
 	{
 		var c11 = m11; var c12 = m12; var c13 = m13; var c14 = m14;
@@ -520,7 +624,9 @@ class Mat44
 		return this;
 	}
 	
-	/** Pre-concatenates <code>rhs</code>: this = this*<code>rhs</code>. */
+	/**
+		Matrix multiplication: this = this · `rhs`.
+	**/
 	inline public function precat(rhs:Mat44):Mat44
 	{
 		var c11 = rhs.m11; var c12 = rhs.m12; var c13 = rhs.m13; var c14 = rhs.m14;
@@ -564,15 +670,14 @@ class Mat44
 	}
 	
 	/**
-	 * S*M, where S is a scaling matrix.
-	 */
-	public function catScale(x:Float, y:Float, z:Float)
+		__SM__, where __S__ is a scaling matrix, scaling by `x`, `y`, `z`.
+	**/
+	inline public function catScale(x:Float, y:Float, z:Float)
 	{
 		/*
 		|x 0 0 0| |m11 m12 m13 tx|
 		|0 y 0 0| |m21 m22 m23 ty|
 		|0 0 z 0| |m31 m32 m33 tz|
-		|0 0 0 1| |  0   0   0  1|
 		*/
 		m11 *= x;
 		m12 *= x;
@@ -591,9 +696,9 @@ class Mat44
 	}
 	
 	/**
-	 * M*S, where S is a scaling matrix.
-	 */
-	public function precatScale(x:Float, y:Float, z:Float)
+		__MS__, where __S__ is a scaling matrix, scaling by `x`, `y`, `z`.
+	**/
+	inline public function precatScale(x:Float, y:Float, z:Float)
 	{
 		/*
 		|m11 m12 m13 tx| |x 0 0 0|
@@ -615,42 +720,85 @@ class Mat44
 	}
 	
 	/**
-	 * Post-concatenates a translation matrix and returns this matrix.
-	 * @param x x-axis translation (<code>m14</code>).
-	 * @param y y-axis translation (<code>m24</code>).
-	 * @param z z-axis translation (<code>m34</code>).
-	 */
-	inline public function catTranslate(x:Float, y:Float, z:Float):Mat44
+		__TM__, where __T__ is a translation matrix, translating by `x`, `y`, `z`.
+	**/
+	inline public function catTranslate(tx:Float, ty:Float, tz:Float):Mat44
 	{
-		//|1 0 0 tx| |m11 m12 m13 m14|
-		//|0 1 0 ty| |m21 m22 m23 m24|
-		//|0 0 1 tz| |m31 m32 m33 m34|
-		//|0 0 0  1| |  0   0   0   1|
-		m14 += x;
-		m24 += y;
-		m34 += z;
+		/*
+		|1 0 0 tx| |m11 m12 m13 m14|
+		|0 1 0 ty| |m21 m22 m23 m24|
+		|0 0 1 tz| |m31 m32 m33 m34|
+		|0 0 0  1| |  0   0   0   1|
+		*/
+		m14 += tx;
+		m24 += ty;
+		m34 += tz;
 		return this;
 	}
 	
 	/**
-	 * Pre-concatenates a translation matrix and returns this matrix.
-	 * @param x x-axis translation (<em>m14</em>).
-	 * @param y y-axis translation (<em>m24</em>).
-	 * @param z z-axis translation (<em>m34</em>).
-	 */
-	inline public function precatTranslate(x:Float, y:Float, z:Float):Mat44
+		__MT__, where __T__ is a translation matrix, translating by `x`, `y`, `z`.
+	**/
+	inline public function precatTranslate(tx:Float, ty:Float, tz:Float):Mat44
 	{
-		//|m11 m12 m13 m14| |1 0 0 tx|
-		//|m21 m22 m23 m24| |0 1 0 ty|
-		//|m31 m32 m33 m34| |0 0 1 tz|
-		//|  0   0   0   1| |0 0 0 t1|
-		m14 = m11 * x + m12 * y + m13 * z + m14;
-		m24 = m21 * x + m22 * y + m23 * z + m24;
-		m34 = m31 * x + m32 * y + m33 * z + m34;
+		/*
+		|m11 m12 m13 m14| |1 0 0 tx|
+		|m21 m22 m23 m24| |0 1 0 ty|
+		|m31 m32 m33 m34| |0 0 1 tz|
+		|  0   0   0   1| |0 0 0 t1|
+		*/
+		m14 = m11 * tx + m12 * ty + m13 * tz + m14;
+		m24 = m21 * tx + m22 * ty + m23 * tz + m24;
+		m34 = m31 * tx + m32 * ty + m33 * tz + m34;
 		return this;
 	}
 	
-	/** Matrix - column vector multiplication: <code>rhs</code>' = this*<code>rhs</code>. */
+	/**
+		Matrix multiplication: this = this · `rhs`.
+	**/
+	public function timesMatrix(rhs:Mat44)
+	{
+		var b11 = rhs.m11; var b12 = rhs.m12; var b13 = rhs.m13; var b14 = rhs.m14;
+		var b21 = rhs.m21; var b22 = rhs.m22; var b23 = rhs.m23; var b24 = rhs.m24;
+		var b31 = rhs.m31; var b32 = rhs.m32; var b33 = rhs.m33; var b34 = rhs.m34;
+		var b41 = rhs.m41; var b42 = rhs.m42; var b43 = rhs.m43; var b44 = rhs.m44;
+		var t1 = m11;
+		var t2 = m12;
+		var t3 = m13;
+		var t4 = m14;
+		m11 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
+		m12 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
+		m13 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
+		m14 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
+		t1 = m21;
+		t2 = m22;
+		t3 = m23;
+		t4 = m24;
+		m21 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
+		m22 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
+		m23 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
+		m24 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
+		t1 = m31;
+		t2 = m32;
+		t3 = m33;
+		t4 = m34;
+		m31 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
+		m32 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
+		m33 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
+		m34 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
+		t1 = m41;
+		t2 = m42;
+		t3 = m43;
+		t4 = m44;
+		m41 = t1 * b11 + t2 * b21 + t3 * b31 + t4 * b41;
+		m42 = t1 * b12 + t2 * b22 + t3 * b32 + t4 * b42;
+		m43 = t1 * b13 + t2 * b23 + t3 * b33 + t4 * b43;
+		m44 = t1 * b14 + t2 * b24 + t3 * b34 + t4 * b44;
+	}
+	
+	/**
+		Matrix - column vector multiplication: `rhs` = this · `rhs`.
+	**/
 	inline public function timesVector(rhs:Vec3):Vec3
 	{
 		var x = rhs.x;
@@ -665,10 +813,8 @@ class Mat44
 	}
 	
 	/**
-	 * Same as <em>timesVector()</em>, but without modifying <code>rhs</code>.
-	 * <code>rhs</code> and <code>output</code> can reference the same object.
-	 * @param output stores the result.
-	 */
+		Matrix - column vector multiplication: `output` = this · `rhs`.
+	**/
 	inline public function timesVectorConst(rhs:Vec3, output:Vec3):Vec3
 	{
 		var x = rhs.x;
@@ -682,7 +828,23 @@ class Mat44
 		return output;
 	}
 	
-	/** Computes the matrix transpose and returns this matrix. */
+	/**
+		Matrix - column vector multiplication: `output` = this · `rhs`.
+		
+		The method treats this matrix as an __affine transformation matrix__ and `rhs` as an __2d vector__.
+	**/
+	inline public function timesVectorAffine2d(rhs:Vec3):Vec3
+	{
+		var x = rhs.x;
+		var y = rhs.y;
+		rhs.x = m11 * x + m12 * y;
+		rhs.y = m21 * x + m22 * y;
+		return rhs;
+	}
+	
+	/**
+		Transposes this matrix.
+	**/
 	inline public function transpose():Mat44
 	{
 		var t;
@@ -696,9 +858,8 @@ class Mat44
 	}
 	
 	/**
-	 * Inverts and returns this matrix.
-	 * @throws de.polygonal.core.util.AssertError singular matrix (debug only).
-	 */
+		Inverts and returns this matrix.
+	**/
 	public function inverse():Mat44
 	{
 		var a0 = m11 * m22 - m12 * m21;
@@ -714,7 +875,7 @@ class Mat44
 		var b4 = m32 * m44 - m34 * m42;
 		var b5 = m33 * m44 - m34 * m43;
 		var det = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
-		D.assert(!M.cmpZero(det, M.ZERO_TOLERANCE), "singular matrix");
+		assert(!M.cmpZero(det, M.ZERO_TOLERANCE), "singular matrix");
 		var invDet = 1 / det;
 		var t11 = ( m22 * b5 - m23 * b4 + m24 * b3) * invDet;
 		var t21 = (-m21 * b5 + m23 * b2 - m24 * b1) * invDet;
@@ -740,11 +901,8 @@ class Mat44
 	}
 	
 	/**
-	 * Computes the matrix inverse and stores the result in <code>output</code>.<br/>
-	 * This matrix is left unchanged.
-	 * @return a reference to <code>output</code>.
-	 * @throws de.polygonal.core.util.AssertError singular matrix (debug only).
-	 */
+		Computes the matrix inverse and stores the result in `output`.
+	**/
 	public function inverseConst(output:Mat44):Mat44
 	{
 		var a0 = m11 * m22 - m12 * m21;
@@ -760,7 +918,7 @@ class Mat44
 		var b4 = m32 * m44 - m34 * m42;
 		var b5 = m33 * m44 - m34 * m43;
 		var det = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
-		D.assert(!M.cmpZero(det, M.ZERO_TOLERANCE), "singular matrix");
+		assert(!M.cmpZero(det, M.ZERO_TOLERANCE), "singular matrix");
 		var invDet = 1 / det;
 		output.m11 = ( m22 * b5 - m23 * b4 + m24 * b3) * invDet;
 		output.m21 = (-m21 * b5 + m23 * b2 - m24 * b1) * invDet;
@@ -781,90 +939,82 @@ class Mat44
 		return output;
 	}
 	
-	/** Creates and returns a copy of this object. */
-	public function copy():Mat44
-	{
-		var x = new Mat44();
-		x.m11 = m11; x.m12 = m12; x.m13 = m13; x.m14 = m14;
-		x.m21 = m21; x.m22 = m22; x.m23 = m23; x.m24 = m24;
-		x.m31 = m31; x.m32 = m32; x.m33 = m33; x.m34 = m34;
-		x.m41 = m41; x.m42 = m42; x.m43 = m43; x.m44 = m44;
-		return x;
-	}
-	
 	/**
-	 * Copies all 16 matrix elements from the array <code>x</code>.
-	 * @param columnMajor if true, 4 consecutive vector elements are interpreted as colums of the matrix, otherwise as the rows of the matrix.
-	 */
-	public function ofArray(x:Array<Float>, columnMajor = false):Mat44
+		Copies all 16 matrix elements of the `input` array.
+		
+		if `columnMajor` is true, 4 consecutive vector elements are interpreted as colums of the matrix, otherwise as the rows of the matrix.
+	**/
+	public function ofArray(values:Array<Float>, columnMajor = false):Mat44
 	{
 		if (columnMajor)
 		{
-			m11 = x[ 0]; m12 = x[ 4]; m13 = x[ 8]; m14 = x[12];
-			m21 = x[ 1]; m22 = x[ 5]; m23 = x[ 9]; m24 = x[13];
-			m31 = x[ 2]; m32 = x[ 6]; m33 = x[10]; m34 = x[14];
-			m41 = x[ 3]; m42 = x[ 7]; m43 = x[11]; m44 = x[15];
+			m11 = values[ 0]; m12 = values[ 4]; m13 = values[ 8]; m14 = values[12];
+			m21 = values[ 1]; m22 = values[ 5]; m23 = values[ 9]; m24 = values[13];
+			m31 = values[ 2]; m32 = values[ 6]; m33 = values[10]; m34 = values[14];
+			m41 = values[ 3]; m42 = values[ 7]; m43 = values[11]; m44 = values[15];
 		}
 		else
 		{
-			m11 = x[ 0]; m12 = x[ 1]; m13 = x[ 2]; m14 = x[ 3];
-			m21 = x[ 4]; m22 = x[ 5]; m23 = x[ 6]; m24 = x[ 7];
-			m31 = x[ 8]; m32 = x[ 9]; m33 = x[10]; m34 = x[11];
-			m41 = x[12]; m42 = x[13]; m43 = x[14]; m44 = x[15];
+			m11 = values[ 0]; m12 = values[ 1]; m13 = values[ 2]; m14 = values[ 3];
+			m21 = values[ 4]; m22 = values[ 5]; m23 = values[ 6]; m24 = values[ 7];
+			m31 = values[ 8]; m32 = values[ 9]; m33 = values[10]; m34 = values[11];
+			m41 = values[12]; m42 = values[13]; m43 = values[14]; m44 = values[15];
 		}
 		return this;
 	}
 	
 	/**
-	 * Writes all 16 matrix elements to the array <code>x</code>.
-	 * @param columnMajor if true, elements will be stored in column-major format, otherwise in row-major format.
-	 */
-	public function toArray(x:Array<Float>, offset = -1, columnMajor = false):Array<Float>
+		Writes all 16 matrix elements to the `output` array.
+		
+		If `columnMajor` is true, elements will be stored in column-major format, otherwise in row-major format.
+	**/
+	public function toArray(output:Array<Float>, offset = -1, columnMajor = false):Array<Float>
 	{
 		if (offset == -1)
 		{
 			if (columnMajor)
 			{
-				x[ 0] = m11; x[ 4] = m12; x[ 8] = m13; x[12] = m14;
-				x[ 1] = m21; x[ 5] = m22; x[ 9] = m23; x[13] = m24;
-				x[ 2] = m31; x[ 6] = m32; x[10] = m33; x[14] = m34;
-				x[ 3] = m41; x[ 7] = m42; x[11] = m43; x[15] = m44;
+				output[ 0] = m11; output[ 4] = m12; output[ 8] = m13; output[12] = m14;
+				output[ 1] = m21; output[ 5] = m22; output[ 9] = m23; output[13] = m24;
+				output[ 2] = m31; output[ 6] = m32; output[10] = m33; output[14] = m34;
+				output[ 3] = m41; output[ 7] = m42; output[11] = m43; output[15] = m44;
 			}
 			else
 			{
-				x[ 0] = m11; x[ 1] = m12; x[ 2] = m13; x[ 3] = m14;
-				x[ 4] = m21; x[ 5] = m22; x[ 6] = m23; x[ 7] = m24;
-				x[ 8] = m31; x[ 9] = m32; x[10] = m33; x[11] = m34;
-				x[12] = m41; x[13] = m42; x[14] = m43; x[15] = m44;
+				output[ 0] = m11; output[ 1] = m12; output[ 2] = m13; output[ 3] = m14;
+				output[ 4] = m21; output[ 5] = m22; output[ 6] = m23; output[ 7] = m24;
+				output[ 8] = m31; output[ 9] = m32; output[10] = m33; output[11] = m34;
+				output[12] = m41; output[13] = m42; output[14] = m43; output[15] = m44;
 			}
 		}
 		else
 		{
 			if (columnMajor)
 			{
-				x[offset + 0] = m11; x[offset + 4] = m12; x[offset +  8] = m13; x[offset + 12] = m14;
-				x[offset + 1] = m21; x[offset + 5] = m22; x[offset +  9] = m23; x[offset + 13] = m24;
-				x[offset + 2] = m31; x[offset + 6] = m32; x[offset + 10] = m33; x[offset + 14] = m34;
-				x[offset + 3] = m41; x[offset + 7] = m42; x[offset + 11] = m43; x[offset + 15] = m44;
+				output[offset + 0] = m11; output[offset + 4] = m12; output[offset +  8] = m13; output[offset + 12] = m14;
+				output[offset + 1] = m21; output[offset + 5] = m22; output[offset +  9] = m23; output[offset + 13] = m24;
+				output[offset + 2] = m31; output[offset + 6] = m32; output[offset + 10] = m33; output[offset + 14] = m34;
+				output[offset + 3] = m41; output[offset + 7] = m42; output[offset + 11] = m43; output[offset + 15] = m44;
 			}
 			else
 			{
-				x[offset +  0] = m11; x[offset +  1] = m12; x[offset +  2] = m13; x[offset +  3] = m14;
-				x[offset +  4] = m21; x[offset +  5] = m22; x[offset +  6] = m23; x[offset +  7] = m24;
-				x[offset +  8] = m31; x[offset +  9] = m32; x[offset + 10] = m33; x[offset + 11] = m34;
-				x[offset + 12] = m41; x[offset + 13] = m42; x[offset + 14] = m43; x[offset + 15] = m44;
+				output[offset +  0] = m11; output[offset +  1] = m12; output[offset +  2] = m13; output[offset +  3] = m14;
+				output[offset +  4] = m21; output[offset +  5] = m22; output[offset +  6] = m23; output[offset +  7] = m24;
+				output[offset +  8] = m31; output[offset +  9] = m32; output[offset + 10] = m33; output[offset + 11] = m34;
+				output[offset + 12] = m41; output[offset + 13] = m42; output[offset + 14] = m43; output[offset + 15] = m44;
 			}
 		}
-		return x;
+		return output;
 	}
 	
 	#if flash10
-	var _scratchVector:flash.Vector<Float>;
+	var mScratchVector:flash.Vector<Float>;
 	
 	/**
-	 * Writes all 16 matrix elements to the vector <code>x</code>.
-	 * @param columnMajor if true, elements will be stored in column-major format, otherwise in row-major format.
-	 */
+		Writes all 16 matrix elements to the vector x.
+		
+		If `columnMajor` is true, elements will be stored in column-major format, otherwise in row-major format.
+	**/
 	public function toVector(x:flash.Vector<Float>, offset = -1, columnMajor = false):flash.Vector<Float>
 	{
 		if (offset == -1)
@@ -905,22 +1055,22 @@ class Mat44
 	}
 	
 	/**
-	 * Copies all 16 matrix elements from this matrix to the given matrix <code>x</code>.<br/>
-	 * If <code>x</code> is omitted, a new Matrix3D object is created on the fly.
-	 */
+		Copies all 16 matrix elements from this matrix to the given matrix x.
+		If x is omitted, a new Matrix3D object is created on the fly.
+	**/
 	public function toMatrix3D(x:flash.geom.Matrix3D = null):flash.geom.Matrix3D
 	{
 		if (x == null) x = new flash.geom.Matrix3D();
-		if (_scratchVector == null)
-			_scratchVector = new flash.Vector<Float>(16, true);
-		x.rawData = toVector(_scratchVector);
+		if (mScratchVector == null)
+			mScratchVector = new flash.Vector<Float>(16, true);
+		x.rawData = toVector(mScratchVector);
 		return x;
 	}
 	
 	/**
-	 * Copies all 16 matrix elements from the given matrix <code>x</code> into this matrix.<br/>
-	 * if <code>x</code> is omitted, a new Matrix3D object is created on the fly.
-	 */
+		Copies all 16 matrix elements from the given matrix x into this matrix.
+		if x is omitted, a new Matrix3D object is created on the fly.
+	**/
 	public function ofMatrix3D(x:flash.geom.Matrix3D = null):Mat44
 	{
 		if (x == null) x = new flash.geom.Matrix3D();
@@ -933,9 +1083,10 @@ class Mat44
 	}
 	
 	/**
-	 * Copies all 16 matrix elements from the vector <code>x</code>.
-	 * @param columnMajor if true, 4 consecutive vector elements are interpreted as colums of the matrix, otherwise as the rows of the matrix.
-	 */
+		Copies all 16 matrix elements from the vector x.
+		
+		If columnMajor is true, 4 consecutive vector elements are interpreted as colums of the matrix, otherwise as the rows of the matrix.
+	**/
 	public function ofVector(x:flash.Vector<Float>, columnMajor = false):Mat44
 	{
 		if (columnMajor)
@@ -956,15 +1107,24 @@ class Mat44
 	}
 	#end
 	
-	/**
-	 * Returns the string form of the value that this object represents.
-	 */
+	public function clone():Mat44
+	{
+		var x = new Mat44();
+		x.m11 = m11; x.m12 = m12; x.m13 = m13; x.m14 = m14;
+		x.m21 = m21; x.m22 = m22; x.m23 = m23; x.m24 = m24;
+		x.m31 = m31; x.m32 = m32; x.m33 = m33; x.m34 = m34;
+		x.m41 = m41; x.m42 = m42; x.m43 = m43; x.m44 = m44;
+		return x;
+	}
+	
 	public function toString():String
 	{
-		return Printf.format("Mat44:\n" +
-			"[%-+10.4f %-+10.4f %-+10.4f %-+10.4f]\n" +
-			"[%-+10.4f %-+10.4f %-+10.4f %-+10.4f]\n" +
-			"[%-+10.4f %-+10.4f %-+10.4f %-+10.4f]\n" +
-			"[%-+10.4f %-+10.4f %-+10.4f %-+10.4f]", [m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44]);
+		var s = "{ Mat44\n";
+		s += Printf.format("  %-+10.4f %-+10.4f %-+10.4f %-+10.4f\n", [m11, m12, m13, m14]);
+		s += Printf.format("  %-+10.4f %-+10.4f %-+10.4f %-+10.4f\n", [m21, m22, m23, m24]);
+		s += Printf.format("  %-+10.4f %-+10.4f %-+10.4f %-+10.4f\n", [m31, m32, m33, m34]);
+		s += Printf.format("  %-+10.4f %-+10.4f %-+10.4f %-+10.4f\n", [m41, m42, m43, m44]);
+		s += " }";
+		return s;
 	}
 }

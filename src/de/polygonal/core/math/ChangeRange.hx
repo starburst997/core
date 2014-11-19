@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2012-2014 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -18,28 +18,34 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
+import de.polygonal.core.math.Mathematics.M;
+
 /**
- * <p>A recency-weighted average.</p>
- */
-class RWA
+	Maps a value from a source range [`srcMin`,`srcMax`] to a destination range [`dstMin`,`dstMax`].
+**/
+class ChangeRange implements Interpolation<Float>
 {
-	var _bias:Float;
-	var _value:Float;
-	
-	/**
-	 * @param bias a value in the range 0 <= <code>x</code> <= 1.
-	 */
-	public function new(bias:Float)
+	inline public static function map(x:Float, srcMin:Float, srcMax:Float, dstMin:Float, dstMax:Float):Float
 	{
-		_bias = bias;
-		_value = 0.;
+		return M.lerp(dstMin, dstMax, (x - srcMin) / (srcMax - srcMin));
 	}
 	
-	/**
-	 * Inserts <code>x</code> and returns a new value based on <code>x</code>.
-	 */
-	inline public function get(x:Float):Float
+	public var srcMin:Float;
+	public var srcMax:Float;
+	
+	public var dstMin:Float;
+	public var dstMax:Float;
+	
+	public function new(srcMin:Float, srcMax:Float, dstMin:Float, dstMax:Float)
 	{
-		return _value = _bias * _value + (1 - _bias) * x;
+		this.srcMin = srcMin;
+		this.srcMax = srcMax;
+		this.dstMin = dstMin;
+		this.dstMax = dstMax;
+	}
+	
+	public function interpolate(t:Float):Float
+	{
+		return M.lerp(dstMin, dstMax, (t - srcMin) / (srcMax - srcMin));
 	}
 }

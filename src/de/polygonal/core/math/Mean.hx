@@ -21,24 +21,35 @@ package de.polygonal.core.math;
 import haxe.ds.Vector;
 
 /**
- * The arithmetic mean of a set of numbers.
- */
+	The arithmetic mean of a set of numbers.
+**/
 class Mean
 {
+	/**
+		The total amount of numbers; calling `add()` increases `size` by one.
+	**/
+	public var size(default, null):Int;
+	
+	/**
+		The maximum allowed amount of numbers.
+	**/
+	public var capacity(default, null):Int;
+	
 	var mNext:Int;
-	var mSize:Int;
-	var mCapacity:Int;
 	var mValue:Float;
 	var mSet:Vector<Float>;
 	var mChanged:Bool;
 	
 	public function new(capacity:Int)
 	{
-		mSet = new Vector<Float>(mCapacity = capacity);
+		mSet = new Vector<Float>(this.capacity = capacity);
 		for (i in 0...capacity) mSet[i] = 0;
-		reset();
+		clear();
 	}
 	
+	/**
+		The arithmetic mean of the current set of numbers.
+	**/
 	public var value(get_value, never):Float;
 	inline function get_value():Float
 	{
@@ -46,19 +57,27 @@ class Mean
 		return mValue;
 	}
 	
-	inline public function reset()
+	/**
+		Removes all numbers from the set.
+	**/
+	inline public function clear()
 	{
+		size = 0;
 		mNext = 0;
-		mSize = 0;
 		mValue = 0;
 		mChanged = true;
 	}
 	
+	/**
+		Adds `value` to the set of numbers.
+		
+		If `size` equals `capacity`, the oldest numbers is overwritten by `value`.
+	**/
 	inline public function add(value:Float)
 	{
 		mSet.set(mNext, value);
-		mNext = (mNext + 1) % mCapacity;
-		mSize = mSize < mCapacity ? mSize + 1: mSize;
+		mNext = (mNext + 1) % capacity;
+		size = size < capacity ? size + 1: size;
 		mChanged = true;
 	}
 	
@@ -66,10 +85,10 @@ class Mean
 	{
 		mChanged = false;
 		mValue = 0;
-		if (mSize > 0)
+		if (size > 0)
 		{
-			for (i in 0...mSize) mValue += mSet.get(i);
-			mValue /= mSize;
+			for (i in 0...size) mValue += mSet.get(i);
+			mValue /= size;
 		}
 	}
 }

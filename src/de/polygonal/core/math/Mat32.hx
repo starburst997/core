@@ -19,31 +19,31 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.math;
 
 import de.polygonal.core.math.Vec2;
-import de.polygonal.core.util.Assert;
+import de.polygonal.core.util.Assert.assert;
 
 /**
- * <b>A 3x2 transformation matrix which can represent any 2D affine transformation</b>.<br/>
- * <i>Taken from 3D Math Primer for Games and Graphics Development (Matrix4x3.cpp)</i><br/><br/>
- * The upper 2x2 portion contains a linear transformation, and the last row is the translation portion.<br/>
- * We use row vectors, so multiplying a vector by the matrix looks like this:
- * <pre>
+	A 3x2 transformation matrix which can represent any 2D affine transformation.
+	`>Taken from 3D Math Primer for Games and Graphics Development (Matrix4x3.cpp)`>
+	The upper 2x2 portion contains a linear transformation, and the last row is the translation portion.
+	We use row vectors, so multiplying a vector by the matrix looks like this:
+	<pre>
  *       |m11 m12|
- * |x y| |m21 m22| = |x' y'|
+	|x y| |m21 m22| = |x' y'|
  *       |tx  ty |
- * </pre>
- * Strict adherence to linear algebra rules dictates that this multiplication is actually undefined.
- * To circumvent this, we consider the input and output vectors as having an assumed third coordinate of 1.
- * Also, since we cannot technically invert a 3x2 matrix according to linear algebra rules, we will
- * also assume a rightmost column of &#091;0 0 1&#093;:<br/>
- * <pre>
+	</pre>
+	Strict adherence to linear algebra rules dictates that this multiplication is actually undefined.
+	To circumvent this, we consider the input and output vectors as having an assumed third coordinate of 1.
+	Also, since we cannot technically invert a 3x2 matrix according to linear algebra rules, we will
+	also assume a rightmost column of [0 0 1]:
+	<pre>
  *         |m11 m12 0|
- * |x y 1| |m21 m22 0| = |m11x+m21y+tx m12x+m22y+ty 1|
+	|x y 1| |m21 m22 0| = |m11x+m21y+tx m12x+m22y+ty 1|
  *         |tx  ty  1|
- * </pre>
- */
+	</pre>
+**/
 class Mat32
 {
-	/** Copies <i>source</i> into <i>target</i> and returns <i>target</i>. */
+	/** Copies `>source`> into `>target`> and returns `>target`>.**/
 	inline public static function copy(source:Mat32, target:Mat32):Mat32
 	{
 		//assign upper 2x2 (linear transformation) portion
@@ -56,13 +56,13 @@ class Mat32
 	}
 	
 	/**
-	 * Computes the matrix product <code>C</code>=<code>AB</code> such as v' = v<code>C</code> = v<code>AB</code>.<br/>
-	 * The order of multiplications from left to right is the same as the order of transformations.
-	 * @return The concatenated matrix (<code>C</code>).
-	 */
+		Computes the matrix product `C`=`AB` such as v' = v`C` = v`AB`.
+		The order of multiplications from left to right is the same as the order of transformations.
+		@return The concatenated matrix (`C`).
+	**/
 	inline public static function concat(A:Mat32, B:Mat32, C:Mat32):Mat32
 	{
-		D.assert(A != B, "A != B");
+		assert(A != B, "A != B");
 		
 		var t1 = A.m11;
 		var t2 = A.m12;
@@ -121,23 +121,23 @@ class Mat32
 		return out;
 	}
 	
-	/** Row 1, column 1 (rotation). */           public var m11:Float; /** Row 1, column 2 (rotation). */           public var m12:Float;
-	/** Row 2, column 1 (rotation). */           public var m21:Float; /** Row 2, column 2 (rotation). */           public var m22:Float;
-	/** Row 3, column 1 (translation x-axis). */ public var tx:Float;  /** Row 3, column 2 (translation y-axis). */ public var ty:Float;
+	/** Row 1, column 1 (rotation).**/           public var m11:Float; /** Row 1, column 2 (rotation).**/           public var m12:Float;
+	/** Row 2, column 1 (rotation).**/           public var m21:Float; /** Row 2, column 2 (rotation).**/           public var m22:Float;
+	/** Row 3, column 1 (translation x-axis).**/ public var tx:Float;  /** Row 3, column 2 (translation y-axis).**/ public var ty:Float;
 	
-	/** Creates a new identity matrix. */
+	/** Creates a new identity matrix.**/
 	public function new()
 	{
 		identity();
 	}
 	
 	/**
-	 * v' = <i>v</i><i>M</i><br/>
-	 * Transforms <i>v</i> and writes the result into <i>out</i> in vector form.<br/>
-	 * This is a transformation followed by translation (affine transformation).<br/>
-	 * The order of multiplications from left to right is the same as the order of transformations.
-	 * @return The transformed vector (<i>out</i>).
-	 */
+		v' = `>v`>`>M`>
+		Transforms `>v`> and writes the result into `>out`> in vector form.
+		This is a transformation followed by translation (affine transformation).
+		The order of multiplications from left to right is the same as the order of transformations.
+		@return The transformed vector (`>out`>).
+	**/
 	inline public function mul(c:Vec2, out:Vec2):Vec2
 	{
 		var x = c.x;
@@ -147,18 +147,18 @@ class Mat32
 		return out;
 	}
 	
-	/** Transforms <i>x</i>,<i>y</i> and returns the <b>x-coordinate</b> of the result. */
+	/** Transforms `>x`>,`>y`> and returns the **x-coordinate** of the result.**/
 	inline public function mulx(x:Float, y:Float):Float { return x * m11 + y * m12 + tx; }
-	/** Transforms <i>x</i>,<i>y</i> and returns the <b>y-coordinate</b> of the result. */
+	/** Transforms `>x`>,`>y`> and returns the **y-coordinate** of the result.**/
 	inline public function muly(x:Float, y:Float):Float { return x * m21 + y * m22 + ty; }
 	
 	/**
-	 * Transforms <i>v</i> and writes the result into <i>out</i> in vector form.<br/>
-	 * This is the exact opposite of <i>mul</i> (inverse transform).<br/>
-	 * This is a transformation followed by translation (affine transformation).<br/>
-	 * The order of multiplications from left to right is the same as the order of transformations.
-	 * @return The transformed vector (<i>out</i>).
-	 */
+		Transforms `>v`> and writes the result into `>out`> in vector form.
+		This is the exact opposite of `>mul`> (inverse transform).
+		This is a transformation followed by translation (affine transformation).
+		The order of multiplications from left to right is the same as the order of transformations.
+		@return The transformed vector (`>out`>).
+	**/
 	inline public function mulT(c:Vec2, out:Vec2):Vec2
 	{
 		var dx = c.x - tx;
@@ -168,18 +168,18 @@ class Mat32
 		return out;
 	}
 	
-	/** Transforms <i>x</i>,<i>y</i> (inverse transform) and returns the <b>x-coordinate</b> of the result. */
+	/** Transforms `>x`>,`>y`> (inverse transform) and returns the **x-coordinate** of the result.**/
 	inline public function mulTx(x:Float, y:Float):Float { return (x - tx) * m11 + (y - ty) * m21; }
-	/** Transforms <i>x</i>,<i>y</i> (inverse transform) and returns the <b>y-coordinate</b> of the result. */
+	/** Transforms `>x`>,`>y`> (inverse transform) and returns the **y-coordinate** of the result.**/
 	inline public function mulTy(x:Float, y:Float):Float { return (x - tx) * m12 + (y - ty) * m22; }
 	
 	/**
-	 * v' = <i>v</i><i>R, R = 2x2 upper portion</i><br/>
-	 * Linearly transforms <i>v</i> (upper 2x2 portion only) and writes the result into <i>out</i> in vector form.<br/>
-	 * This rotates <i>v</i> if the 2x2 matrix is a rotation matrix.
-	 * The order of multiplications from left to right is the same as the order of transformations.
-	 * @return The transformed vector (<i>out</i>).
-	 */
+		v' = `>v`>`>R, R = 2x2 upper portion`>
+		Linearly transforms `>v`> (upper 2x2 portion only) and writes the result into `>out`> in vector form.
+		This rotates `>v`> if the 2x2 matrix is a rotation matrix.
+		The order of multiplications from left to right is the same as the order of transformations.
+		@return The transformed vector (`>out`>).
+	**/
 	inline public function mul22(c:Vec2, out:Vec2):Vec2
 	{
 		var x = c.x;
@@ -189,18 +189,18 @@ class Mat32
 		return out;
 	}
 	
-	/** Linearly transforms <i>x</i>,<i>y</i> (upper 2x2 portion only) and returns the <b>x-coordinate</b> of the result. */
+	/** Linearly transforms `>x`>,`>y`> (upper 2x2 portion only) and returns the **x-coordinate** of the result.**/
 	inline public function mul22x(x:Float, y:Float):Float { return x * m11 + y * m12; }
-	/** Linearly transforms <i>x</i>,<i>y</i> (upper 2x2 portion only) and returns the <b>y-coordinate</b> of the result. */
+	/** Linearly transforms `>x`>,`>y`> (upper 2x2 portion only) and returns the **y-coordinate** of the result.**/
 	inline public function mul22y(x:Float, y:Float):Float { return x * m21 + y * m22; }
 	
 	/**
-	 * v' = <i>v</i><i>R^T, R = 2x2 upper portion</i><br/>
-	 * Linearly transforms <i>v</i> (upper 2x2 portion only) and writes the result into <i>out</i> in vector form.<br/>
-	 * This is the exact opposite of <i>mulR</i> (inverse transform).<br/>
-	 * The order of multiplications from left to right is the same as the order of transformations.
-	 * @return The transformed vector (<i>out</i>).
-	 */
+		v' = `>v`>`>R^T, R = 2x2 upper portion`>
+		Linearly transforms `>v`> (upper 2x2 portion only) and writes the result into `>out`> in vector form.
+		This is the exact opposite of `>mulR`> (inverse transform).
+		The order of multiplications from left to right is the same as the order of transformations.
+		@return The transformed vector (`>out`>).
+	**/
 	inline public function mul22T(v:Vec2, out:Vec2):Vec2
 	{
 		var x = v.x;
@@ -210,12 +210,12 @@ class Mat32
 		return out;
 	}
 	
-	/** Linearly transforms <i>x</i>,<i>y</i> (inverse transform - upper 2x2 portion only) and returns the <b>x-coordinate</b> of the result. */
+	/** Linearly transforms `>x`>,`>y`> (inverse transform - upper 2x2 portion only) and returns the **x-coordinate** of the result.**/
 	inline public function mul22Tx(x:Float, y:Float):Float { return x * m11 + y * m21; }
-	/** Linearly transforms <i>x</i>,<i>y</i> (inverse transform - upper 2x2 portion only) and returns the <b>y-coordinate</b> of the result. */
+	/** Linearly transforms `>x`>,`>y`> (inverse transform - upper 2x2 portion only) and returns the **y-coordinate** of the result.**/
 	inline public function mul22Ty(x:Float, y:Float):Float { return x * m12 + y * m22; }
 	
-	/** Sets the matrix to identity. */
+	/** Sets the matrix to identity.**/
 	inline public function identity()
 	{
 		m11 = 1; m12 = 0;
@@ -223,23 +223,23 @@ class Mat32
 		tx  = 0; ty  = 0;
 	}
 	
-	/** Zero the 3rd row of the matrix, which contains the translation portion. */
+	/** Zero the 3rd row of the matrix, which contains the translation portion.**/
 	inline public function zeroTranslation()
 	{
 		tx = ty = 0;
 	}
 	
-	/** Returns true if the matrix contains a translation portion. */
+	/** Returns true if the matrix contains a translation portion.**/
 	inline public function hasTranslation():Bool
 	{
 		return tx != 0 || ty != 0;
 	}
 	
 	/**
-	 * Returns the translation row of the matrix in vector form.<br/>
-	 * This is the position of an object given a local->parent transformation matrix
-	 * (such as an object->world matrix).
-	 */
+		Returns the translation row of the matrix in vector form.
+		This is the position of an object given a local->parent transformation matrix
+		(such as an object->world matrix).
+	**/
 	inline public function getTranslation(out:Vec2):Vec2
 	{
 		out.x = tx;
@@ -247,7 +247,7 @@ class Mat32
 		return out;
 	}
 	
-	/** Sets the translation portion of the matrix. */
+	/** Sets the translation portion of the matrix.**/
 	inline public function setTranslation(x:Float, y:Float)
 	{
 		tx = x; ty = y;
@@ -259,7 +259,7 @@ class Mat32
 		m21 = 0; m22 = y;
 	}
 	
-	/** Creates a 2x2 rotation matrix from the rotation portion of this matrix. */
+	/** Creates a 2x2 rotation matrix from the rotation portion of this matrix.**/
 	inline public function getRotationMatrix(R:Mat22):Mat22
 	{
 		R.m11 = m11; R.m12 = m12;
@@ -267,20 +267,20 @@ class Mat32
 		return R;
 	}
 	
-	/** Sets the 2x2 rotation portion given a 2x2 rotation matrix <i>R</i>. */
+	/** Sets the 2x2 rotation portion given a 2x2 rotation matrix `>R`>.**/
 	inline public function setRotationMatrix(R:Mat22)
 	{
 		m11 = R.m11; m12 = R.m12;
 		m21 = R.m21; m22 = R.m22;
 	}
 	
-	/** Extracts the angle from this matrix (assumed to be a rotation matrix). */
+	/** Extracts the angle from this matrix (assumed to be a rotation matrix).**/
 	inline public function getAngle():Float
 	{
 		return Math.atan2(m21, m11);
 	}
 	
-	/** Sets the 2x2 rotation portion given an <i>angle</i> in radians. */
+	/** Sets the 2x2 rotation portion given an `>angle`> in radians.**/
 	inline public function setAngle(angle:Float)
 	{
 		var c = Math.cos(angle);
@@ -289,7 +289,7 @@ class Mat32
 		m21 = s; m22 = c;
 	}
 	
-	/** Sets the translation portion of the matrix. */
+	/** Sets the translation portion of the matrix.**/
 	inline public function setupTranslation(x:Float, y:Float)
 	{
 		//set the linear transformation portion to identity
@@ -300,13 +300,13 @@ class Mat32
 	}
 	
 	/**
-	 * Setup the matrix to perform a local->parent transformation, given the position <i>x</i>,<i>y</i>
-	 * and orientation <i>orient</i> of the local reference frame within the parent reference frame.
-	 * A very common use of this will be to construct a object->world matrix. As an example, the
-	 * transformation in this case is straightforward. We first rotate from object space into
-	 * inertial space, then we translate into world space.
-	 * @param angle The orientation of the local reference frame in radians.
-	 */
+		Setup the matrix to perform a local->parent transformation, given the position `>x`>,`>y`>
+		and orientation `>orient`> of the local reference frame within the parent reference frame.
+		A very common use of this will be to construct a object->world matrix. As an example, the
+		transformation in this case is straightforward. We first rotate from object space into
+		inertial space, then we translate into world space.
+		@param angle The orientation of the local reference frame in radians.
+	**/
 	public function setupLocalToParent(x:Float, y:Float, angle:Float)
 	{
 		//copy the rotation portion of the matrix. we can copy the elements directly
@@ -324,14 +324,14 @@ class Mat32
 	}
 	
 	/**
-	 * Setup the matrix to perform a parent->local transformation, given the position <i>x</i>,<i>y</i>
-	 * and orientation <i>orient</i> of the local reference frame within the parent reference frame.
-	 * A very common use of this will be to construct a world->object matrix.
-	 * To perform this transformation, we would normally FIRST transform from world to inertial space,
-	 * and then rotate from inertial space into object space. However, our 4x3 matrix always
-	 * translates last. So we think about creating two matrices T and R, and then concatenating M = TR.
-	 * @param orient The orientation of the local reference frame, which can be specified using either an angle (radians) or a 2x2 rotation matrix.
-	 */
+		Setup the matrix to perform a parent->local transformation, given the position `>x`>,`>y`>
+		and orientation `>orient`> of the local reference frame within the parent reference frame.
+		A very common use of this will be to construct a world->object matrix.
+		To perform this transformation, we would normally FIRST transform from world to inertial space,
+		and then rotate from inertial space into object space. However, our 4x3 matrix always
+		translates last. So we think about creating two matrices T and R, and then concatenating M = TR.
+		@param orient The orientation of the local reference frame, which can be specified using either an angle (radians) or a 2x2 rotation matrix.
+	**/
 	public function setupParentToLocal(x:Float, y:Float, angle:Float)
 	{
 		//copy the rotation portion of the matrix. by our definition, the rotation matrix is
@@ -352,20 +352,20 @@ class Mat32
 	}
 	
 	/**
-	 * Extracts the position of an object given a local->parent transformation matrix
-	 * (such as a object->world matrix). We assume that the matrix represents a rigid transformation
-	 * (No scale, skew, or mirroring).
-	 */
+		Extracts the position of an object given a local->parent transformation matrix
+		(such as a object->world matrix). We assume that the matrix represents a rigid transformation
+		(No scale, skew, or mirroring).
+	**/
 	inline public function getPositionFromLocalToParentMatrix(out:Vec2):Vec2
 	{
 		return getTranslation(out);
 	}
 	
 	/**
-	 * Extracts the position of an object given a parent->local transformation matrix
-	 * (such as a world->object matrix). We assume that the matrix represents a rigid transformation
-	 * (No scale, skew, or mirroring).
-	 */
+		Extracts the position of an object given a parent->local transformation matrix
+		(such as a world->object matrix). We assume that the matrix represents a rigid transformation
+		(No scale, skew, or mirroring).
+	**/
 	inline public function getPositionFromParentToLocalMatrix(out:Vec2):Vec2
 	{
 		//multiply negative translation value by the transpose of the 2x2 portion.
@@ -386,8 +386,8 @@ class Mat32
 	}
 	
 	/**
-	 * A human-readable representation of the elements of this matrix.
-	 */
+		A human-readable representation of the elements of this matrix.
+	**/
 	public function toString():String
 	{
 		return Printf.format("Mat32:\n" +

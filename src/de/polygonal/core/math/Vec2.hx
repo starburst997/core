@@ -18,13 +18,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
+import de.polygonal.core.math.Coord2.Coord2f;
 import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.math.random.Random;
 
 /**
-	A 2d vector.
-	
-	A geometric object that has both a magnitude (or length) and direction.
+	A 2d vector; a geometric object that has both a magnitude (or length) and direction.
 **/
 class Vec2 extends Coord2f
 {
@@ -50,14 +49,18 @@ class Vec2 extends Coord2f
 	}
 	
 	/**
-		Computes the dot product `a`×`b`.
+		Computes the dot product `a` · `b`.
 		
 		Also known as inner product or scalar product.
 	**/
-	inline public static function dot(a:Vec2, b:Vec2):Float
-	{
-		return a.x * b.x + a.y * b.y;
-	}
+	inline public static function dot(a:Vec2, b:Vec2):Float return dotf(a.x, a.y, b.x, b.y);
+	
+	/**
+		Computes the dot product (`ax`,`ay`) · (`bx`,`by`).
+		
+		Also known as inner product or scalar product.
+	**/
+	inline public static function dotf(ax:Float, ay:Float, bx:Float, by:Float) return ax * bx + ay * by;
 	
 	/**
 		Tests if `c` is left, on or right of an infinite line through `a` and `b`.
@@ -102,9 +105,9 @@ class Vec2 extends Coord2f
 	}
 	
 	/**
-	 * Gram-Schmidt orthonormalization of `u` and `v`.
-	 */
-    public static function orthonormalize(u:Vec2, v:Vec2)
+		Gram-Schmidt orthonormalization of `u` and `v`.
+	**/
+	public static function orthonormalize(u:Vec2, v:Vec2)
 	{
 		u.normalize();
 		var uv = dot(u, v);
@@ -136,13 +139,14 @@ class Vec2 extends Coord2f
 		Computes the perp-dot product perp(`a`)`b`, where perp() is defined to rotate a vector 90° counterclockwise (CCW).
 		
 		Also known as exterior product or outer product.
-		
 		This is the determinant of the matrix with first row `a` and second row `b`.
 	**/
-	inline public static function perpDot(a:Vec2, b:Vec2):Float
-	{
-		return a.x * b.y - a.y * b.x;
-	}
+	inline public static function perpDot(a:Vec2, b:Vec2):Float return perpDotf(a.x, a.y, b.x, b.y);
+	
+	/**
+		Computes the perp-dot product perp((`ax`,`ay`))(`bx`,`by`), where perp() is defined to rotate a vector 90° counterclockwise (CCW).
+	**/
+	inline public static function perpDotf(ax:Float, ay:Float, bx:Float, by:Float):Float return ax * by - ay * bx;
 	
 	/**
 		Creates a random vector with x in the range [`minX`,`maxX`] and y in the range [`minY`,`maxY`].
@@ -171,33 +175,43 @@ class Vec2 extends Coord2f
 		return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x);
 	}
 	
-	/**
-		The vector length (aka norm).
-	**/
-	public var length(get_length, never):Float;
-	function get_length():Float return return Math.sqrt(squaredLength);
-	
-	/**
-		The squared vector length.
-	**/
-	public var squaredLength(get_squaredLength, never):Float;
-	inline function get_squaredLength():Float return x * x + y * y;
-	
 	public function new(x:Float = 0., y:Float = 0.)
 	{
 		super(x, y);
 	}
 	
+	inline public function flip()
+	{
+		x = -x;
+		y = -y;
+	}
+	
 	/**
-	 * Right-handed perp operator (z-axis pointing out of the screen); returns (`y`, -`x`).
-	 */
+		The vector length.
+	**/
+	inline function length():Float
+	{
+		return Math.sqrt(lengthSq());
+	}
+	
+	/**
+		The squared vector length.
+	**/
+	inline function lengthSq():Float
+	{
+		return x * x + y * y;
+	}
+	
+	/**
+		Right-handed perp operator (z-axis pointing out of the screen); returns (`y`,-`x`).
+	**/
 	inline public function perpR()
 	{
 		var t = y; y = -x; x = t;
 	}
 	
 	/**
-		Left-handed perp operator (z-axis pointing into the screen); returns (-`y`, `x`).
+		Left-handed perp operator (z-axis pointing into the screen); returns (-`y`,`x`).
 	**/
 	inline public function perpL()
 	{
@@ -209,23 +223,43 @@ class Vec2 extends Coord2f
 	**/
 	inline public function normalize():Float
 	{
-		var t = Math.sqrt(x * x + y * y);
-		x /= t;
-		y /= t;
-		return t;
+		var l = length();
+		l = l < M.EPS ? 0 : 1 / l;
+		x *= l;
+		y *= l;
+		return l;
 	}
 	
 	/**
-	 * Clamps this vector to <code>max</code> length.
-	 */
+		Scales this vector by `value`.
+	**/
+	inline public function scale(value:Float)
+	{
+		x *= value;
+		y *= value;
+	}
+	
+	/**
+		Clamps this vector to `max` length.
+	**/
 	inline public function clamp(max:Float)
 	{
-		var l = squaredLength;
+		var l = lengthSq();
 		if (l > max * max)
 		{
 			l = Math.sqrt(l);
 			x = (x / l) * max;
 			y = (y / l) * max;
 		}
+	}
+	
+	override public function clone():Vec2
+	{
+		return new Vec2(x, y);
+	}
+	
+	override public function toString():String
+	{
+		return Printf.format("{ Vec2 %-.4f %-.4f }", [x, y]);
 	}
 }
