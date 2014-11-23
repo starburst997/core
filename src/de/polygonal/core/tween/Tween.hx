@@ -21,23 +21,23 @@ package de.polygonal.core.tween;
 import de.polygonal.core.event.IObservable;
 import de.polygonal.core.event.IObserver;
 import de.polygonal.core.event.Observable;
-import de.polygonal.core.math.interpolation.Interpolation;
-import de.polygonal.core.math.interpolation.Mapping;
-import de.polygonal.core.math.Mathematics;
+import de.polygonal.core.math.Interpolation;
+import de.polygonal.core.math.ChangeRange;
+import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.time.Timebase;
 import de.polygonal.core.time.TimebaseEvent;
 import de.polygonal.core.time.Timeline;
-import de.polygonal.core.time.TimelineListener;
+import de.polygonal.core.time.TimeSpan;
 import de.polygonal.core.tween.ease.Ease;
 import de.polygonal.core.tween.ease.EaseFactory;
-import de.polygonal.core.util.Assert;
+import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.DA;
 import haxe.ds.StringMap;
 
 /**
- * <p>Interpolates between two states by using an easing equation.</p>
+ * Interpolates between two states by using an easing equation.
  */
-class Tween implements IObservable implements IObserver implements TimelineListener
+class Tween implements IObservable implements IObserver implements TimeSpan
 {
 	static var _activeTweens:DA<Tween>;
 	static var _map:StringMap<Tween>;
@@ -52,7 +52,7 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	}
 	
 	/**
-	 * Returns the <em>Tween</em> object mapped to <code>key</code> or null if no such <em>Tween</em> exists.
+	 * Returns the `Tween` object mapped to `key` or null if no such `Tween` exists.
 	 */
 	public static function get(key:String):Tween
 	{
@@ -61,7 +61,7 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	}
 	
 	/**
-	 * Removes all non-running <em>Tween</em> objects with assigned keys.
+	 * Removes all non-running `Tween` objects with assigned keys.
 	 */
 	public static function purge()
 	{
@@ -80,7 +80,7 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	}
 	
 	/**
-	 * Helper function for tweening any <code>fields</code> of an <code>object</code>.
+	 * Helper function for tweening any `fields` of an `object`.
 	 */
 	public static function create(key:String = null, object:Dynamic, fields:Dynamic, ease:Ease, to:Float, duration:Float, interpolateState = false):Tween
 	{
@@ -104,10 +104,10 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	var _observable:Observable;
 	
 	/**
-	 * @param key assigning a key makes it possible to reuse this <em>Tween</em> object later on by calling <em>Tween</em>.getKey(<code>key</code>).<br/>
-	 * To fully remove a <em>Tween</em> object call <em>Tween.free()</em>.
+	 * @param key assigning a key makes it possible to reuse this `Tween` object later on by calling `Tween`.getKey(`key`).
+	 * To fully remove a `Tween` object call `Tween.free()`.
 	 * @param target the object that gets tweened.
-	 * @param ease the easing method. If null, no easing is applied and <em>Ease.None</em> is used instead.
+	 * @param ease the easing method. If null, no easing is applied and `Ease.None` is used instead.
 	 * @param to the target value.
 	 * @param duration the duration in seconds.
 	 * @param interpolateState if true, applies the tweened value in a separate rendering step.
@@ -117,7 +117,7 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 		if (ease == null) ease = Ease.None;
 		
 		#if debug
-		D.assert(target != null, "target is null");
+		assert(target != null, "target is null");
 		#end
 		
 		_id          = -1;
@@ -165,11 +165,11 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	}
 	
 	/**
-	 * The tween progress in the interval <arg>&#091;0, 1&#093;</arg>.
+	 * The tween progress in the interval `[0, 1]`.
 	 */
 	inline public function getProgress():Float
 	{
-		return Mapping.map(_b, _min, _max, 0, 1);
+		return ChangeRange.map(_b, _min, _max, 0, 1);
 	}
 	
 	inline public function getKey():String
@@ -268,12 +268,12 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 		_observable.attach(o, mask);
 	}
 	
-	public function detach(o:IObserver, mask:Int = 0) 
+	public function detach(o:IObserver, mask:Int = 0)
 	{
 		if (_observable != null) _observable.attach(o, mask);
 	}
 	
-	public function notify(type:Int, userData:Dynamic = null) 
+	public function notify(type:Int, userData:Dynamic = null)
 	{
 		if (_observable != null) _observable.notify(type, userData);
 	}

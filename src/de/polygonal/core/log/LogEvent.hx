@@ -25,7 +25,7 @@ package de.polygonal.core.log;
 ]))
 #end
 /**
- * <p>Updates triggered by a <em>Log</em> object.</p>
+ * Updates triggered by a `Log` object.
  */
 class LogEvent
 {

@@ -26,9 +26,8 @@ import haxe.macro.Expr;
 #end
 
 /**
- * Java property file format.
- * @see http://en.wikipedia.org/wiki/Java_properties
- */
+	Java [property file](http://en.wikipedia.org/wiki/Java_properties) format.
+**/
 class PropertyFile
 {
 	#if macro

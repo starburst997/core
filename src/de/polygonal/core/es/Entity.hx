@@ -22,26 +22,30 @@ import de.polygonal.core.es.Msg;
 import de.polygonal.core.es.MsgQue.MsgBundle;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.core.util.ClassUtil;
-import de.polygonal.core.es.EntitySystem in ES;
+import de.polygonal.core.es.EntitySystem in Es;
 
 @:access(de.polygonal.core.es.EntitySystem)
 @:access(de.polygonal.core.es.MsgQue)
-@:autoBuild(de.polygonal.core.es.EntityMacro.build())
-@:build(de.polygonal.core.es.EntityMacro.build())
-@:build(de.polygonal.core.util.IntConstants.build(
+@:build(de.polygonal.core.macro.IntEnum.build(
 [
-	BIT_GHOST,
 	BIT_SKIP_SUBTREE,
 	BIT_SKIP_MSG,
 	BIT_SKIP_TICK,
 	BIT_SKIP_DRAW,
-	BIT_SKIP_UPDATE,
 	BIT_STOP_PROPAGATION,
 	BIT_MARK_FREE,
-	BIT_GLOBAL_NAME
+	BIT_NAME_PUBLISHED,
 ], true, false))
+@:build(de.polygonal.core.es.EntityMacro.build())
+@:autoBuild(de.polygonal.core.es.EntityMacro.build())
 class Entity
 {
+	inline public static var REL_ANCESTOR = 0;
+	inline public static var REL_CHILD = 1;
+	inline public static var REL_DESCENDANT = 2;
+	inline public static var REL_SIBLING = 3;
+	//inline public static var REL_ROOT = 3;
+	
 	inline static function getEntityType<T:Entity>(C:Class<T>):Int
 	{
 		#if flash
@@ -51,22 +55,23 @@ class Entity
 		#end
 	}
 	
-	inline static function getMsgQue() return ES.mMsgQue;
-	inline static function getInheritanceLookup() return ES.mInheritanceLookup;
+	inline static function getMsgQue() return Es.mMsgQue;
+	
+	inline static function getInheritLut() return Es.mInheritanceLut;
 	
 	/**
-	 * A unique identifier for this entity.
-	 */
+		Every entity has an unique identifier.
+	*/
 	public var id(default, null):EntityId;
 	
 	/**
-	 * Every subclass of the Entity class can be identified by a unique integer value.
-	 */
+		Every subclass of the Entity class can be identified by a unique integer value.
+	**/
 	public var type(default, null):Int;
 	
 	/**
-	 * A pointer to the next entity in a preorder sequence.
-	 */
+		A pointer to the next entity in a preorder sequence.
+	**/
 	public var preorder(default, null):Entity;
 	
 	@:noCompletion var mFlags:Int;
@@ -75,9 +80,9 @@ class Entity
 	public function new(?name:String)
 	{
 		mFlags = 0;
-		type = _getType();
+		type = __getType();
 		
-		ES.register(this);
+		Es.register(this);
 		
 		#if debug
 		if (name == null)
@@ -88,68 +93,103 @@ class Entity
 	}
 	
 	/**
-	 * Recursively destroys the subtree rooted at this entity (including this entity) from the bottom up.<br/>
-	 * The method invokes <em>onFree()</em> on each entity, giving each entity the opportunity to perform some cleanup (e.g. free resources or unregister from listeners).<br/>
-	 */
+		Recursively destroys the subtree rooted at this entity (including this entity) from the bottom up.
+		
+		This invokes the method `onFree` on each entity, giving each entity the opportunity to perform some cleanup (e.g. free resources or unregister from listeners).
+	**/
 	public function free()
 	{
 		if (mFlags & BIT_MARK_FREE > 0) return;
 		
 		if (parent != null) parent.remove(this);
-		ES.freeEntityTree(this);
+		Es.freeEntityTree(this);
 	}
 	
+	/**
+		The parent or null if this is a top entity.
+		
+		__Never modify this value.__
+	**/
 	public var parent(get_parent, set_parent):Entity;
 	@:noCompletion inline function get_parent():Entity
 	{
-		return ES.getParent(this);
+		return Es.getParent(this);
 	}
 	@:noCompletion inline function set_parent(value:Entity)
 	{
-		ES.setParent(this, value);
-		return value;
-	}
-	
-	public var child(get_child, set_child):Entity;
-	@:noCompletion inline function get_child():Entity
-	{
-		return ES.getChild(this);
-	}
-	@:noCompletion inline function set_child(value:Entity)
-	{
-		ES.setChild(this, value);
-		return value;
-	}
-	
-	public var sibling(get_sibling, set_sibling):Entity;
-	@:noCompletion inline function get_sibling():Entity
-	{
-		return ES.getSibling(this);
-	}
-	@:noCompletion inline function set_sibling(value:Entity)
-	{
-		ES.setSibling(this, value);
-		return value;
-	}
-	
-	public var lastChild(get_lastChild, set_lastChild):Entity;
-	@:noCompletion inline function get_lastChild():Entity
-	{
-		return ES.getLastChild(this);
-	}
-	@:noCompletion inline function set_lastChild(value:Entity)
-	{
-		ES.setLastChild(this, value);
+		Es.setParent(this, value);
 		return value;
 	}
 	
 	/**
-	 * The total number of descendants.
-	 */
+		The first child or null if this entity has no children.
+		
+		__Don't modify this value.__
+	**/
+	public var child(get_child, set_child):Entity;
+	@:noCompletion inline function get_child():Entity
+	{
+		return Es.getChild(this);
+	}
+	@:noCompletion inline function set_child(value:Entity)
+	{
+		Es.setChild(this, value);
+		return value;
+	}
+	
+	/**
+		The next sibling or null if this entity has no sibling.
+		
+		__Don't modify this value.__
+	**/
+	public var sibling(get_sibling, set_sibling):Entity;
+	@:noCompletion inline function get_sibling():Entity
+	{
+		return Es.getSibling(this);
+	}
+	@:noCompletion inline function set_sibling(value:Entity)
+	{
+		Es.setSibling(this, value);
+		return value;
+	}
+	
+	/**
+		The last child or null if this entity has no children.
+		
+		__Don't modify this value.__
+	**/
+	public var lastChild(get_lastChild, set_lastChild):Entity;
+	@:noCompletion inline function get_lastChild():Entity
+	{
+		return Es.getLastChild(this);
+	}
+	@:noCompletion inline function set_lastChild(value:Entity)
+	{
+		Es.setLastChild(this, value);
+		return value;
+	}
+	
+	/**
+		The total number of child entities.
+	**/
+	public var numChildren(get_numChildren, set_numChildren):Int;
+	@:noCompletion inline function get_numChildren():Int
+	{
+		return Es.getNumChildren(this);
+	}
+	@:noCompletion inline function set_numChildren(value:Int):Int
+	{
+		Es.setNumChildren(this, value);
+		return value;
+	}
+	
+	/**
+		The total number of descendants.
+	**/
 	public var size(get_size, never):Int;
 	@:noCompletion inline function get_size():Int
 	{
-		return ES.getSize(this);
+		return Es.getSize(this);
 	}
 	
 	/**
@@ -157,61 +197,13 @@ class Entity
 		The root node is at depth 0.
 	**/
 	public var depth(get_depth, never):Int;
-	@:noCompletion function get_depth():Int
+	@:noCompletion inline function get_depth():Int
 	{
-		return ES.getDepth(this);
+		return Es.getDepth(this);
 	}
 	
 	/**
-	 * The total number of children.
-	 */
-	public var numChildren(get_numChildren, set_numChildren):Int;
-	@:noCompletion inline function get_numChildren():Int
-	{
-		return ES.getNumChildren(this);
-	}
-	@:noCompletion inline function set_numChildren(value:Int):Int
-	{
-		ES.setNumChildren(this, value);
-		return value;
-	}
-	
-	public var tick(get_tick, set_tick):Bool;
-	@:noCompletion inline function get_tick():Bool
-	{
-		return mFlags & BIT_SKIP_TICK == 0;
-	}
-	@:noCompletion function set_tick(value:Bool):Bool
-	{
-		mFlags = value ? (mFlags & ~BIT_SKIP_TICK) : (mFlags | BIT_SKIP_TICK);
-		return value;
-	}
-	
-	public var draw(get_draw, set_draw):Bool;
-	@:noCompletion inline function get_draw():Bool
-	{
-		return mFlags & BIT_SKIP_DRAW == 0;
-	}
-	@:noCompletion function set_draw(value:Bool):Bool
-	{
-		mFlags = value ? (mFlags & ~BIT_SKIP_DRAW) : (mFlags | BIT_SKIP_DRAW);
-		return value;
-	}
-	
-	public var skipUpdate(get_skipUpdate, set_skipUpdate):Bool;
-	@:noCompletion inline function get_skipUpdate():Bool
-	{
-		return mFlags & BIT_SKIP_UPDATE > 0;
-	}
-	@:noCompletion function set_skipUpdate(value:Bool):Bool
-	{
-		mFlags = value ? (mFlags | BIT_SKIP_UPDATE) : (mFlags & ~BIT_SKIP_UPDATE);
-		return value;
-	}
-	
-	/**
-	 * The name of this entity. Default is null.
-	 * In case of subclassing, name is set to the unqualified class name of the subclass.
+		The name of this entity. Default is null.
 	 */
 	public var name(get_name, set_name):String;
 	@:noCompletion inline function get_name():String
@@ -221,58 +213,99 @@ class Entity
 	@:noCompletion function set_name(value:String):String
 	{
 		if (value == name) return value;
-		if (mFlags & BIT_GLOBAL_NAME > 0)
-			ES.changeName(this, value);
+		if (mFlags & BIT_NAME_PUBLISHED > 0)
+			Es.changeName(this, value);
 		mName = value;
 		return value;
 	}
 	
-	public function exposeName()
+	/**
+		If true, `MainLoop` updates this entity at regular intervals by invoking the onTick() method.
+	**/
+	public var tickable(get_tickable, set_tickable):Bool;
+	@:noCompletion inline function get_tickable():Bool
 	{
-		if (mFlags & BIT_GLOBAL_NAME == 0)
-		{
-			mFlags |= BIT_GLOBAL_NAME;
-			ES.changeName(this, mName);
-		}
+		return mFlags & BIT_SKIP_TICK == 0;
 	}
-	
-	public var ghost(get_ghost, set_ghost):Bool;
-	@:noCompletion inline function get_ghost():Bool return mFlags & BIT_GHOST > 0;
-	@:noCompletion function set_ghost(value:Bool):Bool
+	@:noCompletion function set_tickable(value:Bool):Bool
 	{
-		mFlags = value ? (mFlags | BIT_GHOST) : (mFlags & ~BIT_GHOST);
+		mFlags = value ? (mFlags & ~BIT_SKIP_TICK) : (mFlags | BIT_SKIP_TICK);
 		return value;
 	}
 	
-	public var skipSubtree(get_skipSubtree, set_skipSubtree):Bool;
-	@:noCompletion inline function get_skipSubtree():Bool
+	/**
+		If true, `MainLoop` renderes this entity at regular intervals by invoking the onDraw() method.
+	**/
+	public var drawable(get_drawable, set_drawable):Bool;
+	@:noCompletion inline function get_drawable():Bool
 	{
-		return mFlags & BIT_SKIP_SUBTREE > 0;
+		return mFlags & BIT_SKIP_DRAW == 0;
 	}
-	@:noCompletion function set_skipSubtree(value:Bool):Bool
+	@:noCompletion function set_drawable(value:Bool):Bool
 	{
-		mFlags = value ? (mFlags | BIT_SKIP_SUBTREE) : (mFlags & ~BIT_SKIP_SUBTREE);
+		mFlags = value ? (mFlags & ~BIT_SKIP_DRAW) : (mFlags | BIT_SKIP_DRAW);
 		return value;
 	}
 	
-	public var skipMessages(get_skipMessages, set_skipMessages):Bool;
-	@:noCompletion inline function get_skipMessages():Bool
+	/**
+		If true, this entity can receive messages. Default is true.
+	**/
+	public var notifiable(get_notifiable, set_notifiable):Bool;
+	@:noCompletion inline function get_notifiable():Bool
 	{
-		return mFlags & BIT_SKIP_MSG > 0;
+		return mFlags & BIT_SKIP_MSG == 0;
 	}
-	@:noCompletion function set_skipMessages(value:Bool):Bool
+	@:noCompletion function set_notifiable(value:Bool):Bool
 	{
-		mFlags = value ? (mFlags | BIT_SKIP_MSG) : (mFlags & ~BIT_SKIP_MSG);
+		mFlags = value ? (mFlags & ~BIT_SKIP_MSG) : (mFlags | BIT_SKIP_MSG);
 		return value;
 	}
 	
-	public function add<T:Entity>(?cl:Class<T>, ?inst:T):T
+	/**
+		If false, skips updating the subtree rooted at this node. Default is true.
+	**/
+	public var passable(get_passable, set_passable):Bool;
+	@:noCompletion inline function get_passable():Bool
 	{
-		assert(cl != null || inst != null);
+		return mFlags & BIT_SKIP_SUBTREE == 0;
+	}
+	@:noCompletion function set_passable(value:Bool):Bool
+	{
+		mFlags = value ? (mFlags & ~BIT_SKIP_SUBTREE) : (mFlags | BIT_SKIP_SUBTREE);
+		return value;
+	}
+	
+	/**
+		Data that has been received. Only valid inside a msgTo*() method.
+	**/
+	public var incomingBundle(get_incomingBundle, never):MsgBundle;
+	@:noCompletion function get_incomingBundle():MsgBundle
+	{
+		return getMsgQue().getMsgBundleIn();
+	}
+	
+	/**
+		Data that is about to be sent when calling msgTo*().
+	**/
+	public var outgoingBundle(get_outgoingBundle, never):MsgBundle;
+	@:noCompletion function get_outgoingBundle():MsgBundle
+	{
+		return getMsgQue().getMsgBundleOut();
+	}
+	
+	/**
+		Adds a child entity to this entity and returns the newly added entity.
+		
+		- if `inst` is omitted, creates and adds an instance of the class `clss` to this entity.
+		- if `clss` is omitted, adds `inst` to this entity.
+	**/
+	public function add<T:Entity>(?clss:Class<T>, ?inst:T):T
+	{
+		assert(clss != null || inst != null);
 		
 		var x:Entity = inst;
 		if (x == null)
-			x = Type.createInstance(cl, []);
+			x = Type.createInstance(clss, []);
 		
 		assert(x.parent != this);
 		assert(x.parent == null);
@@ -334,9 +367,26 @@ class Entity
 		return cast x;
 	}
 	
-	public function remove(x:Entity = null)
+	/**
+		Removes a child entity and returns
+		
+		- finds and removes the entity `x` if `clss` is omitted.
+		- finds and removes the first entity of type `clss` if `x` is omitted.
+		- removes __this entity__ if called without arguments.
+	**/
+	public function remove<T:Entity>(x:Entity = null, ?clss:Class<T>)
 	{
-		if (x == null || x == this)
+		assert(x != this);
+		
+		if (clss != null)
+		{
+			x = findChild(clss);
+			assert(x != null);
+			remove(x);
+			return;
+		}
+		
+		if (x == null)
 		{
 			//remove myself
 			assert(parent != null);
@@ -355,11 +405,11 @@ class Entity
 		var k = x.size + 1;
 		setSize(size - k);
 		
-		var p = parent;
-		while (p != null)
+		var n = parent;
+		while (n != null)
 		{
-			p.setSize(p.size - k);
-			p = p.parent;
+			n.setSize(n.size - k);
+			n = n.parent;
 		}
 		
 		//case 1: first child is removed
@@ -400,221 +450,214 @@ class Entity
 		
 		//update depth on subtree
 		var d = depth + 1;
-		var e = x;
+		var n = x;
 		var i = x.size + 1;
 		while (i-- > 0)
 		{
-			e.setDepth(e.depth - d);
-			e = e.preorder;
+			n.setDepth(n.depth - d);
+			n = n.preorder;
 		}
 		
 		x.parent = null;
 		x.onRemove(this);
+		
+		return;
 	}
 	
-	public function removeByType<T:Entity>(cl:Class<T>)
+	/**
+		Removes all child entities from this entity.
+	**/
+	public function removeChildren():Entity
 	{
-		var child = childByType(cl);
-		if (child != null) remove(child);
-	}
-	
-	public function removeAllChildren()
-	{
-		var e = child;
-		while (e != null)
+		var n = child;
+		while (n != null)
 		{
-			var next = e.sibling;
+			var hook = n.sibling;
 			
-			var i = findLastLeaf(e);
+			var i = findLastLeaf(n);
 			preorder = i.preorder;
 			i.preorder = null;
 			
-			e.parent = e.sibling = null;
-			e = next;
+			n.parent = n.sibling = null;
+			n = hook;
 		}
 		
 		child = null;
 		lastChild = null;
-	}
-	
-	public function ancestorByType<T:Entity>(cl:Class<T>):T
-	{
-		var e = parent;
-		var t = getEntityType(cl);
 		
-		while (e != null)
-		{
-			if (e.type == t) return cast e;
-			e = e.parent;
-		}
-		
-		e = parent;
-		var lut = getInheritanceLookup();
-		while (e != null)
-		{
-			if (lut.hasPair(e.type, t)) return cast e;
-			e = e.parent;
-		}
-		
-		return null;
-	}
-	
-	public function ancestorByName(name:String):Entity
-	{
-		var e = parent;
-		while (e != null)
-		{
-			if (e.name == name) break;
-			e = e.parent;
-		}
-		
-		return e;
-	}
-	
-	public function descendantByType<T:Entity>(cl:Class<T>):T
-	{
-		var last =
-		if (sibling != null)
-			sibling;
-		else
-			findLastLeaf(this).preorder;
-		var e = child;
-		var t = getEntityType(cl);
-		
-		while (e != last)
-		{
-			if (t == e.type) return cast e;
-			e = e.preorder;
-		}
-		
-		e = child;
-		var lut = getInheritanceLookup();
-		while (e != last)
-		{
-			if (lut.hasPair(e.type, t)) return cast e;
-			e = e.preorder;
-		}
-		
-		return null;
-	}
-	
-	public function descendantByName(name:String):Entity
-	{
-		var e = child;
-		var last = sibling;
-		while (e != last)
-		{
-			if (e.name == name) break;
-			e = e.preorder;
-		}
-		
-		return e;
-	}
-	
-	public function childByType<T:Entity>(cl:Class<T>):T
-	{
-		var e = child;
-		var t = getEntityType(cl);
-		
-		while (e != null)
-		{
-			if (t == e.type) return cast e;
-			e = e.sibling;
-		}
-		
-		e = child;
-		
-		var lut = getInheritanceLookup();
-		while (e != null)
-		{
-			if (lut.hasPair(e.type, t)) return cast e;
-			e = e.sibling;
-		}
-		
-		return null;
-	}
-	
-	public function childByName(name:String):Entity
-	{
-		var e = child;
-		while (e != null)
-		{
-			if (e.name == name) break;
-			e = e.sibling;
-		}
-		
-		return e;
-	}
-	
-	public function childExists(?cl:Class<Dynamic>, ?name:String):Bool
-	{
-		var child = (cl != null ? childByType(cl) : childByName(name));
-		return child != null && (child.mFlags & BIT_MARK_FREE == 0);
-	}
-	
-	public function siblingByType<T:Entity>(?cl:Class<T>):T
-	{
-		if (parent == null) return null;
-		
-		var e = parent.child;
-		var t = getEntityType(cl);
-		
-		while (e != null)
-		{
-			if (e != this)
-				if (t == e.type)
-					return cast e;
-			e = e.sibling;
-		}
-		
-		e = parent.child;
-		var lut = getInheritanceLookup();
-		while (e != null)
-		{
-			if (e != this)
-				if (lut.hasPair(e.type, t)) return cast e;
-			e = e.sibling;
-		}
-		
-		return null;
-	}
-	
-	public function siblingByName(name:String):Entity
-	{
-		if (parent == null) return null;
-		
-		var e = parent.child;
-		while (e != null)
-		{
-			if (e.name == name)
-				return e;
-			e = e.sibling;
-		}
-		
-		return e;
-	}
-	
-	public var incomingBundle(get_incomingBundle, never):MsgBundle;
-	@:noCompletion function get_incomingBundle():MsgBundle
-	{
-		return getMsgQue().getMsgBundleIn();
-	}
-	
-	public var outgoingBundle(get_outgoingBundle, never):MsgBundle;
-	@:noCompletion function get_outgoingBundle():MsgBundle
-	{
-		return getMsgQue().getMsgBundleOut();
-	}
-	
-	inline public function dispatchMessages()
-	{
-		ES.dispatchMessages();
+		return this;
 	}
 	
 	/**
-		Sends a message of type `msgType` to `entity`.
+		Returns the first ancestor of type `clss` (if `name` is omitted) or the first ancestor named `name` (if `clss` is omitted).
 	**/
-	public function msgTo(entity:Entity, msgType:Int, dispatch = false):Entity
+	public function findAncestor<T:Entity>(?clss:Class<T>, ?name:String):T
+	{
+		assert(clss == null || name == null);
+		
+		if (clss != null)
+		{
+			var p = parent;
+			var n = p;
+			var t = getEntityType(clss);
+			while (n != null)
+			{
+				if (n.type == t) return cast n;
+				n = n.parent;
+			}
+			n = p;
+			var lut = getInheritLut();
+			while (n != null)
+			{
+				if (lut.hasPair(n.type, t)) return cast n;
+				n = n.parent;
+			}
+		}
+		else
+		{
+			var n = parent;
+			while (n != null)
+			{
+				if (n.name == name) return cast n;
+				n = n.parent;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+		Returns the first descendant of type `clss` (if `name` is omitted) or the first descendant named `name` (if `clss` is omitted).
+	**/
+	public function findDescendant<T:Entity>(?clss:Class<T>, ?name:String):T
+	{
+		assert(clss == null || name == null);
+		
+		if (clss != null)
+		{
+			var last =
+			if (sibling != null)
+				sibling;
+			else
+				findLastLeaf(this).preorder;
+			var n = child;
+			var t = getEntityType(clss);
+			while (n != last)
+			{
+				if (t == n.type) return cast n;
+				n = n.preorder;
+			}
+			n = child;
+			var lut = getInheritLut();
+			while (n != last)
+			{
+				if (lut.hasPair(n.type, t)) return cast n;
+				n = n.preorder;
+			}
+		}
+		else
+		{
+			var n = child;
+			var last = sibling;
+			while (n != last)
+			{
+				if (n.name == name) return cast n;
+				n = n.preorder;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+		Returns the first child of type `clss` (if `name` is omitted) or the first child named `name` (if `clss` is omitted).
+	**/
+	public function findChild<T:Entity>(?clss:Class<T>, ?name:String):T
+	{
+		assert(clss == null || name == null);
+		
+		var c = null;
+		
+		if (clss != null)
+		{
+			var n = child;
+			var t = getEntityType(clss);
+			while (n != null)
+			{
+				if (t == n.type) return cast n;
+				n = n.sibling;
+			}
+			n = child;
+			var lut = getInheritLut();
+			while (n != null)
+			{
+				if (lut.hasPair(n.type, t)) return cast n;
+				n = n.sibling;
+			}
+		}
+		else
+		{
+			var n = child;
+			while (n != null)
+			{
+				if (n.name == name) return cast n;
+				n = n.sibling;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+		Returns the first sibling of type `clss` (if `name` is omitted) or the first sibling named `name` (if `clss` is omitted).
+	**/
+	public function findSibling<T:Entity>(?clss:Class<T>, ?name:String):T
+	{
+		assert(clss == null || name == null);
+		
+		if (parent == null) return null;
+		
+		if (clss != null)
+		{
+			var n = parent.child;
+			var t = getEntityType(clss);
+			while (n != null)
+			{
+				if (n != this)
+					if (t == n.type)
+						return cast n;
+				n = n.sibling;
+			}
+			n = parent.child;
+			var lut = getInheritLut();
+			while (n != null)
+			{
+				if (n != this)
+					if (lut.hasPair(n.type, t)) return cast n;
+				n = n.sibling;
+			}
+		}
+		else
+		{
+			var n = parent.child;
+			while (n != null)
+			{
+				if (n.name == name) return cast n;
+				n = n.sibling;
+			}
+		}
+		
+		return null;
+	}
+	
+	//TODO single message func?
+	
+	/**
+		Sends a message of type `msgType` to `entity`.
+		
+		If `dispatch` is true, the message will leave the message queue immediately.
+	**/
+	public function msgTo(entity:Entity, msgType:Int, dispatch:Bool = false):Entity
 	{
 		var q = getMsgQue();
 		if (entity != null)
@@ -624,15 +667,15 @@ class Entity
 			q.clrBundle();
 			dispatch = false;
 		}
-			
 		if (dispatch) q.dispatch();
-			
 		return this;
 	}
 	
 	/**
-	 * Sends a message to the parent entity.
-	 */
+		Sends a message of type `msgType` to the parent entity.
+		
+		If `dispatch` is true, the message will leave the message queue immediately.
+	**/
 	public function msgToParent(msgType:Int, dispatch = false):Entity
 	{
 		var e = parent;
@@ -651,8 +694,10 @@ class Entity
 	}
 	
 	/**
-	 * Sends a message to all ancestors.
-	 */
+		Sends a message of type `msgType` to all ancestors.
+		
+		If `dispatch` is true, the message will leave the message queue immediately.
+	**/
 	public function msgToAncestors(msgType:Int, dispatch = false):Entity
 	{
 		var q = getMsgQue();
@@ -676,8 +721,10 @@ class Entity
 	}
 	
 	/**
-	 * Sends a message to all descendants.
-	 */
+		Sends a message of type `msgType` to all descendants.
+		
+		If `dispatch` is true, the message will leave the message queue immediately.
+	**/
 	public function msgToDescendants(msgType:Int, dispatch = false):Entity
 	{
 		var q = getMsgQue();
@@ -700,8 +747,10 @@ class Entity
 	}
 	
 	/**
-	 * Sends a message to all children.
-	 */
+		Sends a message of type `msgType` to all children.
+		
+		If `dispatch` is true, the message will leave the message queue immediately.
+	**/
 	public function msgToChildren(msgType:Int, dispatch = false):Entity
 	{
 		var q = getMsgQue();
@@ -724,16 +773,8 @@ class Entity
 	}
 	
 	/**
-	 * Returns the root entity.
-	 */
-	public function getRoot():Entity
-	{
-		var e = parent;
-		if (e == null) return this;
-		while (e.parent != null) e = e.parent;
-		return e;
-	}
-	
+		Returns the child index of this entity or -1 if this entity has no parent.
+	**/
 	public function getChildIndex():Int
 	{
 		var p = parent;
@@ -749,10 +790,12 @@ class Entity
 		return i;
 	}
 	
+	/**
+		Returns the child at `index` (zero-based).
+	**/
 	public function getChildAt(index:Int):Entity
 	{
 		assert(index >= 0 && index < numChildren, 'index $index out of range');
-		
 		var i = 0;
 		var e = child;
 		for (i in 0...index)
@@ -761,9 +804,29 @@ class Entity
 	}
 	
 	/**
-	 * Successively swaps this entity with its next siblings until it becomes the last sibling.
-	 */
-	public function setLast():Void
+		Successively swaps this entity with its previous siblings until it becomes the first sibling.
+	**/
+	public function setFirst()
+	{
+		if (parent == null) return; //no parent?
+		if (parent.child == this) return; //first child?
+		
+		var c = parent.child;
+		var pre = c.findPredecessor(this);
+		
+		if (sibling == null)
+			parent.lastChild = this;
+		
+		pre.preorder = preorder;
+		pre.sibling = sibling;
+		preorder = sibling = c;
+		parent.child = parent.preorder = this;
+	}
+	
+	/**
+		Successively swaps this entity with its next siblings until it becomes the last sibling.
+	**/
+	public function setLast()
 	{
 		if (parent == null || sibling == null) return; //no parent or already last?
 		
@@ -796,103 +859,54 @@ class Entity
 	}
 	
 	/**
-	 * Successively swaps this entity with its previous siblings until it becomes the first sibling.
-	 */
-	public function setFirst():Void
-	{
-		if (parent == null) return; //no parent?
-		if (parent.child == this) return; //first child?
-		
-		var c = parent.child;
-		var pre = c.findPredecessor(this);
-		
-		if (sibling == null)
-			parent.lastChild = this;
-		
-		pre.preorder = preorder;
-		pre.sibling = sibling;
-		preorder = sibling = c;
-		parent.child = parent.preorder = this;
-	}
-	
-	/**
-	 * Returns true if <code>e</code> is a descendant of this entity.
-	 */
-	public function hasDescendant(e:Entity):Bool
-	{
-		var i = child;
-		var k = size;
-		while (k-- > 0)
-		{
-			if (i == e) return true;
-			i = i.preorder;
-		}
-		return false;
-	}
-	
-	/**
-	 * Returns true if <code>e</code> is a child of this entity.
-	 */
-	public function hasChild(e:Entity):Bool
-	{
-		var i = child;
-		while (i != null)
-		{
-			if (i == e) return true;
-			i = i.sibling;
-		}
-		return false;
-	}
-	
-	/**
-	 * Stops message propagation if called inside <code>onMsg()</code>.
-	 */
-	inline public function stop()
+		Stops message propagation if called inside `onMsg()`.
+	**/
+	inline function stop()
 	{
 		mFlags |= BIT_STOP_PROPAGATION;
 	}
 	
 	/**
-	 * Returns true if this entity has children.
-	 */
-	inline public function hasChildren():Bool
-	{
-		return child != null;
-	}
-	
-	/**
-	 * Convenience method for casting this Entity to the type <code>cl</code>.
-	 */
-	inline public function as<T:Entity>(c:Class<T>):T
+		Convenience method for casting this Entity to the type `clss`.
+	**/
+	inline function as<T:Entity>(clss:Class<T>):T
 	{
 		#if flash
-		return untyped __as__(this, c);
+		return untyped __as__(this, clss);
 		#else
 		return cast this;
 		#end
 	}
 	
 	/**
-	 * Convenience method for Std.is(this, <code>x</code>);
-	 */
-	inline public function is<T>(cl:Class<T>):Bool
+		Convenience method for Std.is(this, `clss`);
+	**/
+	inline function is<T>(clss:Class<T>):Bool
 	{
 		#if flash
-		return untyped __is__(this, cl);
+		return untyped __is__(this, clss);
 		#else
-		return Std.is(this, cl);
+		return Std.is(this, clss);
 		#end
 	}
 	
 	/**
-	 * Handles multiple calls to <em>is()</em> in one shot by checking all classes in <code>x</code> against this class.
-	 */
-	public function isAny(cl:Array<Class<Dynamic>>):Bool
+		Handles multiple calls to `is()` in one shot by checking all classes in `x` against this class.
+	**/
+	public function isAny(clss:Array<Class<Dynamic>>):Bool
 	{
-		for (i in cl)
+		for (i in clss)
 			if (is(cast i))
 				return true;
 		return false;
+	}
+	
+	inline function publish(name:String)
+	{
+		assert(mFlags & BIT_NAME_PUBLISHED == 0);
+		this.name = name;
+		mFlags |= BIT_NAME_PUBLISHED;
+		Es.changeName(this, mName);
 	}
 	
 	public function toString():String
@@ -944,13 +958,13 @@ class Entity
 	
 	@:noCompletion inline function setSize(value:Int)
 	{
-		ES.setSize(this, value);
+		Es.setSize(this, value);
 	}
 	
 	@:noCompletion inline function setDepth(value:Int)
 	{
-		ES.setDepth(this, value);
+		Es.setDepth(this, value);
 	}
 	
-	@:noCompletion function _getType() return 0; //overriden by macro
+	@:noCompletion function __getType() return 0; //overriden by macro
 }

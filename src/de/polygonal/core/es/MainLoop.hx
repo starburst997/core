@@ -31,10 +31,6 @@ import de.polygonal.core.es.EntitySystem in ES;
 @:access(de.polygonal.core.es.EntitySystem)
 class MainLoop extends Entity implements IObserver
 {
-	public static var instance(get_instance, never):MainLoop;
-	static function get_instance():MainLoop return mInstance == null ? (mInstance = new MainLoop()) : mInstance;
-	static var mInstance:MainLoop = null;
-	
 	public var paused = false;
 	
 	var mStack:Array<E>;
@@ -44,7 +40,9 @@ class MainLoop extends Entity implements IObserver
 	
 	public function new()
 	{
-		super("MainLoop");
+		super();
+		
+		publish(MainLoop.ENTITY_NAME);
 		
 		Timebase.init();
 		Timebase.attach(this);
@@ -66,7 +64,7 @@ class MainLoop extends Entity implements IObserver
 		if (type == TimebaseEvent.TICK)
 		{
 			//process scheduled events
-			Timeline.tick();
+			Timeline.update();
 			
 			//advance entities
 			var dt:Float = userData;
@@ -120,7 +118,7 @@ class MainLoop extends Entity implements IObserver
 		for (i in 0...k)
 		{
 			e = list[i];
-			if (e.mFlags & (E.BIT_GHOST | E.BIT_SKIP_TICK | E.BIT_MARK_FREE | E.BIT_SKIP_UPDATE) == 0)
+			if (e.mFlags & (E.BIT_SKIP_TICK | E.BIT_MARK_FREE) == 0)
 				e.onTick(dt);
 		}
 	}
@@ -150,7 +148,7 @@ class MainLoop extends Entity implements IObserver
 		for (i in 0...k)
 		{
 			e = list[i];
-			if (e.mFlags & (E.BIT_GHOST | E.BIT_SKIP_DRAW | E.BIT_MARK_FREE | E.BIT_SKIP_UPDATE) == 0)
+			if (e.mFlags & (E.BIT_SKIP_DRAW | E.BIT_MARK_FREE) == 0)
 				e.onDraw(alpha);
 		}
 	}

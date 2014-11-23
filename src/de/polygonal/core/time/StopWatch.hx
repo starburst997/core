@@ -20,7 +20,7 @@ package de.polygonal.core.time;
 
 import de.polygonal.core.math.Mean;
 import de.polygonal.ds.DA;
-import de.polygonal.core.util.Assert;
+import de.polygonal.core.util.Assert.assert;
 
 class StopWatch
 {

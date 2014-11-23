@@ -30,8 +30,8 @@ import haxe.ds.Vector;
 import haxe.ds.IntMap;
 
 /**
- * <p>An object with state that is observed by an <em>IObserver</em> implementation.</p>
- * <p>See <a href="http://en.wikipedia.org/wiki/Observer_pattern" target="_blank">http://en.wikipedia.org/wiki/Observer_pattern</a>.</p>
+ * An object with state that is observed by an `IObserver` implementation.
+ * See <a href="http://en.wikipedia.org/wiki/Observer_pattern" target="_blank">http://en.wikipedia.org/wiki/Observer_pattern</a>.
  */
 class Observable extends HashableItem implements IObservable
 {
@@ -87,8 +87,8 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Calls the function <code>func</code> whenever <code>source</code> triggers an update of one type specified in <code>mask</code>.<br/>
-	 * Example:<br/>
+	 * Calls the function `func` whenever `source` triggers an update of one type specified in `mask`.
+	 * Example:
 	 * <pre class="prettyprint">
 	 * import de.polygonal.core.event.Observable;
 	 * import de.polygonal.core.time.Timbase;
@@ -116,8 +116,8 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Delegates <em>IObserver.onUpdate()</em> to the given function <code>func</code>, as long as <code>func</code> returns true.<br/>
-	 * Example:<br/>
+	 * Delegates `IObserver.onUpdate()` to the given function `func`, as long as `func` returns true.
+	 * Example:
 	 * <pre class="prettyprint">
 	 * import de.polygonal.core.event.Observable;
 	 * import de.polygonal.core.time.TimbaseEvent;
@@ -140,66 +140,69 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	var _source:IObservable;
-	var _observer:ObserverNode;
-	var _observerCount:Int;
 	
-	var _head:ObserverNode;
-	var _tail:ObserverNode;
-	var _hook:ObserverNode;
+	var mObserverList:ObserverNode;
+	var mObserverCount:Int;
+	
+	var mPoolHead:ObserverNode;
+	var mPoolTail:ObserverNode;
+	var mHook:ObserverNode;
 	
 	var _blacklist:Int;
-	var _poolSize:Int;
-	var _poolCapacity:Int;
+	var mPoolSize:Int;
+	var mPoolCapacity:Int;
 	
-	var _freed:Bool;
+	var mFreed:Bool;
 	var _updating:Bool;
-	var _stack:ArrayedStack<Dynamic>;
+	var _stack:Array<Dynamic>;
+	var _stackSize:Int;
 	var _type:Int;
 	var _userData:Dynamic;
-	var _nodeLookup:IntMap<ObserverNode>;
+	var mNodeLookup:IntMap<ObserverNode>;
 	
 	/**
-	 * @param poolSize because observers are stored internally in a linked list it's necessary to create a node object per observer.<br/>
-	 * Thus it makes sense to reuse a node object when an observer is detached from this object instead of handling it over to the GC.<br/>
-	 * A value > 0 sets up node pool capable of reusing up to <code>poolSize</code> node objects.<br/>
-	 * Once the pool has reached its capacity new node objects are still created but not reused.<br/>
-	 * To conserve memory node objects are not pre-allocated up front - instead the pool is filled incrementally when detaching observers.<br/>
-	 * To force pre-allocation, call <em>reserve()</em>.
+	 * @param poolSize because observers are stored internally in a linked list it's necessary to create a node object per attached observer.
+	 * Thus it makes sense to reuse a node object when an observer is detached from this object instead of handling it over to the GC.
+	 * A value > 0 sets up node pool capable of reusing up to `poolSize` node objects.
+	 * Once the pool has reached its capacity new node objects are still created but not reused.
+	 * To conserve memory node objects are not pre-allocated up front - instead the pool is filled incrementally when detaching observers.
+	 * To force pre-allocation, call `reserve()`.
 	 */
 	public function new(poolSize = 0, source:IObservable = null)
 	{
 		super();
 		
 		_source        = (source == null) ? this : source;
-		_observer      = null;
-		_observerCount = 0;
-		_head          =  new ObserverNode();
-		_tail          = _head;
-		_hook          = null;
+		mObserverList      = null;
+		mObserverCount = 0;
+		mPoolHead          =  new ObserverNode();
+		mPoolTail          = mPoolHead;
+		mHook          = null;
 		_blacklist     = 0;
-		_poolSize      = 0;
-		_poolCapacity  = poolSize;
-		_freed         = false;
+		mPoolSize      = 0;
+		mPoolCapacity  = poolSize;
+		mFreed         = false;
 		_updating      = false;
-		_stack         = new ArrayedStack<Dynamic>();
+		_stack         = new Array<Dynamic>();
+		_stackSize = 0;
 		_type          = 0;
 		_userData      = null;
-		_nodeLookup    = new IntMap();
+		mNodeLookup    = new IntMap();
 	}
 	
 	/**
-	 * Destroys this object by detaching all observers and explicitly nullifying all nodes, pointers and elements for GC'ing used resources.<br/>
+	 * Destroys this object by detaching all observers and explicitly nullifying all nodes, pointers and elements for GC'ing used resources.
 	 * Improves GC efficiency/performance (optional).
 	 */
 	public function free()
 	{
-		if (_freed) return;
+		if (mFreed) return;
 		
 		clear();
 		
-		_stack.free();
+		_stack = null;
 		
-		var n = _head;
+		var n = mPoolHead;
 		while (n != null)
 		{
 			var t      = n.next;
@@ -210,13 +213,13 @@ class Observable extends HashableItem implements IObservable
 			n          = t;
 		}
 		
-		_nodeLookup = null;
+		mNodeLookup = null;
 		_stack      = null;
-		_head       = null;
-		_tail       = null;
+		mPoolHead       = null;
+		mPoolTail       = null;
 		_userData   = null;
 		
-		_freed = true;
+		mFreed = true;
 	}
 	
 	/**
@@ -224,58 +227,58 @@ class Observable extends HashableItem implements IObservable
 	 */
 	public function size():Int
 	{
-		return _observerCount;
+		return mObserverCount;
 	}
 	
 	/**
-	 * Explicitely allocates <code>x</code> node objects up front for storing observers.<br/>
-	 * Because observers are stored internally in a linked list it's necessary to create a node object per observer.<br/>
-	 * Thus it makes sense to reuse a node object when an observer is detached from this object instead of handling it over to the GC.<br/>
+	 * Explicitly allocates k node objects up front for storing observers.
+	 * Because observers are stored internally in a linked list it's necessary to create a node object per observer.
+	 * Thus it makes sense to reuse a node object when an observer is detached from this object instead of handing it over to the GC.
 	 * This improves performance when observers are frequently attached and detached.
 	 * This value can be adjusted at any time; a value of zero disables preallocation.
 	 */
-	public function reserve(x:Int)
+	public function reserve(k:Int)
 	{
-		_poolCapacity = x;
-		if (x < _poolSize)
+		mPoolCapacity = k;
+		if (k < mPoolSize)
 		{
-			//shrink pool by (_poolSize - x)
-			for (i in 0..._poolSize - x)
-				_head = _head.next;
+			//shrink pool by (mPoolSize - k)
+			for (i in 0...mPoolSize - k)
+				mPoolHead = mPoolHead.next;
 		}
 		else
 		{
-			//grow pool by (x - _poolSize)
-			for (i in 0...x - _poolSize)
+			//grow pool by (k - mPoolSize)
+			for (i in 0...k - mPoolSize)
 			{
-				_tail = _tail.next = new ObserverNode();
+				mPoolTail = mPoolTail.next = new ObserverNode();
 			}
 		}
-		_poolSize = x;
+		mPoolSize = k;
 	}
 	
 	/**
-	 * Removes all attached observers.<br/>
-	 * The internal pool defined by <em>reserve()</em> is not altered.
+	 * Removes all attached observers.
+	 * The internal pool defined by `reserve()` is not altered.
 	 * @param purge if true, the pool is emptied.
 	 */
 	public function clear(purge = false)
 	{
-		if (_observerCount > 0) _getRegistry().remove(this);
+		if (mObserverCount > 0) _getRegistry().remove(this);
 		
-		_stack.clear();
+		_stackSize = 0;
 		
 		_userData      = false;
 		_updating      = false;
-		_hook          = null;
-		_observer      = null;
-		_observerCount = 0;
-		_nodeLookup    = new IntMap();
+		mHook          = null;
+		mObserverList      = null;
+		mObserverCount = 0;
+		mNodeLookup    = new IntMap();
 		
 		if (purge)
 		{
-			_poolSize = 0;
-			var node = _head;
+			mPoolSize = 0;
+			var node = mPoolHead;
 			while (node != null)
 			{
 				var next = node.next;
@@ -285,29 +288,29 @@ class Observable extends HashableItem implements IObservable
 				node = next;
 			}
 			
-			_head =  new ObserverNode();
-			_tail = _head;
+			mPoolHead =  new ObserverNode();
+			mPoolTail = mPoolHead;
 		}
 	}
 	
-	inline function _findNode(o:IObserver):ObserverNode
+	inline function findNode(o:IObserver):ObserverNode
 	{
-		return _nodeLookup.get(o.__guid); //TODo use global map?
+		return mNodeLookup.get(o.__guid); //TODo use global map?
 	}
 	
 	/**
-	 * Registers an observer object <code>o</code> with this object so it is updated when calling <em>notify()</em>.<br/>
-	 * Example:<br/>
+	 * Registers an observer object `o` with this object so it is updated when calling `notify()`.
+	 * Example:
 	 * <pre class="prettyprint">
 	 * import de.polygonal.core.event.Observable;
 	 * import de.polygonal.core.event.IObserver;
 	 * 
 	 * @:build(de.polygonal.core.event.ObserverMacro.create(
-	 * &#091;
+	 * [
 	 *     UPDATE_A,
 	 *     UPDATE_B,
 	 *     UPDATE_C
-	 * &#093;))
+	 * ]))
 	 * class MyEvent {}
 	 * 
 	 * class MyObserver implements IObserver {
@@ -331,21 +334,23 @@ class Observable extends HashableItem implements IObservable
 	 *     }
 	 * }</pre>
 	 * @param o the observer to register with.
-	 * @param mask a bit field of bit flags defining which event types to register with.<br/>
-	 * This can be used to select a subset of events from an event group.<br/>
-	 * By default, <code>o</code> receives all updates from an event group.<br/>
+	 * @param mask a bit field of bit flags defining which event types to register with.
+	 * This can be used to select a subset of events from an event group.
+	 * By default, `o` receives all updates from an event group.
 	 * <warn>Must only contain event types from a single group, e.g. this mask is invalid: MyEventA.EVENT_X | MyEventB.EVENT_Y.</warn>
 	 */
 	public function attach(o:IObserver, mask = 0)
 	{
-		if (_freed) return; //free() was called?
+		if (mFreed) return;
 		
 		//assign an id for fast node lookup
 		if (o.__guid == 0) o.__guid = _nextGUID++;
 		
-		var n = _findNode(o);
-		if (n != null) //observer exists?
+		var n = findNode(o);
+		
+		if (n != null)
 		{
+			//{observer exists
 			var groupId = mask >>> ObserverMacro.NUM_EVENT_BITS;
 			
 			//update bits only
@@ -362,27 +367,31 @@ class Observable extends HashableItem implements IObservable
 					n.mask[groupId] = Bits.ALL; //allow all
 			}
 			return;
+			//}
 		}
 		
-		//get a node for storing the observer
-		if (_poolCapacity == 0) //pooling is disabled?
-			n = new ObserverNode(); //create a new node on-the-fly
+		//{get/create a node for storing the observer
+		if (mPoolCapacity == 0)
+		{
+			//pooling disabled; create a node on-the-fly for storing the observer
+			n = new ObserverNode();
+		}
 		else
 		{
 			//get a node from the pool
-			if (_poolSize == 0) //pool is empty?
-				n = new ObserverNode(); //create and add node to pool
+			if (mPoolSize == 0) //pool is empty
+				n = new ObserverNode(); //create a node on-the-fly
 			else
 			{
-				//get next available node from pool
-				n = _head;
-				_head = _head.next;
-				_poolSize--;
+				//get next available node from the pool
+				n = mPoolHead;
+				mPoolHead = mPoolHead.next;
+				mPoolSize--;
 			}
 		}
+		//}
 		
-		//set up node object
-		n.observer = o;
+		n.observer = o; //store observer
 		
 		if (mask == 0 || mask == Bits.ALL)
 		{
@@ -396,31 +405,32 @@ class Observable extends HashableItem implements IObservable
 			n.groupBits |= 1 << groupId;
 		}
 		
-		_nodeLookup.set(o.__guid, n);
+		mNodeLookup.set(o.__guid, n);
 		
-		//prepend to observer list
-		n.next = _observer;
-		if (_observer != null) _observer.prev = n;
-		_observer = n;
-		_observerCount++;
+		//{prepend to observer list
+		n.next = mObserverList;
+		if (mObserverList != null) mObserverList.prev = n;
+		mObserverList = n;
+		mObserverCount++;
+		//}
 		
-		if (_observerCount == 1) //first observer?
+		if (mObserverCount == 1) //this is the first attached observer
 			_getRegistry().set(this); //register with global observable list
 	}
 	
 	/**
-	 * Unregisters an observer object <code>o</code> from this object so it is no longer updated when calling <em>notify()</em>.
-	 * Example:<br/>
+	 * Unregisters an observer object `o` from this object so it is no longer updated when calling `notify()`.
+	 * Example:
 	 * <pre class="prettyprint">
 	 * import de.polygonal.core.event.Observable;
 	 * import de.polygonal.core.event.IObserver;
 	 * 
 	 * @:build(de.polygonal.core.event.ObserverMacro.create(
-	 * &#091;
+	 * [
 	 *     UPDATE_A,
 	 *     UPDATE_B,
 	 *     UPDATE_C
-	 * &#093;))
+	 * ]))
 	 * class MyEvent {}
 	 * 
 	 * class MyObserver implements IObserver {
@@ -447,17 +457,17 @@ class Observable extends HashableItem implements IObservable
 	 *     }
 	 * }</pre>
 	 * @param o the observer to unregister from.
-	 * @param mask a bit field of bit flags defining which event types to unregister from.<br/>
-	 * This can be used to select a subset of events from an event group.<br/>
-	 * By default, <code>o</code> is unregistered from the entire event group.<br/>
+	 * @param mask a bit field of bit flags defining which event types to unregister from.
+	 * This can be used to select a subset of events from an event group.
+	 * By default, `o` is unregistered from the entire event group.
 	 * <warn>Must only contain event types from a single group.</warn>
 	 */
 	public function detach(o:IObserver, mask:Int = 0)
 	{
-		if (_freed) //free() was called?
+		if (mFreed) //free() was called?
 			return;
 		
-		var n = _findNode(o);
+		var n = findNode(o);
 		if (n == null) return; //observer exists?
 		
 		if (mask != 0)
@@ -476,46 +486,46 @@ class Observable extends HashableItem implements IObservable
 		//unlink from observer list
 		if (n.prev != null) n.prev.next = n.next;
 		if (n.next != null) n.next.prev = n.prev;
-		if (n == _observer) _observer = n.next;
-		if (n == _hook) _hook = _hook.next;
+		if (n == mObserverList) mObserverList = n.next;
+		if (n == mHook) mHook = mHook.next;
 		
 		if (_updating) //update in progress?
 		{
 			var i = 0;
-			var k = _stack.size();
+			var k = _stackSize;
 			while (i < k)
 			{
-				if (_stack.get(i) == n) _stack.set(i, n.next);
+				if (_stack[i] == n) _stack[i] = n.next;
 				i += 3;
 			}
 		}
 		
-		_nodeLookup.remove(n.observer.__guid);
+		mNodeLookup.remove(n.observer.__guid);
 		
 		//reset node
 		n.observer = null;
 		n.prev = n.next = null;
 		
-		if (_poolCapacity > 0) //pooling enabled?
+		if (mPoolCapacity > 0) //pooling enabled?
 		{
-			if (_poolSize < _poolCapacity) //room available?
+			if (mPoolSize < mPoolCapacity) //room available?
 			{
 				//reuse it
-				_tail = _tail.next = n;
-				_poolSize++;
+				mPoolTail = mPoolTail.next = n;
+				mPoolSize++;
 			}
 		}
 		
 		//remove node
-		_observerCount--;
+		mObserverCount--;
 		
-		if (_observerCount == 0) //last observer?
+		if (mObserverCount == 0) //last observer?
 			_getRegistry().remove(this); //unregister from global observable list
 	}
 	
 	/**
 	 * Notifies all attached observers to indicate that the state of this object has changed.
-	 * @param type the event type.<br/>
+	 * @param type the event type.
 	 * <warn>Must only contain event types from a single group.</warn>
 	 * @param userData additional event data. Default value is null.
 	 */
@@ -525,7 +535,7 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Disables all updates of type <code>x</code>.<br/>
+	 * Disables all updates of type `x`.
 	 * Improves performance if an event group repeatedly fires frequent updates that are not handled by an application (e.g. mouse move events).
 	 */
 	public function muteType(x:Int)
@@ -534,7 +544,7 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Removes the update type <code>x</code> from a blacklist of disabled updates, see <em>mute()</em>.<br/>
+	 * Removes the update type `x` from a blacklist of disabled updates, see `mute()`.
 	 */
 	public function unmuteType(x:Int)
 	{
@@ -542,11 +552,11 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Returns true if <code>o</code> is registered with this object.
+	 * Returns true if `o` is registered with this object.
 	 */
 	public function contains(o:IObserver):Bool
 	{
-		var n = _observer;
+		var n = mObserverList;
 		while (n != null)
 		{
 			if (n.observer == o) return true;
@@ -561,7 +571,7 @@ class Observable extends HashableItem implements IObservable
 	public function getObserverList():Array<IObserver>
 	{
 		var v = new Array<IObserver>();
-		var n = _observer;
+		var n = mObserverList;
 		while (n != null)
 		{
 			v.push(n.observer);
@@ -571,12 +581,12 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Returns a new <em>ObservableIterator</em> object to iterate over all registered observers.<br/>
+	 * Returns a new `ObservableIterator` object to iterate over all registered observers.
 	 * @see <a href="http://haxe.org/ref/iterators" target="_blank">http://haxe.org/ref/iterators</a>
 	 */
 	public function iterator():Iterator<IObserver>
 	{
-		return new ObservableIterator<IObserver>(_observer);
+		return new ObservableIterator<IObserver>(mObserverList);
 	}
 	
 	inline function getEventId(type:Int):Int
@@ -591,7 +601,7 @@ class Observable extends HashableItem implements IObservable
 	
 	function _notify(type:Int, userData:Dynamic = null)
 	{
-		if (_observerCount == 0 || (type & _blacklist) == type) //_blackList > 0?
+		if (mObserverCount == 0 || (type & _blacklist) == type) //_blackList > 0?
 			return; //early out
 		
 		var eventBits = type & ObserverMacro.EVENT_MASK;
@@ -603,14 +613,14 @@ class Observable extends HashableItem implements IObservable
 		if (_updating) //update still running?
 		{
 			//stop update and store state so it can be resumed later on
-			_stack.push(_hook);
-			_stack.push(_type);
-			_stack.push(_userData);
+			_stack[_stackSize++] = mHook;
+			_stack[_stackSize++] = _type;
+			_stack[_stackSize++] = _userData;
 			
 			_type = type;
 			_userData = userData;
 			
-			_update(_observer, type, eventBits, groupId, userData);
+			_update(mObserverList, type, eventBits, groupId, userData);
 		}
 		else
 		{
@@ -618,32 +628,32 @@ class Observable extends HashableItem implements IObservable
 			_type = type;
 			_userData = userData;
 			
-			_update(_observer, type, eventBits, groupId, userData);
+			_update(mObserverList, type, eventBits, groupId, userData);
 			
 			if (_stack == null) //free() was called?
 			{
-				_hook = null;
-				_observer = null;
+				mHook = null;
+				mObserverList = null;
 				return;
 			}
 			
-			if (_stack.size() > 0)
+			if (_stackSize > 0)
 			{
-				while (_stack.size() > 0)
+				while (_stackSize > 0)
 				{
 					//restore state
-					userData = _stack.pop();
-					type     = _stack.pop();
+					userData = _stack[--_stackSize];
+					type     = _stack[--_stackSize];
 					eventBits = type & ObserverMacro.EVENT_MASK;
 					groupId  = type >>> ObserverMacro.NUM_EVENT_BITS;
 					
 					//resume update
-					_update(_stack.pop(), type, eventBits, groupId, userData);
+					_update(_stack[--_stackSize], type, eventBits, groupId, userData);
 				}
 			}
 			
 			_updating = false;
-			_hook = null;
+			mHook = null;
 		}
 	}
 	
@@ -653,24 +663,25 @@ class Observable extends HashableItem implements IObservable
 		while (node != null)
 		{
 			//preserve reference to next node so a detach() doesn't break an update
-			_hook = node.next;
+			mHook = node.next;
 			if (node.all || node.mask[groupId] & eventBits > 0) //observer is suited for this update?
 				node.observer.onUpdate(type, _source, userData); //update
-			node = _hook;
+			node = mHook;
 		}
 	}
 }
 
+@:publicFields
 class ObserverNode
 {
-	public var observer:IObserver;
-	public var prev:ObserverNode;
-	public var next:ObserverNode;
-	public var groupBits:Int;
+	var observer:IObserver;
+	var prev:ObserverNode;
+	var next:ObserverNode;
+	var groupBits:Int;
 	
-	public var all:Bool;
+	var all:Bool;
 	
-	public var mask:Vector<Int>;
+	var mask:Vector<Int>;
 	
 	public function new()
 	{

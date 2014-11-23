@@ -21,34 +21,37 @@ package de.polygonal.core.log;
 import de.polygonal.ds.DA;
 import haxe.ds.StringMap;
 
+using Reflect;
+
+typedef LogSystemConfig =
+{
+	globalHandler: Array<LogHandler>,
+	?redirectTraceToDebugLog: Bool,
+	?keepDefaultTrace: Bool,
+	?logFileName: String
+}
+
 class LogSystem
 {
-	public static var config =
-	{
-		redirectTraceToDebugLog: true,
-		keepDefaultTrace: false,
-		globalHandlers: new Array<LogHandler>(),
-		logFileName: "out.log"
-	};
-	
 	public static var log:Log = null;
 	
+	static var _config:LogSystemConfig;
 	static var _logList:DA<Log> = null;
 	static var _logLookup:StringMap<Log> = null;
 	
-	public static function init()
+	public static function init(config:LogSystemConfig)
 	{
 		if (log != null) return;
-		
+		_config = config;
 		log = createLog("global", false);
 		
-		for (i in config.globalHandlers)
+		for (i in config.globalHandler)
 			log.addHandler(i);
 		
 		#if !no_traces
-		if (config.redirectTraceToDebugLog)
+		if (config.hasField("redirectTraceToDebugLog") && config.field("redirectTraceToDebugLog") == true)
 		{
-			var keepDefaultTrace = config.keepDefaultTrace;
+			var keepDefaultTrace = config.hasField("keepDefaultTrace") && config.field("keepDefaultTrace") == true;
 			var defaultTrace = haxe.Log.trace;
 			
 			//override default trace to add some sprintf sugar
@@ -76,11 +79,6 @@ class LogSystem
 		#end
 	}
 	
-	public static function registerGlobalHandler(x:LogHandler)
-	{
-		config.globalHandlers.push(x);
-	}
-	
 	/**
 	 * Creates a new log or returns an existing one.
 	 */
@@ -99,9 +97,9 @@ class LogSystem
 		
 		_logLookup.set(name, log);
 		
-		if (addDefaultHandler && config.globalHandlers != null)
+		if (addDefaultHandler && _config != null)
 		{
-			for (i in config.globalHandlers)
+			for (i in _config.globalHandler)
 				log.addHandler(cast i);
 		}
 		_logList.pushBack(log);

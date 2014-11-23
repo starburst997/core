@@ -25,7 +25,7 @@ using de.polygonal.ds.BitFlags;
 using Reflect;
 
 /**
- * <p>Supports tweening of any field of any object.</p>
+ * Supports tweening of any field of any object.
  */
 class GenericTween extends Tween implements TweenTarget
 {

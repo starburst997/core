@@ -26,12 +26,12 @@ import haxe.io.Eof;
 import haxe.io.Input;
 
 /**
- * <p>Run-length encoder/decoder (RLE).</p>
+ * Run-length encoder/decoder (RLE).
  */
 class RLE
 {
 	/**
-	 * Encodes <code>uncoded</code> into a new set of bytes
+	 * Encodes `uncoded` into a new set of bytes
 	 */
 	public static function encode(uncoded:Input):Bytes
 	{
@@ -91,7 +91,7 @@ class RLE
 	}
 	
 	/**
-	 * Decodes <code>encoded</code> into a new set of bytes
+	 * Decodes `encoded` into a new set of bytes
 	 */
 	public static function decode(encoded:Input):Bytes
 	{
@@ -132,7 +132,7 @@ class RLE
 	}
 	
 	/**
-	 * Encodes <code>uncoded</code> into a string.</br>
+	 * Encodes `uncoded` into a string.
 	 * Returns Bytes, instead of string because some platforms(flash) can't handle null characters in strings
 	 */
 	public static inline function encodeString(uncoded:String):Bytes
@@ -141,7 +141,7 @@ class RLE
 	}
 	
 	/**
-	 * Decodes <code>encoded</code> into a string.</br>
+	 * Decodes `encoded` into a string.
 	 * Takes Bytes, instead of string because some platforms(flash) can't handle null characters in strings
 	 */
 	public static inline function decodeString(encoded:Bytes):String
@@ -150,7 +150,7 @@ class RLE
 	}
 	
 	/**
-	 * Encodes <code>uncoded</code> into a a new set of bytes.
+	 * Encodes `uncoded` into a a new set of bytes.
 	 */
 	public static inline function encodeBytes(uncoded:Bytes):Bytes
 	{
@@ -158,7 +158,7 @@ class RLE
 	}
 	
 	/**
-	 * Decodes <code>encoded</code> into a new set of bytes.
+	 * Decodes `encoded` into a new set of bytes.
 	 */
 	public static inline function decodeBytes(encoded:Bytes):Bytes
 	{

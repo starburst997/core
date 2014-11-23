@@ -20,64 +20,8 @@ package de.polygonal.core.util;
 
 class ClassUtil
 {
-	#if macro
 	/**
-		Adds an unique static integer constant named `TYPE`.
-	**/
-	static var mCounter:haxe.ds.StringMap<Int> = null;
-	
-	macro public static function genClassType(fieldName:String = "TYPE"):Array<haxe.macro.Expr.Field>
-	{
-		haxe.macro.Context.onMacroContextReused(
-			function()
-			{
-				mCounter = null;
-				return false;
-			});
-		
-		var key = "";
-		var c = haxe.macro.Context.getLocalClass().get();
-		while (c.superClass != null)
-		{
-			c = c.superClass.t.get();
-			key = c.module;
-		}
-		if (c.interfaces.length > 0)
-			key = c.interfaces.toString();
-		
-		if (mCounter == null)
-			mCounter = new haxe.ds.StringMap<Int>();
-		
-		var i = 0;
-		if (mCounter.exists(key))
-		{
-			i = mCounter.get(key);
-			mCounter.set(key, i + 1);
-		}
-		else
-		{
-			trace('init mCounter for $key');
-			mCounter.set(key, 1);
-		}
-		
-		var p = haxe.macro.Context.currentPos();
-		var fields = haxe.macro.Context.getBuildFields();
-		fields.push(
-		{
-			name: fieldName,
-			doc: null,
-			meta: [{name: ":keep", pos: p}],
-			access: [APublic, AStatic, AInline],
-			kind: FVar(TPath({pack: [], name: "Int", params: [], sub: null}), {expr: EConst(CInt(Std.string(i))), pos: p}),
-			pos: p
-		});
-		
-		return fields;
-	}
-	#end
-	
-	/**
-	 * Returns the qualified class name of <code>x</code>.
+	 * Returns the qualified class name of `x`.
 	 */
 	public static function getClassName(x:Dynamic):String
 	{
@@ -91,7 +35,7 @@ class ClassUtil
 	}
 	
 	/**
-	 * Returns the unqualified class name of <code>x</code>.
+	 * Returns the unqualified class name of `x`.
 	 */
 	public static function getUnqualifiedClassName(x:Dynamic):String
 	{
@@ -108,7 +52,7 @@ class ClassUtil
 	}
 	
 	/**
-	 * Extracts the package name from <code>x</code>.
+	 * Extracts the package name from `x`.
 	 */
 	public static function getPackageName(x:Dynamic):String
 	{
@@ -139,7 +83,7 @@ class ClassUtil
 	}
 	
 	/**
-	 * Creates an instance of a class given by passing the fully qualified <code>name</code>.
+	 * Creates an instance of a class given by passing the fully qualified `name`.
 	 */
 	public static function createInstanceOfClassName<T>(name:String, ?args:Array<Dynamic>):T
 	{

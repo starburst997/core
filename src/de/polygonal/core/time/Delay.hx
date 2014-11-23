@@ -27,7 +27,7 @@ class Delay implements TimelineListener
 	var _f:Void->Void;
 	
 	/**
-	 * Calls <code>f</code> after <code>delaySeconds</code>.
+	 * Calls `f` after `delaySeconds`.
 	 */
 	public function new(f:Void->Void, delaySeconds:Float)
 	{

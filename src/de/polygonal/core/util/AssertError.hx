@@ -20,6 +20,9 @@ package de.polygonal.core.util;
 
 import haxe.CallStack;
 
+/**
+	Thrown when an assertion fails.
+**/
 class AssertError
 {
 	public var message:String;

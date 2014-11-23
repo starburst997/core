@@ -20,15 +20,15 @@ package de.polygonal.core.fmt;
 
 import de.polygonal.core.fmt.ASCII;
 import de.polygonal.core.math.random.Random;
-import de.polygonal.core.util.Assert;
+import de.polygonal.core.util.Assert.assert;
 
 /**
- * <p>Various utility functions for formatting numbers.</p>
+ * Various utility functions for formatting numbers.
  */
 class StringUtil
 {
 	/**
-	 * Returns true if the string <code>x</code> consists of whitespace characters only.
+	 * Returns true if the string `x` consists of whitespace characters only.
 	 */
 	public static function isWhite(x:String):Bool
 	{
@@ -36,7 +36,7 @@ class StringUtil
 	}
 	
 	/**
-	 * Reverses the string <code>x</code>.
+	 * Reverses the string `x`.
 	 */
 	public static function reverse(x:String):String
 	{
@@ -47,9 +47,9 @@ class StringUtil
 	}
 	
 	/**
-	 * Trims the string <code>str</code> to <code>maxLength</code> by replacing surplus characters with the ellipsis character (U+2026).
+	 * Trims the string `str` to `maxLength` by replacing surplus characters with the ellipsis character (U+2026).
 	 * @param useThreeDots if true, uses three dots (...) instead of the ellipsis character.
-	 * @param <code>mode</code>=0: prepend ellipsis, <code>mode</code>=1: append ellipsis, <code>mode</code>=2: center ellipsis.
+	 * @param `mode`=0: prepend ellipsis, `mode`=1: append ellipsis, `mode`=2: center ellipsis.
 	 */
 	public static function ellipsis(str:String, maxLength:Int, mode:Int, useThreeDots = false):String
 	{
@@ -115,7 +115,7 @@ class StringUtil
 	}
 	
 	/**
-	 * Prepends <code>n</code> - <code>x</code>.length zeros to the string <code>x</code>.
+	 * Prepends `n` - `x`.length zeros to the string `x`.
 	 */
 	public static function fill0(x:String, n:Int):String
 	{
@@ -125,7 +125,7 @@ class StringUtil
 	}
 	
 	/**
-	 * Converts the string <code>x</code> in binary format into a decimal number.
+	 * Converts the string `x` in binary format into a decimal number.
 	 */
 	public static function parseBin(x:String):Int
 	{
@@ -148,7 +148,7 @@ class StringUtil
 	}
 	
 	/**
-	 * Converts the string <code>x</code> in hexadecimal format into a decimal number.
+	 * Converts the string `x` in hexadecimal format into a decimal number.
 	 */
 	public static function parseHex(x:String):Int
 	{
@@ -182,7 +182,7 @@ class StringUtil
 	}
 	
 	/**
-	 * Generates a random key of given <code>chars</code> and <code>length</code>.
+	 * Generates a random key of given `chars` and `length`.
 	 */
 	public static function generateRandomKey(chars:String, length:Int):String
 	{
@@ -193,7 +193,7 @@ class StringUtil
 	}
 	
 	/**
-	 * Returns true if <code>x</code> is latin script only.
+	 * Returns true if `x` is latin script only.
 	 */
 	public static function isLatin(x:String):Bool
 	{

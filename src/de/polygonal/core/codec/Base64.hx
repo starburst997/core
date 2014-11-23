@@ -23,7 +23,7 @@ import haxe.io.Bytes;
 import haxe.io.BytesData;
 
 /**
- * <p>A Base64 encoder/decoder.</p>
+ * A Base64 encoder/decoder.
  */
 class Base64
 {
@@ -31,9 +31,9 @@ class Base64
 	static var coder = new BaseCode(Bytes.ofString(BASE64_CHARS));
 	
 	/**
-	 * Encodes a <em>BytesData</em> object into a string in Base64 notation.
+	 * Encodes a `BytesData` object into a string in Base64 notation.
 	 * @param source the source data.
-	 * @param breakLines if true, breaks lines every <code>maxLineLength</code> characters.<br/>
+	 * @param breakLines if true, breaks lines every `maxLineLength` characters.
 	 * Disabling this behavior violates strict Base64 specification, but makes the encoding faster.
 	 * @param maxLineLength the maximum line length of the output. Default is 76.
 	 */
@@ -45,7 +45,7 @@ class Base64
 	/**
 	 * Shortcut for encoding a string into a string in Base64 notation.
 	 * @param source the source data.
-	 * @param breakLines if true, breaks lines every <code>maxLineLength</code> characters.<br/>
+	 * @param breakLines if true, breaks lines every `maxLineLength` characters.
 	 * Disabling this behavior violates strict Base64 specification, but makes the encoding faster.
 	 * @param maxLineLength the maximum line length of the output. Default is 76.
 	 */
@@ -55,11 +55,11 @@ class Base64
 	}
 	
 	/**
-	 * Decodes a Base64 encoded string into a <em>BytesData</em> object.
+	 * Decodes a Base64 encoded string into a `BytesData` object.
 	 * @param source the source data.
-	 * @param breakLines if true, removes all newline (\n) characters from the <code>source</code> string before
-	 * decoding it.<br/>
-	 * Use this flag if the source was encoded with <code>breakLines</code> = true.
+	 * @param breakLines if true, removes all newline (\n) characters from the `source` string before
+	 * decoding it.
+	 * Use this flag if the source was encoded with `breakLines` = true.
 	 * Default is false.
 	 */
 	inline public static function decode(source:String, breakLines = false):BytesData
@@ -70,9 +70,9 @@ class Base64
 	/**
 	 * Shortcut for decoding a Base64 encoded string directly into a string.
 	 * @param source the source data.
-	 * @param breakLines if true, removes all newline (\n) characters from the <code>source</code> string before
-	 * decoding it.<br/>
-	 * Use this flag if the source was encoded with <code>breakLines</code> = true.
+	 * @param breakLines if true, removes all newline (\n) characters from the `source` string before
+	 * decoding it.
+	 * Use this flag if the source was encoded with `breakLines` = true.
 	 * Default is false.
 	 */
 	inline public static function decodeString(source:String, breakLines = false):String

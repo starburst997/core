@@ -19,18 +19,18 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.fmt;
 
 import de.polygonal.core.math.Limits;
-import de.polygonal.core.math.Mathematics;
+import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.ds.Bits;
 
 /**
- * <p>Various utility functions for formatting numbers.</p>
+ * Various utility functions for formatting numbers.
  */
 class NumberFormat
 {
 	static var _hexLUT = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 	
 	/**
-	 * Returns a string representation of the unsigned integer <code>x</code> in binary notation.
+	 * Returns a string representation of the unsigned integer `x` in binary notation.
 	 * @param byteDelimiter a character to insert between bytes. The default value is an empty string.
 	 */
 	public static function toBin(x:Int, byteDelimiter = "", leadingZeros = false):String
@@ -51,7 +51,7 @@ class NumberFormat
 	}
 	
 	/**
-	 * Returns a string representation of the unsigned integer <code>x</code> in hexadecimal notation.
+	 * Returns a string representation of the unsigned integer `x` in hexadecimal notation.
 	 */
 	public static function toHex(x:Int):String
 	{
@@ -84,7 +84,7 @@ class NumberFormat
 	}
 	
 	/**
-	 * Same as <em>int.toString(radix)</em> in ActionScript 3.0.
+	 * Same as `int.toString(radix)` in ActionScript 3.0.
 	 */
 	public static function toRadix(x:Int, radix:Int):String
 	{
@@ -100,7 +100,7 @@ class NumberFormat
 	}
 	
 	/**
-	 * Returns a string representation of the number <code>x</code> in fixed-point notation.
+	 * Returns a string representation of the number `x` in fixed-point notation.
 	 * @param decimalPlaces the number of decimal places.
 	 */
 	public static function toFixed(x:Float, decimalPlaces:Int):String
@@ -128,7 +128,7 @@ class NumberFormat
 	}
 	
 	/**
-	 * Converts <code>x</code> measured in seconds to MM:SS.
+	 * Converts `x` measured in seconds to MM:SS.
 	 */
 	public static function toMMSS(x:Float):String
 	{
@@ -140,7 +140,7 @@ class NumberFormat
 	}
 	
 	/**
-	 * Groups the digits in the input number by using a thousands separator.<br/>
+	 * Groups the digits in the input number by using a thousands separator.
 	 * E.g. the number 1024 is converted to the string "1.024".
 	 * @param thousandsSeparator a character to use as a thousands separator. The default value is ".".
 	 */

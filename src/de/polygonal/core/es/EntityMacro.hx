@@ -25,8 +25,8 @@ import sys.FileSystem;
 #end
 
 /**
- * Generates an unique identifier for every class extending de.polygonal.core.es.Entity.
- */
+	Injects some static fields into every class extending de.polygonal.core.es.Entity.
+**/
 class EntityMacro
 {
 	macro public static function build():Array<Field>
@@ -79,7 +79,7 @@ class EntityMacro
 			doc: null,
 			meta: [{name: ":keep", pos: p}],
 			access: [APublic, AStatic],
-			kind: FVar(TPath({pack: [], name: "String", params: [], sub: null}), {expr: EConst(CString('E$name')), pos: p}),
+			kind: FVar(TPath({pack: [], name: "String", params: [], sub: null}), {expr: EConst(CString(name)), pos: p}),
 			pos: p
 		});
 		
@@ -97,10 +97,9 @@ class EntityMacro
 			return fields; //don't modify Entity constructor
 		}
 		
-		//override _getType()
 		fields.push(
 		{
-			name: "_getType",
+			name: "__getType",
 			doc: null,
 			meta: [{name: ":noCompletion", pos: p}],
 			access: [APrivate, AOverride],

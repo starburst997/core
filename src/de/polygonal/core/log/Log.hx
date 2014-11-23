@@ -19,13 +19,13 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.log;
 
 import de.polygonal.core.event.Observable;
-import de.polygonal.core.util.Assert;
+import de.polygonal.core.util.Assert.assert;
 
 using de.polygonal.ds.Bits;
 
 /**
- * <p>A lightweight log.</p>
- * <p>Logging messages are passed to registered <em>LogHandler</em> objects.</p>
+ * A lightweight log.
+ * Logging messages are passed to registered `LogHandler` objects.
  */
 class Log
 {
@@ -54,8 +54,8 @@ class Log
 	}
 	
 	/**
-	 * Adds the handler <code>x</code> to this log.<br/>
-	 * Once registered, <code>x</code> receives logging messages.
+	 * Adds the handler `x` to this log.
+	 * Once registered, `x` receives logging messages.
 	 */
 	public function addHandler(x:LogHandler)
 	{
@@ -67,7 +67,7 @@ class Log
 	}
 
 	/**
-	 * Removes the handler <code>x</code> from this log.
+	 * Removes the handler `x` from this log.
 	 */
 	public function removeHandler(x:LogHandler)
 	{
@@ -96,8 +96,8 @@ class Log
 	}
 	
 	/**
-	 * Returns the name(s) of the active log level(s).<br/>
-	 * Example:<br/><br/>
+	 * Returns the name(s) of the active log level(s).
+	 * Example:
 	 * <pre class="prettyprint">
 	 * class Main
 	 * {
@@ -137,11 +137,11 @@ class Log
 	}
 	
 	/**
-	 * Sets the log level <code>x</code> for controlling logging output.<br/>
-	 * Enabling logging at a given level also enables logging at all higher levels.<br/>
-	 * Each log level is specified by a bit flag in the range 0x01 (<em>LogLevel.DEBUG</em>) to 0x08 (<em>LogLevel.ERROR</em>).<br/>
-	 * LogLevel.OFF can be used to turn off logging. The default log level is <em>LogLevel.DEBUG</em>.<br/>
-	 * Example:<br/><br/>
+	 * Sets the log level `x` for controlling logging output.
+	 * Enabling logging at a given level also enables logging at all higher levels.
+	 * Each log level is specified by a bit flag in the range 0x01 (`LogLevel.DEBUG`) to 0x08 (`LogLevel.ERROR`).
+	 * LogLevel.OFF can be used to turn off logging. The default log level is `LogLevel.DEBUG`.
+	 * Example:
 	 * <pre class="prettyprint">
 	 * import de.polygonal.core.log.LogLevel;
 	 * class Main
@@ -161,7 +161,7 @@ class Log
 	{
 		#if log
 		#if debug
-		D.assert((x & LogLevel.ALL) > 0, "(x & LogLevel.ALL) > 0");
+		assert((x & LogLevel.ALL) > 0, "(x & LogLevel.ALL) > 0");
 		#end
 		
 		_level = x;
@@ -182,7 +182,7 @@ class Log
 	}
 	
 	/**
-	 * Logs a <em>LogLevel.DEBUG</em> message.
+	 * Logs a `LogLevel.DEBUG` message.
 	 * @param msg the log message.
 	 */
 	#if !log inline #end
@@ -195,7 +195,7 @@ class Log
 	}
 	
 	/**
-	 * Logs a <em>LogLevel.DEBUG</em> message.
+	 * Logs a `LogLevel.DEBUG` message.
 	 * @param msg the log message.
 	 */
 	#if !log inline #end
@@ -208,7 +208,7 @@ class Log
 	}
 	
 	/**
-	 * Logs a <em>LogLevel.INFO</em> message.
+	 * Logs a `LogLevel.INFO` message.
 	 * @param msg the log message.
 	 */
 	#if !log inline #end
@@ -221,7 +221,7 @@ class Log
 	}
 	
 	/**
-	 * Logs a <em>LogLevel.INFO</em> message.
+	 * Logs a `LogLevel.INFO` message.
 	 * @param msg the log message.
 	 */
 	#if !log inline #end
@@ -234,7 +234,7 @@ class Log
 	}
 	
 	/**
-	 * Logs a <em>LogLevel.WARN</em> message.
+	 * Logs a `LogLevel.WARN` message.
 	 * @param msg the log message.
 	 */
 	#if !log inline #end
@@ -247,7 +247,7 @@ class Log
 	}
 	
 	/**
-	 * Logs a <em>LogLevel.WARN</em> message.
+	 * Logs a `LogLevel.WARN` message.
 	 * @param msg the log message.
 	 */
 	#if !log inline #end
@@ -260,7 +260,7 @@ class Log
 	}
 	
 	/**
-	 * Logs a <em>LogLevel.ERROR</em> message.
+	 * Logs a `LogLevel.ERROR` message.
 	 * @param msg the log message.
 	 */
 	#if !log inline #end
@@ -273,7 +273,7 @@ class Log
 	}
 	
 	/**
-	 * Logs a <em>LogLevel.ERROR</em> message.
+	 * Logs a `LogLevel.ERROR` message.
 	 * @param msg the log message.
 	 */
 	#if !log inline #end

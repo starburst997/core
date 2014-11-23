@@ -21,42 +21,42 @@ package de.polygonal.core.log;
 import de.polygonal.ds.Bits;
 
 /**
- * <p>A set of standard logging levels that can be used to constrain logging output.</p>
+ * A set of standard logging levels that can be used to constrain logging output.
  */
 class LogLevel
 {
 	/**
-	 * A message level providing tracing information.<br/>
+	 * A message level providing tracing information.
 	 * Value 0x01.
 	 */
 	inline public static var DEBUG = Bits.BIT_01;
 	
 	/**
-	 * A message level for informational messages.<br/>
+	 * A message level for informational messages.
 	 * Value 0x02.
 	 */
 	inline public static var INFO = Bits.BIT_02;
 	
 	/**
-	 * A message level indicating a potential problem.<br/>
+	 * A message level indicating a potential problem.
 	 * Value 0x04.
 	 */
 	inline public static var WARN = Bits.BIT_03;
 	
 	/**
-	 * A message level indicating a serious failure.<br/>
+	 * A message level indicating a serious failure.
 	 * Value 0x08.
 	 */
 	inline public static var ERROR = Bits.BIT_04;
 	
 	/**
-	 * A special level that can be used to turn off logging.<br/>
+	 * A special level that can be used to turn off logging.
 	 * Value 0x10.
 	 */
 	inline public static var OFF = Bits.BIT_05;
 	
 	/**
-	 * A bitfield of all log levels.<br/>
+	 * A bitfield of all log levels.
 	 * Value b11111.
 	 */
 	inline public static var ALL = LogLevel.DEBUG | LogLevel.INFO | LogLevel.WARN | LogLevel.ERROR | LogLevel.OFF;

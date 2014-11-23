@@ -18,6 +18,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
+/**
+	Helper class for iterating an entity hierarchy.
+**/
 class EntityIterator
 {
 	public static function descendants(e:Entity):Iterator<Entity>

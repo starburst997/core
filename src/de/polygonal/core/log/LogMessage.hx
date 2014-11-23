@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.log;
 
 /**
- * <p>A log message used by the <em>Log</em> class to send log messages.</p>
+ * A log message used by the `Log` class to send log messages.
  */
 class LogMessage
 {

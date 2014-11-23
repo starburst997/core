@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.fmt;
 
 /**
- * <p>US ASCII Character Set, ANSI X3.4-1986 (ISO 646 International Reference Version)<p>
+ * US ASCII Character Set, ANSI X3.4-1986 (ISO 646 International Reference Version)
  * <ul>
  * <li>Codes 0 through 31 and 127 are unprintable control characters.</li>
  * <li>Code 32 is a non-printing spacing character.</li>

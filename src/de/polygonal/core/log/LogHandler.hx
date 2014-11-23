@@ -23,33 +23,24 @@ import de.polygonal.core.event.IObserver;
 import de.polygonal.core.fmt.StringUtil;
 import de.polygonal.core.log.LogLevel;
 import de.polygonal.core.log.LogMessage;
-import de.polygonal.core.util.Assert;
+import de.polygonal.core.util.Assert.assert;
 import haxe.ds.StringMap;
 
 using de.polygonal.ds.BitFlags;
 using de.polygonal.ds.Bits;
 
 /**
- * <p>A log handler receives log messages from a log and exports them to various output devices.</p>
+ * A log handler receives log messages from a log and exports them to various output devices.
  */
-@:build(de.polygonal.core.util.IntConstants.build(
+@:build(de.polygonal.core.macro.IntEnum.build(
 [
-	DATE,
-	TIME,
-	TICK,
-	LEVEL,
-	NAME,
-	TAG,
-	CLASS,
-	CLASS_SHORT,
-	METHOD,
-	LINE
+	DATE, TIME, TICK, LEVEL, NAME, TAG, CLASS, CLASS_SHORT, METHOD, LINE
 ], true, true))
 class LogHandler implements IObserver
 {
 	inline public static var FORMAT_RAW         = 0;
-	inline public static var FORMAT_BRIEF       =               TICK | LEVEL | NAME | TAG;
-	inline public static var FORMAT_BRIEF_INFOS =               TICK | LEVEL | NAME | TAG | LINE | CLASS | CLASS_SHORT | METHOD;
+	inline public static var FORMAT_BRIEF       = TICK | LEVEL | NAME | TAG;
+	inline public static var FORMAT_BRIEF_INFOS = LEVEL | NAME | TAG | LINE | CLASS | CLASS_SHORT | METHOD;
 	inline public static var FORMAT_FULL        = DATE | TIME | TICK | LEVEL | NAME | TAG | LINE | CLASS | CLASS_SHORT | METHOD;
 	
 	public static var DEFAULT_FORMAT = FORMAT_BRIEF_INFOS;
@@ -87,8 +78,8 @@ class LogHandler implements IObserver
 	}
 	
 	/**
-	 * Returns the name(s) of the active output level(s).<br/>
-	 * @see <em>Log#getLevelName()</em>.
+	 * Returns the name(s) of the active output level(s).
+	 * @see `Log#getLevelName()`.
 	 */
 	public function getLevelName():String
 	{
@@ -109,8 +100,8 @@ class LogHandler implements IObserver
 	}
 	
 	/**
-	 * Sets the log level <code>x</code> specifying which message levels will be ultimately handled.<br/>
-	 * Example:<br/><br/>
+	 * Sets the log level `x` specifying which message levels will be ultimately handled.
+	 * Example:
 	 * <pre class="prettyprint">
 	 * import de.polygonal.core.log.LogLevel;
 	 * import de.polygonal.core.log.Log;
@@ -129,7 +120,7 @@ class LogHandler implements IObserver
 	public function setLevel(x:Int)
 	{
 		#if debug
-		D.assert((x & LogLevel.ALL) > 0, "(x & LogLevel.ALL) > 0");
+		assert((x & LogLevel.ALL) > 0, "(x & LogLevel.ALL) > 0");
 		#end
 		
 		_level = x;
@@ -157,8 +148,8 @@ class LogHandler implements IObserver
 	}
 	
 	/**
-	 * Adds extra information to a logging message.<br/>
-	 * Example:<br/><br/>
+	 * Adds extra information to a logging message.
+	 * Example:
 	 * <pre class="prettyprint">
 	 * import de.polygonal.core.log.LogHandler;
 	 * import de.polygonal.core.log.handler.TraceHandler;

@@ -19,12 +19,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.fmt;
 
 /**
- * <p>Creates a textual representation of an object or the stack.</p>
+ * Creates a textual representation of an object or the stack.
  */
 class Dump
 {
 	/**
-	 * Returns a human-readable representation of the object <code>o</code>.
+	 * Returns a human-readable representation of the object `o`.
 	 */
 	public static function object(o:Dynamic):String
 	{

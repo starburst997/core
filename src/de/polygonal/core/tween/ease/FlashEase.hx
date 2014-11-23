@@ -18,8 +18,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.tween.ease;
 
-import de.polygonal.core.math.interpolation.Interpolation;
-import de.polygonal.core.math.Mathematics;
+import de.polygonal.core.math.Interpolation;
+import de.polygonal.core.math.Mathematics.M;
 
 /**
 	The "classic" flash easing with an easing value in the range [-100,100].

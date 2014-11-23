@@ -19,7 +19,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.es;
 
 import de.polygonal.core.fmt.StringUtil;
-import de.polygonal.core.util.Assert;
+import de.polygonal.core.macro.IntEnum;
+import de.polygonal.core.util.Assert.assert;
 import de.polygonal.Printf;
 import haxe.ds.Vector;
 
@@ -31,7 +32,7 @@ import flash.Memory in Mem;
 #end
 
 @:publicFields
-@:build(de.polygonal.core.util.IntConstants.build([I, F, B, S, O, USED], true, true))
+@:build(de.polygonal.core.macro.IntEnum.build([I, F, B, S, O, USED], true, true))
 class MsgBundle
 {
 	@:noCompletion var mInt:Int;
@@ -44,12 +45,12 @@ class MsgBundle
 	public var int(get_int, set_int):Int;
 	@:noCompletion inline function get_int():Int
 	{
-		D.assert(mFlags & I > 0, "no int stored");
+		assert(mFlags & I > 0, "no int stored");
 		return mInt;
 	}
 	@:noCompletion inline function set_int(value:Int):Int
 	{
-		D.assert(mFlags & USED == 0);
+		assert(mFlags & USED == 0);
 		
 		mFlags |= I;
 		mInt = value;
@@ -59,12 +60,12 @@ class MsgBundle
 	public var float(get_float, set_float):Float;
 	@:noCompletion inline function get_float():Float
 	{
-		D.assert(mFlags & F > 0, "no float stored");
+		assert(mFlags & F > 0, "no float stored");
 		return mFloat;
 	}
 	@:noCompletion inline function set_float(value:Float):Float
 	{
-		D.assert(mFlags & USED == 0);
+		assert(mFlags & USED == 0);
 		
 		mFlags |= F;
 		mFloat = value;
@@ -74,12 +75,12 @@ class MsgBundle
 	public var bool(get_bool, set_bool):Bool;
 	@:noCompletion inline function get_bool():Bool
 	{
-		D.assert(mFlags & B > 0, "no bool stored");
+		assert(mFlags & B > 0, "no bool stored");
 		return mBool;
 	}
 	@:noCompletion inline function set_bool(value:Bool):Bool
 	{
-		D.assert(mFlags & USED == 0);
+		assert(mFlags & USED == 0);
 		
 		mFlags |= B;
 		mBool = value;
@@ -89,12 +90,12 @@ class MsgBundle
 	public var string(get_string, set_string):String;
 	@:noCompletion inline function get_string():String
 	{
-		D.assert(mFlags & S > 0, "no string stored");
+		assert(mFlags & S > 0, "no string stored");
 		return mString;
 	}
 	@:noCompletion inline function set_string(value:String):String
 	{
-		D.assert(mFlags & USED == 0);
+		assert(mFlags & USED == 0);
 		
 		mFlags |= S;
 		mString = value;
@@ -104,12 +105,12 @@ class MsgBundle
 	public var object(get_object, set_object):Dynamic;
 	@:noCompletion inline function get_object():Dynamic
 	{
-		D.assert(mFlags & O > 0, "no object stored");	
+		assert(mFlags & O > 0, "no object stored");	
 		return mObject;
 	}
 	@:noCompletion inline function set_object(value:Dynamic):Dynamic
 	{
-		D.assert(mFlags & USED == 0);
+		assert(mFlags & USED == 0);
 		
 		mFlags |= O;
 		mObject = value;
@@ -138,6 +139,7 @@ class MsgBundle
 }
 
 @:access(de.polygonal.core.es.Entity)
+@:access(de.polygonal.core.es.EntityId)
 @:access(de.polygonal.core.es.EntitySystem)
 class MsgQue
 {
@@ -221,15 +223,15 @@ class MsgQue
 	
 	public function enqueue(sender:E, recipient:E, type:Int, remaining:Int, dir:Int)
 	{
-		D.assert(sender != null);
-		D.assert(recipient != null);
-		D.assert(type >= 0 && type <= 0xFFFF);
-		D.assert(mSize < mCapacity, "message queue exhausted");
+		assert(sender != null);
+		assert(recipient != null);
+		assert(type >= 0 && type <= 0xFFFF);
+		assert(mSize < mCapacity, "message queue exhausted");
 		
 		var i = (mFront + mSize) % mCapacity;
 		mSize++;
 		
-		if (recipient.mFlags & (E.BIT_GHOST | E.BIT_SKIP_MSG | E.BIT_MARK_FREE) > 0)
+		if (recipient.mFlags & (E.BIT_SKIP_MSG | E.BIT_MARK_FREE) > 0)
 		{
 			//enqueue message even if recipient doesn't want it;
 			//this is required for properly stopping a message propagation (when an entity calls stop())
@@ -411,7 +413,7 @@ class MsgQue
 			#end
 			
 			//notify recipient
-			if (recipient.mFlags & (E.BIT_GHOST | E.BIT_SKIP_MSG | E.BIT_MARK_FREE) == 0)
+			if (recipient.mFlags & (E.BIT_SKIP_MSG | E.BIT_MARK_FREE) == 0)
 			{
 				recipient.onMsg(type, sender);
 				
@@ -459,7 +461,7 @@ class MsgQue
 		//clear bundles
 		for (i in 0...mBundles.length)
 		{
-			D.assert(mBundles[i] != null);
+			assert(mBundles[i] != null);
 			mBundles[i].mFlags = 0;
 			mBundles[i].mObject = null;
 		}
