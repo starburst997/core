@@ -58,7 +58,7 @@ class EntitySystem
 	inline public static var DEFAULT_MAX_ENTITY_COUNT = 0x8000;
 	
 	//unique id, incremented every time an entity is registered
-	static var mNextInnerId = 0;
+	static var mNextInnerId:Int;
 	
 	//all existing entities
 	static var mFreeList:Vector<E>;
@@ -98,6 +98,8 @@ class EntitySystem
 	public static function init(maxEntityCount:Int = DEFAULT_MAX_ENTITY_COUNT, maxMessageCount:Int = DEFAULT_MAX_MESSAGE_COUNT)
 	{
 		if (mFreeList != null) return;
+		
+		mNextInnerId = 0;
 		
 		assert(maxEntityCount > 0 && maxEntityCount <= MAX_SUPPORTED_ENTITIES);
 		
@@ -192,6 +194,54 @@ class EntitySystem
 		}
 		else
 			return null;
+	}
+	
+	/**
+		Pretty-prints the entity hierarchy starting at `root`.
+	**/
+	public static function prettyPrint(root:Entity):String
+	{
+		if (root == null) return root.toString();
+		
+		function depth(x:Entity):Int
+		{
+			if (x.parent == null) return 0;
+			var e = x;
+			var c = 0;
+			while (e.parent != null)
+			{
+				c++;
+				e = e.parent;
+			}
+			return c;
+		}	
+		
+		var s = root.name + '\n';
+		
+		var a = [root];
+		
+		var e = root.preorder;
+		while (e != null)
+		{
+			a.push(e);
+			
+			e = e.preorder;
+		}
+		
+		for (e in a)
+		{
+			var d = depth(e);
+			for (i in 0...d)
+			{
+				if (i == d - 1)
+					s += "+--- ";
+				else
+					s += "|    ";
+			}
+			s += "" + e.name + "\n";
+		}
+		
+		return s;
 	}
 	
 	static function register(e:E)

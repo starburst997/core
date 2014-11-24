@@ -22,8 +22,8 @@ package de.polygonal.core.time;
 ([
 	TICK,
 	RENDER,
-	HALT,
 	CLAMP,
+	PAUSE,
 	RESUME,
 	FREEZE_BEGIN,
 	FREEZE_END

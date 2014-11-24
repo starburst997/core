@@ -19,11 +19,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.es;
 
 import de.polygonal.core.es.Msg;
-import de.polygonal.core.es.MsgQue.MsgBundle;
+import de.polygonal.core.es.MsgQue;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.core.util.ClassUtil;
 import de.polygonal.core.es.EntitySystem in Es;
 
+/**
+	Base entity class.
+**/
 @:access(de.polygonal.core.es.EntitySystem)
 @:access(de.polygonal.core.es.MsgQue)
 @:build(de.polygonal.core.macro.IntEnum.build(
@@ -276,21 +279,21 @@ class Entity
 	}
 	
 	/**
-		Data that has been received. Only valid inside a msgTo*() method.
+		A received message. __Only valid inside a msgTo*() method.__
 	**/
-	public var incomingBundle(get_incomingBundle, never):MsgBundle;
-	@:noCompletion function get_incomingBundle():MsgBundle
+	public var incomingMessage(get_incomingMessage, never):Msg;
+	@:noCompletion function get_incomingMessage():Msg
 	{
-		return getMsgQue().getMsgBundleIn();
+		return getMsgQue().getMsgIn();
 	}
 	
 	/**
-		Data that is about to be sent when calling msgTo*().
+		A message that will be sent when calling msgTo*().
 	**/
-	public var outgoingBundle(get_outgoingBundle, never):MsgBundle;
-	@:noCompletion function get_outgoingBundle():MsgBundle
+	public var outgoingMessage(get_outgoingMessage, never):Msg;
+	@:noCompletion function get_outgoingMessage():Msg
 	{
-		return getMsgQue().getMsgBundleOut();
+		return getMsgQue().getMsgOut();
 	}
 	
 	/**
@@ -664,7 +667,7 @@ class Entity
 			q.enqueue(this, entity, msgType, 0, 0);
 		else
 		{
-			q.clrBundle();
+			q.clrMessage();
 			dispatch = false;
 		}
 		if (dispatch) q.dispatch();
@@ -684,7 +687,7 @@ class Entity
 			q.enqueue(this, e, msgType, 0, -1);
 		else
 		{
-			q.clrBundle();
+			q.clrMessage();
 			dispatch = false;
 		}
 		
@@ -704,7 +707,7 @@ class Entity
 		var e = parent;
 		if (e == null)
 		{
-			q.clrBundle();
+			q.clrMessage();
 			return this;
 		}
 		
@@ -731,7 +734,7 @@ class Entity
 		var e = child;
 		if (e == null)
 		{
-			q.clrBundle();
+			q.clrMessage();
 			return this;
 		}
 		var k = size;
@@ -757,7 +760,7 @@ class Entity
 		var e = child;
 		if (e == null)
 		{
-			q.clrBundle();
+			q.clrMessage();
 			return this;
 		}
 		var k = numChildren;

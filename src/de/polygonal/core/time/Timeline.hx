@@ -20,7 +20,7 @@ package de.polygonal.core.time;
 
 import de.polygonal.core.event.IObserver;
 import de.polygonal.core.event.Observable;
-import de.polygonal.core.util.Assert;
+import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.ArrayedQueue;
 import de.polygonal.ds.Cloneable;
 import de.polygonal.ds.Collection;
@@ -39,14 +39,14 @@ class Timeline
 	
 	public static function attach(o:IObserver, mask:Int = 0)
 	{
-		D.assert(_initialized, "call Timeline.init() first");
+		assert(mInitialized, "call Timeline.init() first");
 		if (observable == null) init();
 		observable.attach(o, mask);
 	}
 	
 	public static function detach(o:IObserver, mask:Int = 0)
 	{
-		D.assert(_initialized, "call Timeline.init() first");
+		assert(mInitialized, "call Timeline.init() first");
 		observable.detach(o, mask);
 	}
 	

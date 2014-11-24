@@ -31,113 +31,9 @@ import de.polygonal.core.es.EntitySystem in ES;
 import flash.Memory in Mem;
 #end
 
-@:publicFields
-@:build(de.polygonal.core.macro.IntEnum.build([I, F, B, S, O, USED], true, true))
-class MsgBundle
-{
-	@:noCompletion var mInt:Int;
-	@:noCompletion var mFloat:Float;
-	@:noCompletion var mBool:Bool;
-	@:noCompletion var mString:String;
-	@:noCompletion var mObject:Dynamic;
-	@:noCompletion var mFlags:Int;
-	
-	public var int(get_int, set_int):Int;
-	@:noCompletion inline function get_int():Int
-	{
-		assert(mFlags & I > 0, "no int stored");
-		return mInt;
-	}
-	@:noCompletion inline function set_int(value:Int):Int
-	{
-		assert(mFlags & USED == 0);
-		
-		mFlags |= I;
-		mInt = value;
-		return value;
-	}
-	
-	public var float(get_float, set_float):Float;
-	@:noCompletion inline function get_float():Float
-	{
-		assert(mFlags & F > 0, "no float stored");
-		return mFloat;
-	}
-	@:noCompletion inline function set_float(value:Float):Float
-	{
-		assert(mFlags & USED == 0);
-		
-		mFlags |= F;
-		mFloat = value;
-		return value;
-	}
-	
-	public var bool(get_bool, set_bool):Bool;
-	@:noCompletion inline function get_bool():Bool
-	{
-		assert(mFlags & B > 0, "no bool stored");
-		return mBool;
-	}
-	@:noCompletion inline function set_bool(value:Bool):Bool
-	{
-		assert(mFlags & USED == 0);
-		
-		mFlags |= B;
-		mBool = value;
-		return value;
-	}
-	
-	public var string(get_string, set_string):String;
-	@:noCompletion inline function get_string():String
-	{
-		assert(mFlags & S > 0, "no string stored");
-		return mString;
-	}
-	@:noCompletion inline function set_string(value:String):String
-	{
-		assert(mFlags & USED == 0);
-		
-		mFlags |= S;
-		mString = value;
-		return value;
-	}
-	
-	public var object(get_object, set_object):Dynamic;
-	@:noCompletion inline function get_object():Dynamic
-	{
-		assert(mFlags & O > 0, "no object stored");	
-		return mObject;
-	}
-	@:noCompletion inline function set_object(value:Dynamic):Dynamic
-	{
-		assert(mFlags & USED == 0);
-		
-		mFlags |= O;
-		mObject = value;
-		return value;
-	}
-	
-	inline public function hasInt() return mFlags & I > 0;
-	inline public function hasFloat() return mFlags & F > 0;
-	inline public function hasBool() return mFlags & B > 0;
-	inline public function hasString() return mFlags & S > 0;
-	inline public function hasObject() return mFlags & O > 0;
-	
-	function new() {}
-	
-	@:noCompletion function toString():String
-	{
-		var a = [];
-		if (mFlags & I > 0) a.push('int=$mInt');
-		if (mFlags & F > 0) a.push('float=$mFloat');
-		if (mFlags & B > 0) a.push('bool=$mBool');
-		if (mFlags & S > 0) a.push('string=$mString');
-		if (mFlags & O > 0) a.push('object=$mObject');
-		if (a.length > 0) return "{MsgBundle, " + a.join(", ") + "}";
-		return "{MsgBundle}";
-	}
-}
-
+/**
+	Used internally by the entity system.
+**/
 @:access(de.polygonal.core.es.Entity)
 @:access(de.polygonal.core.es.EntityId)
 @:access(de.polygonal.core.es.EntitySystem)
@@ -147,7 +43,7 @@ class MsgQue
 	#if alchemy
 	//sender+recipient inner: 2*4 bytes
 	//sender+recipient index: 2*2 bytes
-	//type, skip count, bundle index: 3*2 bytes
+	//type, skip count, message index: 3*2 bytes
 	18; //#bytes
 	#else
 	7; //#32bit integers
@@ -163,10 +59,10 @@ class MsgQue
 	var mCapacity:Int;
 	var mSize:Int;
 	var mFront:Int;
-	var mCurrBundleIn:Int;
-	var mCurrBundleOut:MsgBundle;
-	var mFreeBundle:Int;
-	var mBundles:Array<MsgBundle>;
+	var mCurrMsgInIndex:Int;
+	var mCurrMsgOut:Msg;
+	var mFreeMsgIndex:Int;
+	var mMessages:Array<Msg>;
 	var mSending:Bool = false;
 	
 	public function new(capacity:Int)
@@ -181,7 +77,7 @@ class MsgQue
 		//id.index for recipient: 2 bytes
 		//type: 2 bytes
 		//remaining: 2 bytes
-		//bundle index: 2 bytes
+		//message index: 2 bytes
 		new de.polygonal.ds.mem.ByteMemory(mCapacity * MSG_SIZE, "entity_system_message_que");
 		#else
 		new Vector<Int>(mCapacity * MSG_SIZE);
@@ -190,38 +86,38 @@ class MsgQue
 		mSize = 0;
 		mFront = 0;
 		
-		mFreeBundle = 0;
-		mBundles = new Array<MsgBundle>();
+		mFreeMsgIndex = 0;
+		mMessages = new Array<Msg>();
 		
 		#if verbose
 		L.d('found ${Msg.totalMessages()} message types', "es");
 		#end
 	}
 	
-	public function getMsgBundleIn():MsgBundle
+	function getMsgIn():Msg
 	{
-		if (mCurrBundleIn == -1) return null;
-		return mBundles[mCurrBundleIn];
+		if (mCurrMsgInIndex == -1) return null;
+		return mMessages[mCurrMsgInIndex];
 	}
 	
-	public function getMsgBundleOut():MsgBundle
+	function getMsgOut():Msg
 	{
-		mCurrBundleOut = mBundles[mFreeBundle];
-		if (mCurrBundleOut == null) mCurrBundleOut = mBundles[mFreeBundle] = new MsgBundle();
-		return mCurrBundleOut;
+		mCurrMsgOut = mMessages[mFreeMsgIndex];
+		if (mCurrMsgOut == null) mCurrMsgOut = mMessages[mFreeMsgIndex] = new Msg();
+		return mCurrMsgOut;
 	}
 	
-	inline function clrBundle()
+	inline function clrMessage()
 	{
-		if (mCurrBundleOut != null)
+		if (mCurrMsgOut != null)
 		{
-			mCurrBundleOut.mFlags = 0;
-			mCurrBundleOut.mObject = null;
-			mCurrBundleOut = null;
+			mCurrMsgOut.mFlags = 0;
+			mCurrMsgOut.mObject = null;
+			mCurrMsgOut = null;
 		}
 	}
 	
-	public function enqueue(sender:E, recipient:E, type:Int, remaining:Int, dir:Int)
+	function enqueue(sender:E, recipient:E, type:Int, remaining:Int, dir:Int)
 	{
 		assert(sender != null);
 		assert(recipient != null);
@@ -272,7 +168,7 @@ class MsgQue
 		Mem.setI16(addr + 10, recipientId.index);
 		Mem.setI16(addr + 12, type);
 		Mem.setI16(addr + 14, remaining);
-		Mem.setI16(addr + 16, mFreeBundle);
+		Mem.setI16(addr + 16, mFreeMsgIndex);
 		#else
 		var addr = i * MSG_SIZE;
 		q[addr    ] = senderId.inner;
@@ -281,23 +177,23 @@ class MsgQue
 		q[addr + 3] = recipientId.index;
 		q[addr + 4] = type;
 		q[addr + 5] = remaining;
-		q[addr + 6] = mFreeBundle;
+		q[addr + 6] = mFreeMsgIndex;
 		#end
 		
-		//use same bundle for multiple recipients
+		//use same message for multiple recipients
 		//increment counter if batch is complete and data is set
 		if (remaining == 0)
 		{
-			if (mCurrBundleOut != null && mCurrBundleOut.mFlags > 0)
+			if (mCurrMsgOut != null && mCurrMsgOut.mFlags > 0)
 			{
-				mCurrBundleOut.mFlags |= MsgBundle.USED;
-				mFreeBundle++; 
-				mCurrBundleOut = null;
+				mCurrMsgOut.mFlags |= Msg.USED;
+				mFreeMsgIndex++; 
+				mCurrMsgOut = null;
 			}
 		}
 	}
 	
-	public function dispatch()
+	function dispatch()
 	{
 		if (mSize == 0 || mSending) return;
 		mSending = true;
@@ -332,23 +228,23 @@ class MsgQue
 		while (mSize > 0) //while there are buffered messages
 		{
 			#if alchemy
-			var addr       = q.getAddr(mFront * MSG_SIZE);
-			senderInner    = Mem.getI32(addr);
-			recipientInner = Mem.getI32(addr  +  4);
-			senderIndex    = Mem.getUI16(addr +  8);
-			recipientIndex = Mem.getUI16(addr + 10);
-			type           = Mem.getUI16(addr + 12);
-			skipCount      = Mem.getUI16(addr + 14);
-			mCurrBundleIn  = Mem.getUI16(addr + 16);
+			var addr        = q.getAddr(mFront * MSG_SIZE);
+			senderInner     = Mem.getI32(addr);
+			recipientInner  = Mem.getI32(addr  +  4);
+			senderIndex     = Mem.getUI16(addr +  8);
+			recipientIndex  = Mem.getUI16(addr + 10);
+			type            = Mem.getUI16(addr + 12);
+			skipCount       = Mem.getUI16(addr + 14);
+			mCurrMsgInIndex = Mem.getUI16(addr + 16);
 			#else
-			var addr       = mFront * MSG_SIZE;
-			senderInner    = q[addr    ];
-			recipientInner = q[addr + 1];
-			senderIndex    = q[addr + 2];
-			recipientIndex = q[addr + 3];
-			type           = q[addr + 4];
-			skipCount      = q[addr + 5];
-			mCurrBundleIn  = q[addr + 6];
+			var addr        = mFront * MSG_SIZE;
+			senderInner     = q[addr    ];
+			recipientInner  = q[addr + 1];
+			senderIndex     = q[addr + 2];
+			recipientIndex  = q[addr + 3];
+			type            = q[addr + 4];
+			skipCount       = q[addr + 5];
+			mCurrMsgInIndex = q[addr + 6];
 			#end
 			
 			if (type & 0x8000 > 0)
@@ -399,7 +295,7 @@ class MsgQue
 			}
 			
 			#if (verbose == "extra")
-			var data = mBundles[mCurrBundleIn] != null ? mBundles[mCurrBundleIn] : null;
+			var data = mMessages[mCurrMsgInIndex] != null ? mMessages[mCurrMsgInIndex] : null;
 			var senderId = sender.name == null ? Std.string(sender.id) : sender.name;
 			var recipientId = recipient.name == null ? Std.string(recipient.id) : recipient.name;
 			
@@ -458,15 +354,15 @@ class MsgQue
 			L.d('dispatched $numDispatchedMessages messages (skipped: $numSkippedMessages)', "es");
 		#end
 		
-		//clear bundles
-		for (i in 0...mBundles.length)
+		//clear messages
+		for (i in 0...mMessages.length)
 		{
-			assert(mBundles[i] != null);
-			mBundles[i].mFlags = 0;
-			mBundles[i].mObject = null;
+			assert(mMessages[i] != null);
+			mMessages[i].mFlags = 0;
+			mMessages[i].mObject = null;
 		}
-		mFreeBundle = 0;
-		mCurrBundleIn = -1;
+		mFreeMsgIndex = 0;
+		mCurrMsgInIndex = -1;
 		
 		mSending = false;
 	}

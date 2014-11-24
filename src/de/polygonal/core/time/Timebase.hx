@@ -20,360 +20,300 @@ package de.polygonal.core.time;
 
 import de.polygonal.core.event.IObserver;
 import de.polygonal.core.event.Observable;
-import de.polygonal.core.util.Assert;
-import de.polygonal.core.math.Mathematics;
+import de.polygonal.core.util.Assert.assert;
+import de.polygonal.core.math.Mathematics.M;
 
 /**
- * A Timebase is a constantly ticking source of time.
- */
+	A Timebase is a constantly ticking source of time.
+**/
 class Timebase
 {
+	/**
+		Converts `seconds` seconds to ticks.
+	**/
+	inline public static function secondsToTicks(seconds:Float):Int
+	{
+		return M.round(seconds / tickRate);
+	}
+	
+	/**
+		Converts `ticks` to seconds.
+	 */
+	inline public static function ticksToSeconds(ticks:Int):Float
+	{
+		return ticks * tickRate;
+	}
+	
+	/**
+	 * If true, time is consumed using a fixed time step.
+	 * 
+	 * Default is true.
+	 */
+	public static var useFixedTimeStep:Bool = true;
+	
+	/**
+		The update rate measured in seconds per tick.
+		
+		The default update rate is 60 ticks per second (or ~16.6ms per update).
+	**/
+	public static var tickRate(default, null):Float = 0.01666666;
+	
+	/**
+		Processed time in seconds since application start.
+	**/
+	public static var appTime(default, null):Float = 0;
+	
+	/**
+		Processed "virtual" time in seconds (includes scaling).
+	**/
+	public static var gameTime(default, null):Float = 0;
+	
+	/**
+		Current frame delta time in seconds.
+	**/
+	public static var appTimeDelta(default, null):Float = 0;
+	
+	/**
+		Current "virtual" frame delta time in seconds (includes scaling).
+	**/
+	public static var gameTimeDelta(default, null):Float = 0;
+	
+	/**
+		The current time scale > 0.
+	**/
+	public static var timeScale:Float = 1;
+	
+	/**
+		The total number of processed ticks since application start.
+	**/
+	public static var totalTicks(default, null):Int = 0;
+	
+	/**
+	 * Current frames per second (how many frames were rendered in 1 second).
+	 * 
+	 * Updated every second.
+	 */
+	public static var fps(default, null):Int = 60;
+	
+	
+	
+	
+	
+	
+	public static var observable(default, null):Observable = null;
 	public static function attach(o:IObserver, mask:Int = 0)
 	{
-		D.assert(_initialized, "call Timebase.init() first");
+		assert(mInitialized, "call Timebase.init() first");
 		observable.attach(o, mask);
 	}
 	
 	public static function detach(o:IObserver, mask:Int = 0)
 	{
-		D.assert(_initialized, "call Timebase.init() first");
+		assert(mInitialized, "call Timebase.init() first");
 		observable.detach(o, mask);
 	}
 	
-	/**
-	 * Converts <code>x</code> seconds to ticks.
-	 */
-	inline public static function secondsToTicks(x:Float):Int
-	{
-		return M.round(x / tickRate);
-	}
+	static var mFreezeDelay:Float;
+	static var mHalted:Bool;
 	
-	/**
-	 * Converts <code>x</code> ticks to seconds.
-	 */
-	inline public static function ticksToSeconds(x:Int):Float
-	{
-		return x * tickRate;
-	}
+	static var mAccumulator:Float = 0;
+	static var mAccumulatorLimit:Float = tickRate * 10;
 	
-	/**
-	 * If true, time is consumed using a fixed time step (see <em>Timebase.get().getTickRate()</em>).<br/>
-	 * Default is true.
-	 */
-	public static var useFixedTimeStep = true;
+	static var mFpsTicks:Int = 0;
+	static var mFpsTime:Float = 0;
+	static var mPast:Float;
 	
-	/**
-	 * The update rate measured in seconds per tick.<br/>
-	 * The default update rate is 60 ticks per second (or ~16.6ms per step).
-	 */
-	public static var tickRate(default, null):Float = 0.01666666;
+	static var mInitialized:Bool;
 	
-	/**
-	 * Processed time in seconds.
-	 */
-	public static var realTime(default, null) = 0.;
+	static var mTime:Time;
 	
-	/**
-	 * Processed "virtual" time in seconds (includes scaling).
-	 */
-	public static var gameTime(default, null) = 0.;
-	
-	/**
-	 * Frame delta time in seconds.
-	 */
-	public static var realTimeDelta(default, null) = 0.;
-	
-	/**
-	 * "Virtual" frame delta time in seconds (includes scaling).
-	 */
-	public static var gameTimeDelta(default, null) = 0.;
-	
-	/**
-	 * The current time scale.<br/>
-	 * Only positive values are allowed.
-	 */
-	public static var timeScale(default, null) = 1.;
-	
-	/**
-	 * The total number of processed ticks since the first observer received a <em>TimebaseEvent.TICK</em> update.
-	 */
-	public static var processedTicks(default, null) = 0;
-	
-	/**
-	 * The total number of rendered frames since the first observer received a <em>TimebaseEvent.RENDER</em> update.
-	 */
-	public static var processedFrames(default, null) = 0;
-	
-	/**
-	 * Frames per second (how many frames were rendered in 1 second).
-	 */
-	public static var fps(default, null) = 60;
-	
-	public static var observable(default, null):Observable = null;
-	
-	static var _freezeDelay:Float;
-	static var _halted:Bool;
-	
-	static var _accumulator:Float;
-	static var _accumulatorLimit:Float;
-	
-	static var _fpsTicks:Int;
-	static var _fpsTime:Float;
-	static var _past:Float;
-	
-	static var _initialized:Bool;
-	
-	#if js
-	static var _requestAnimFrame:Dynamic;
-	#end
-	
+	//TODO auto-init
 	public static function init()
 	{
-		if (_initialized) return;
-		_initialized = true;
+		if (mInitialized) return;
+		mInitialized = true;
 		
 		observable = new Observable(100);
-		
-		useFixedTimeStep = true;
-		tickRate = 1 / 60;
-		processedTicks = 0;
-		processedFrames = 0;
-		timeScale = 1;
-		realTime = 0;
-		realTimeDelta = 0;
-		gameTime = 0;
-		gameTimeDelta = 0;
-		fps = 60;
-		
-		_accumulator = 0;
-		_accumulatorLimit = tickRate * 10;
-		_fpsTicks = 0;
-		_fpsTime = 0;
-		_past = stamp();
-		
-		#if (flash || nme)
-		flash.Lib.current.addEventListener(flash.events.Event.ENTER_FRAME, onEnterFrame);
-		#elseif js
-		_requestAnimFrame = function(cb:Dynamic)
-		{
-			var w:Dynamic = js.Browser.window;
-			var f:Dynamic =
-			if (w.requestAnimationFrame != null)
-				w.requestAnimationFrame;
-			else
-			if (w.webkitRequestAnimationFrame != null)
-				w.webkitRequestAnimationFrame;
-			else
-			if (w.mozRequestAnimationFrame != null)
-				w.mozRequestAnimationFrame;
-			else
-			if (w.oRequestAnimationFrame != null)
-				w.oRequestAnimationFrame;
-			else
-			if (w.msRequestAnimationFrame != null)
-				w.msRequestAnimationFrame;
-			else
-				function(x) { w.setTimeout(x, tickRate * 1000); };
-			f(cb);
-		}
-		step();
-		#end
+	}
+	
+	public static function setTimeSource(time:Time)
+	{
+		mTime = time;
+		mTime.setTimingEventHandler(timeStep);
+		mPast = mTime.now();
 	}
 	
 	/**
-	 * Destroys the system by removing all registered observers and explicitly nullifying all references for GC'ing used resources.
-	 * The system is automatically reinitialized once an observer is attached.
-	 */	
+		Disposes the system by removing all registered observers and explicitly nullifying all references for GC'ing used resources.
+		
+		The system is automatically reinitialized once an observer is attached.
+	**/
 	public static function free()
 	{
-		if (!_initialized) return;
-		_initialized = false;
+		if (!mInitialized) return;
+		mInitialized = false;
 		
 		observable.free();
 		observable = null;
-		
-		#if (flash || nme)
-		flash.Lib.current.removeEventListener(flash.events.Event.ENTER_FRAME, onEnterFrame);
-		#elseif js
-		_requestAnimFrame = null;
-		#end
 	}
 	
 	/**
-	 * Sets the update rate measured in ticks per second, e.g. a value of 60 indicates that <em>TimebaseEvent.TICK</em> is fired 60 times per second (or every ~16.6ms).
-	 * @param max The accumulator limit in seconds. If omitted, <code>max</code> is set to ten times <code>ticksPerSecond</code>.
+		Sets the update rate measured in ticks per second, e.g. a value of 60 indicates that `TimebaseEvent.TICK` is fired 60 times per second (or every ~16.6ms).
+		
+		@param max the accumulator limit in seconds. If omitted, `max` is set to ten times `ticksPerSecond`.
 	 */
 	public static function setTickRate(ticksPerSecond:Int, max = -1.)
 	{
 		tickRate = 1 / ticksPerSecond;
-		_accumulator = 0;
-		_accumulatorLimit = (max == -1. ? 10 : max * tickRate);
+		mAccumulator = 0;
+		mAccumulatorLimit = (max == -1. ? 10 : max * tickRate);
 	}
 	
 	/**
-	 * Stops the flow of time.<br/>
-	 * Triggers a <em>TimebaseEvent.HALT</em> update.
-	 */
-	public static function halt()
+		Stops the flow of time.
+		
+		Triggers a `TimebaseEvent.PAUSE` update.
+	**/
+	public static function pause()
 	{
-		D.assert(_initialized, "call Timebase.init() first");
-		if (!_halted)
+		assert(mInitialized, "call Timebase.init() first");
+		if (!mHalted)
 		{
-			_halted = true;
-			observable.notify(TimebaseEvent.HALT);
+			mHalted = true;
+			observable.notify(TimebaseEvent.PAUSE);
 		}
 	}
 	
 	/**
-	 * Resumes the flow of time.<br/>
-	 * Triggers a <em>TimebaseEvent.RESUME</em> update.
-	 */
+		Resumes the flow of time.
+		
+		Triggers a `TimebaseEvent.RESUME` update.
+	**/
 	public static function resume()
 	{
-		D.assert(_initialized, "call Timebase.init() first");
-		if (_halted)
+		assert(mInitialized, "call Timebase.init() first");
+		if (mHalted)
 		{
-			_halted = false;
-			_accumulator = 0.;
-			_past = stamp();
+			mHalted = false;
+			mAccumulator = 0.;
+			mPast = mTime.now();
 			observable.notify(TimebaseEvent.RESUME);
 		}
 	}
 	
 	/**
-	 * Toggles (halt/resume) the flow of time.<br/>
-	 * Triggers a <em>TimebaseEvent.HALT</em> or em>TimebaseEvent.RESUME</em> update.
-	 */
+		Toggles (pause/resume) the flow of time.
+		Triggers a `TimebaseEvent.HALT` or em>TimebaseEvent.RESUME` update.
+	**/
 	public static function toggleHalt()
 	{
-		_halted ? resume() : halt();
+		mHalted ? resume() : pause();
 	}
 	
 	/**
-	 * Freezes the flow of time for <code>x</code> seconds.<br/>
-	 * Triggers a <em>TimebaseEvent.FREEZE_BEGIN</em> update.
-	 */
-	public static function freeze(x:Float)
+		Freezes the flow of time for `seconds`.
+	
+		Triggers a `TimebaseEvent.FREEZE_BEGIN` update.
+	**/
+	public static function freeze(seconds:Float)
 	{
-		D.assert(_initialized, "call Timebase.init() first");
-		_freezeDelay = x;
-		_accumulator = 0;
+		assert(mInitialized, "call Timebase.init() first");
+		mFreezeDelay = seconds;
+		mAccumulator = 0;
 		observable.notify(TimebaseEvent.FREEZE_BEGIN);
 	}
 	
 	/**
-	 * Performs a manual update step.
-	 */
+		Performs a manual update step.
+	**/
 	public static function manualStep()
 	{
-		D.assert(_initialized, "call Timebase.init() first");
-		realTimeDelta = tickRate;
-		realTime += realTimeDelta;
+		assert(mInitialized, "call Timebase.init() first");
+		appTimeDelta = tickRate;
+		appTime += appTimeDelta;
+		
+		assert(timeScale > 0);
 		
 		gameTimeDelta = tickRate * timeScale;
 		gameTime += gameTimeDelta;
 		
 		observable.notify(TimebaseEvent.TICK, tickRate);
-		processedTicks++;
+		totalTicks++;
 		
 		observable.notify(TimebaseEvent.RENDER, 1);
-		processedFrames++;
 	}
 	
-	static function step()
+	public static function timeStep()
 	{
-		#if js
-		if (_requestAnimFrame == null) return;
-		_requestAnimFrame(step);
-		#end
+		if (mHalted) return;
 		
-		if (_halted) return;
+		assert(timeScale > 0);
 		
-		var now = stamp();
-		var dt = (now - _past);
-		_past = now;
+		var now = mTime.now();
+		var dt = (now - mPast);
+		mPast = now;
 		
-		realTimeDelta = dt;
-		realTime += dt;
+		appTimeDelta = dt;
+		appTime += dt;
 		
-		_fpsTicks++;
-		_fpsTime += dt;
-		if (_fpsTime >= 1)
+		mFpsTicks++;
+		mFpsTime += dt;
+		if (mFpsTime >= 1)
 		{
-			_fpsTime -= 1;
-			fps = _fpsTicks;
-			_fpsTicks = 0;
+			mFpsTime -= 1;
+			fps = mFpsTicks;
+			mFpsTicks = 0;
 		}
 		
-		if (_freezeDelay > 0.)
+		if (mFreezeDelay > 0.)
 		{
-			_freezeDelay -= realTimeDelta;
+			mFreezeDelay -= appTimeDelta;
 			observable.notify(TimebaseEvent.TICK  , 0.);
 			observable.notify(TimebaseEvent.RENDER, 1.);
 			
-			if (_freezeDelay <= 0.)
+			if (mFreezeDelay <= 0.)
 				observable.notify(TimebaseEvent.FREEZE_END);
 			return;
 		}
 		
 		if (useFixedTimeStep)
 		{
-			_accumulator += realTimeDelta * timeScale;
+			mAccumulator += appTimeDelta * timeScale;
 			
 			//clamp accumulator to prevent "spiral of death"
-			if (_accumulator > _accumulatorLimit)
+			if (mAccumulator > mAccumulatorLimit)
 			{
 				#if verbose
-				L.w(Printf.format("accumulator clamped from %.2f to %.2f seconds", [_accumulator, _accumulatorLimit]));
+				L.w(Printf.format("accumulator clamped from %.2f to %.2f seconds", [mAccumulator, mAccumulatorLimit]));
 				#end
-				observable.notify(TimebaseEvent.CLAMP, _accumulator);
-				_accumulator = _accumulatorLimit;
+				observable.notify(TimebaseEvent.CLAMP, mAccumulator);
+				mAccumulator = mAccumulatorLimit;
 			}
 			
 			gameTimeDelta = tickRate * timeScale;
-			while (_accumulator >= tickRate)
+			while (mAccumulator >= tickRate)
 			{
-				_accumulator -= tickRate;
+				mAccumulator -= tickRate;
 				gameTime += gameTimeDelta;
 				observable.notify(TimebaseEvent.TICK, tickRate);
-				processedTicks++;
+				totalTicks++;
 				
-				if (_halted) break;
+				if (mHalted) break;
 			}
 			
-			if (_halted) return;
+			if (mHalted) return;
 			
-			var alpha = _accumulator / tickRate;
+			var alpha = mAccumulator / tickRate;
 			observable.notify(TimebaseEvent.RENDER, alpha);
-			processedFrames++;
 		}
 		else
 		{
-			_accumulator = 0;
+			mAccumulator = 0;
 			gameTimeDelta = dt * timeScale;
 			gameTime += gameTimeDelta;
 			observable.notify(TimebaseEvent.TICK, gameTimeDelta);
-			processedTicks++;
+			totalTicks++;
 			observable.notify(TimebaseEvent.RENDER, 1.);
-			processedFrames++;
 		}
-	}
-	
-	#if (flash || nme)
-	static function onEnterFrame(e:flash.events.Event)
-	{
-		step();
-	}
-	#end
-	
-	inline static function stamp():Float
-	{
-		return
-		#if flash
-		Date.now().getTime() / 1000
-		#else
-		haxe.Timer.stamp()
-		#end
-		;
 	}
 }

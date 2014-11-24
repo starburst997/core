@@ -23,6 +23,35 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 #end
 
+/**
+	Helper macro that generates unique message ids.
+	
+	Example:
+	
+	<pre>
+	@:build(de.polygonal.core.es.MsgMacro.build([MSG1, MSG2, MSG3]))
+	class MyMessages {}<br/>
+	@:build(de.polygonal.core.es.MsgMacro.build([MSG1, MSG2]))
+	class MyOtherMessages {}
+	</pre>
+	
+	Result:
+	
+	<pre>
+	class MyMessages
+	{
+	    inline public static var MSG1:Int = 1;
+	    inline public static var MSG2:Int = 2;
+	    inline public static var MSG3:Int = 3;
+	}
+	
+	class MyOtherMessages
+	{
+	    inline public static var MSG1:Int = 4;
+	    inline public static var MSG2:Int = 5;
+	}
+	</pre>
+**/
 class MsgMacro
 {
 	#if macro

@@ -18,34 +18,36 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.time;
 
+import de.polygonal.core.time.TimeInterval;
+
 /**
  * Carries out a deferred function call.
  */
-class Delay implements TimelineListener
+class Delay implements TimeInterval
 {
-	var _id:Int;
-	var _f:Void->Void;
+	var mId:Int;
+	var mFunc:Void->Void;
 	
 	/**
-	 * Calls `f` after `delaySeconds`.
-	 */
-	public function new(f:Void->Void, delaySeconds:Float)
+		Calls `f` after `delaySeconds`, unless `cancel` is called before.
+	**/
+	public function new(func:Void->Void, delay:Float)
 	{
-		_f = f;
-		_id = Timeline.schedule(this, 0, delaySeconds);
+		mFunc = func;
+		mId = Timeline.schedule(this, 0, delay);
 	}
 	
 	public function cancel()
 	{
-		Timeline.cancel(_id);
-		_f = null;
+		Timeline.cancel(mId);
+		mFunc = null;
 	}
 	
-	function onBlip() 
+	function onBlip()
 	{
-		_id = -1;
-		_f();
-		_f = null;
+		mId = -1;
+		mFunc();
+		mFunc = null;
 	}
 	
 	function onStart() {}

@@ -28,6 +28,9 @@ import haxe.ds.Vector;
 import de.polygonal.core.es.Entity in E;
 import de.polygonal.core.es.EntitySystem in ES;
 
+/**
+	The top entity that updates the entire entity hierachy.
+**/
 @:access(de.polygonal.core.es.EntitySystem)
 class MainLoop extends Entity implements IObserver
 {
@@ -37,6 +40,7 @@ class MainLoop extends Entity implements IObserver
 	var mTop:Int;
 	var mBufferedEntities:Vector<E>;
 	var mMaxBufferSize:Int;
+	var mElapsedTime:Float = 0;
 	
 	public function new()
 	{
@@ -72,6 +76,8 @@ class MainLoop extends Entity implements IObserver
 			
 			//dispatch buffered messages
 			EntitySystem.dispatchMessages();
+			
+			mElapsedTime += dt;
 		}
 		else
 		if (type == TimebaseEvent.RENDER)
@@ -81,8 +87,9 @@ class MainLoop extends Entity implements IObserver
 			propagateDraw(alpha);
 			
 			//prune scratch list for gc at regular intervals
-			if (Timebase.processedFrames % 60 == 0)
+			if (mElapsedTime > 3)
 			{
+				mElapsedTime = 0;
 				var list = mBufferedEntities;
 				for (i in 0...mMaxBufferSize) list[i] = null;
 				mMaxBufferSize = 0;
