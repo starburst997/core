@@ -47,11 +47,11 @@ class EntityMacro
 		var fields = Context.getBuildFields();
 		var p = Context.currentPos();
 		
-		//add "inline public static var ENTITY_TYPE:Int = x"
+		//add "public static var ENTITY_TYPE:Int = x"
 		fields.push(
 		{
 			name: "ENTITY_TYPE",
-			doc: null,
+			doc: "All classes that inherit from Entity can be identified by an unique integer id.",
 			meta: [{name: ":keep", pos: p}],
 			access: [APublic, AStatic, AInline],
 			kind: FVar(TPath({pack: [], name: "Int", params: [], sub: null}), {expr: EConst(CInt(Std.string(next))), pos: p}),
@@ -65,7 +65,7 @@ class EntityMacro
 		fields.push(
 		{
 			name: "SUPER_CLASS",
-			doc: null,
+			doc: "The superclass of this class.",
 			meta: [{name: ":keep", pos: p}],
 			access: [APublic, AStatic],
 			kind: field(superClass),
@@ -76,7 +76,7 @@ class EntityMacro
 		fields.push(
 		{
 			name: "ENTITY_NAME",
-			doc: null,
+			doc: "Equals 'moduleName_unqualifiedClassName'.",
 			meta: [{name: ":keep", pos: p}],
 			access: [APublic, AStatic],
 			kind: FVar(TPath({pack: [], name: "String", params: [], sub: null}), {expr: EConst(CString(name)), pos: p}),

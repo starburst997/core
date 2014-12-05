@@ -29,7 +29,7 @@ import de.polygonal.core.es.EntitySystem in Es;
 **/
 @:access(de.polygonal.core.es.EntitySystem)
 @:access(de.polygonal.core.es.MsgQue)
-@:build(de.polygonal.core.macro.IntEnum.build(
+@:build(de.polygonal.core.macro.IntConsts.build(
 [
 	BIT_SKIP_SUBTREE,
 	BIT_SKIP_MSG,
