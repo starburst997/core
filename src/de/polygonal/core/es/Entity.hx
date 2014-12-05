@@ -49,12 +49,16 @@ class Entity
 	inline public static var REL_SIBLING = 3;
 	//inline public static var REL_ROOT = 3;
 	
-	inline static function getEntityType<T:Entity>(C:Class<T>):Int
+	inline static function getEntityType<T:Entity>(clss:Class<T>):Int
 	{
 		#if flash
-		return untyped C.ENTITY_TYPE;
+		#if AOT
+		return untyped Std.int(clss["ENTITY_TYPE"]); //Float->Int, see EntityMacro
 		#else
-		return Reflect.field(C, "ENTITY_TYPE");
+		return untyped clss["ENTITY_TYPE"];
+		#end
+		#else
+		return Reflect.field(clss, "ENTITY_TYPE");
 		#end
 	}
 	
