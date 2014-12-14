@@ -327,7 +327,7 @@ class MsgQue
 				if (dir > 0)
 				{
 					//just skip the subtree rooted at the recipient, not the subtree of the sender
-					skipCount = recipient.size;
+					skipCount = recipient.getSize();
 					
 					#if (verbose == "extra")
 					trace('stop message propagation to descendants at "${recipient.name}" (skipping $skipCount messages)');

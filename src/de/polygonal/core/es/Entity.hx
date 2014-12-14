@@ -191,25 +191,6 @@ class Entity
 	}
 	
 	/**
-		The total number of descendants.
-	**/
-	public var size(get_size, never):Int;
-	@:noCompletion inline function get_size():Int
-	{
-		return Es.getSize(this);
-	}
-	
-	/**
-		The length of the path from the root node to this node.
-		The root node is at depth 0.
-	**/
-	public var depth(get_depth, never):Int;
-	@:noCompletion inline function get_depth():Int
-	{
-		return Es.getDepth(this);
-	}
-	
-	/**
 		The name of this entity. Default is null.
 	 */
 	public var name(get_name, set_name):String;
@@ -323,13 +304,13 @@ class Entity
 		numChildren++;
 		
 		//update size on ancestors
-		var k = x.size + 1;
-		setSize(size + k);
+		var k = x.getSize() + 1;
+		setSize(getSize() + k);
 		
 		var p = parent;
 		while (p != null)
 		{
-			p.setSize(p.size + k);
+			p.setSize(p.getSize() + k);
 			p = p.parent;
 		}
 		
@@ -358,12 +339,12 @@ class Entity
 		}
 		
 		//update depth on subtree
-		var d = depth + 1;
+		var d = getDepth() + 1;
 		var e = x;
-		var i = x.size + 1;
+		var i = x.getSize() + 1;
 		while (i-- > 0)
 		{
-			e.setDepth(e.depth + d);
+			e.setDepth(e.getDepth() + d);
 			e = e.preorder;
 		}
 		
@@ -409,13 +390,13 @@ class Entity
 		numChildren--;
 		
 		//update size on ancestors
-		var k = x.size + 1;
-		setSize(size - k);
+		var k = x.getSize() + 1;
+		setSize(getSize() - k);
 		
 		var n = parent;
 		while (n != null)
 		{
-			n.setSize(n.size - k);
+			n.setSize(n.getSize() - k);
 			n = n.parent;
 		}
 		
@@ -456,12 +437,12 @@ class Entity
 		}
 		
 		//update depth on subtree
-		var d = depth + 1;
+		var d = getDepth() + 1;
 		var n = x;
-		var i = x.size + 1;
+		var i = x.getSize() + 1;
 		while (i-- > 0)
 		{
-			n.setDepth(n.depth - d);
+			n.setDepth(n.getDepth() - d);
 			n = n.preorder;
 		}
 		
@@ -967,15 +948,15 @@ class Entity
 			findLastLeaf(this).preorder;
 	}
 	
-	@:noCompletion inline function setSize(value:Int)
-	{
-		Es.setSize(this, value);
-	}
+	//total number of descendants
+	@:noCompletion inline function getSize():Int return Es.getSize(this);
 	
-	@:noCompletion inline function setDepth(value:Int)
-	{
-		Es.setDepth(this, value);
-	}
+	@:noCompletion inline function setSize(value:Int) Es.setSize(this, value);
+
+	//length of the path from the root node to this node (root is at depth 0)
+	@:noCompletion inline function getDepth():Int return Es.getDepth(this);
+	
+	@:noCompletion inline function setDepth(value:Int) Es.setDepth(this, value);
 	
 	@:noCompletion function __getType() return 0; //overriden by macro
 }

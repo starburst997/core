@@ -327,10 +327,10 @@ class EntitySystem
 	static function freeEntityTree(e:E)
 	{
 		#if verbose
-		L.d('freeing up ${e.size + 1} entities ...', "es");
+		L.d('freeing up ${e.getSize() + 1} entities ...', "es");
 		#end
 		
-		if (e.size < 512)
+		if (e.getSize() < 512)
 			freeRecursive(e); //postorder traversal
 		else
 			freeIterative(e); //inverse levelorder traversal
@@ -455,7 +455,7 @@ class EntitySystem
 	
 	static function freeIterative(e:E)
 	{
-		var k = e.size + 1;
+		var k = e.getSize() + 1;
 		var a = new Vector<E>(k);
 		for (i in 0...k) a[i] = null;
 		
