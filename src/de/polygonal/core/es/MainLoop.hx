@@ -36,10 +36,11 @@ class MainLoop extends Entity implements IObserver
 {
 	public var paused = false;
 	
-	var mStack:Array<E>;
-	var mTop:Int;
+	var mStack:Array<E> = [];
+	var mPostFlag:Array<Bool> = [];
+	var mTop:Int = 0;
 	var mBufferedEntities:Vector<E>;
-	var mMaxBufferSize:Int;
+	var mMaxBufferSize:Int = 0;
 	var mElapsedTime:Float = 0;
 	
 	public function new()
@@ -53,7 +54,6 @@ class MainLoop extends Entity implements IObserver
 		Timeline.init();
 		
 		mBufferedEntities = new Vector<E>(ES.MAX_SUPPORTED_ENTITIES);
-		mMaxBufferSize = 0;
 	}
 	
 	override function onFree()
@@ -61,7 +61,7 @@ class MainLoop extends Entity implements IObserver
 		Timebase.detach(this);
 	}
 	
-	public function onUpdate(type:Int, source:IObservable, userData:Dynamic):Void
+	public function onUpdate(type:Int, source:IObservable, userData:Dynamic)
 	{
 		if (paused) return;
 		
@@ -99,64 +99,73 @@ class MainLoop extends Entity implements IObserver
 	
 	function propagateTick(dt:Float)
 	{
-		var list = mBufferedEntities;
-		var k = 0;
-		var e = child;
-		while (e != null)
-		{
-			if (e.mFlags & E.BIT_SKIP_SUBTREE != 0)
-			{
-				e = e.nextSubtree();
-				if (e != null)
-				{
-					list[k++] = e;
-					e = e.preorder;
-				}
-			}
-			else
-			{
-				list[k++] = e;
-				e = e.preorder;
-			}
-		}
+		var k = bufferEntities(), a = mBufferedEntities, b = mPostFlag, e;
 		
-		if (k > mMaxBufferSize) mMaxBufferSize = k;
-
 		for (i in 0...k)
 		{
-			e = list[i];
+			var e = a[i];
 			if (e.mFlags & (E.BIT_SKIP_TICK | E.BIT_MARK_FREE) == 0)
-				e.onTick(dt);
+				b[i] ? e.onPostTick(dt) : e.onTick(dt);
 		}
 	}
 	
 	function propagateDraw(alpha:Float)
 	{
-		var list = mBufferedEntities;
-		var k = 0;
+		var k = bufferEntities(), a = mBufferedEntities, b = mPostFlag, e;
+		
+		for (i in 0...k)
+		{
+			e = a[i];
+			if (e.mFlags & (E.BIT_SKIP_DRAW | E.BIT_MARK_FREE) == 0)
+				b[i] ? e.onPostDraw(alpha) : e.onDraw(alpha);
+		}
+	}
+	
+	function bufferEntities():Int
+	{
+		var a = mBufferedEntities;
+		var b = mStack;
+		var c = mPostFlag;
+		
+		var k = 0, j = 0, t;
+		
+		var last:E = null;
+		
 		var e = child;
 		while (e != null)
 		{
 			if (e.mFlags & E.BIT_SKIP_SUBTREE != 0)
 			{
 				e = e.nextSubtree();
-				if (e != null)
-					list[k++] = e;
+				continue;
 			}
-			else
+			
+			if (e.child != null)
 			{
-				list[k++] = e;
-				e = e.preorder;
+				b[j++] = e;
+				last = e.lastChild;
 			}
+			a[k] = e;
+			c[k++] = false;
+			if (j > 0 && last == e)
+			{
+				t = b[--j];
+				a[k] = t;
+				c[k++] = true;
+			}
+			
+			e = e.preorder;
+		}
+		
+		while (j > 0)
+		{
+			t = b[--j];
+			a[k] = t;
+			c[k++] = true;
 		}
 		
 		if (k > mMaxBufferSize) mMaxBufferSize = k;
 		
-		for (i in 0...k)
-		{
-			e = list[i];
-			if (e.mFlags & (E.BIT_SKIP_DRAW | E.BIT_MARK_FREE) == 0)
-				e.onDraw(alpha);
-		}
+		return k;
 	}
 }

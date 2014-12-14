@@ -930,7 +930,11 @@ class Entity
 	
 	@:noCompletion function onTick(dt:Float) {}
 	
+	@:noCompletion function onPostTick(alpha:Float) {}
+	
 	@:noCompletion function onDraw(alpha:Float) {}
+	
+	@:noCompletion function onPostDraw(alpha:Float) {}
 	
 	@:noCompletion function onMsg(msgType:Int, sender:Entity) {}
 	
