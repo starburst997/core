@@ -43,11 +43,11 @@ import de.polygonal.core.es.EntitySystem in Es;
 @:autoBuild(de.polygonal.core.es.EntityMacro.build())
 class Entity
 {
-	inline public static var REL_ANCESTOR = 0;
-	inline public static var REL_CHILD = 1;
-	inline public static var REL_DESCENDANT = 2;
-	inline public static var REL_SIBLING = 3;
-	//inline public static var REL_ROOT = 3;
+	inline static var ID_ANCESTOR = 1;
+	inline static var ID_CHILD = 2;
+	inline static var ID_DESCENDANT = 3;
+	inline static var ID_PARENT = 4;
+	inline static var ID_SIBLING = 5;
 	
 	inline static function getEntityType<T:Entity>(clss:Class<T>):Int
 	{
@@ -368,7 +368,7 @@ class Entity
 		
 		if (clss != null)
 		{
-			x = findChild(clss);
+			x = find(ID_CHILD, clss);
 			assert(x != null);
 			remove(x);
 			return;
@@ -477,186 +477,81 @@ class Entity
 	}
 	
 	/**
-		Returns the first ancestor of type `clss` (if `name` is omitted) or the first ancestor named `name` (if `clss` is omitted).
+		Returns the first child named `name` or null if no such child exists.
 	**/
-	public function findAncestor<T:Entity>(?clss:Class<T>, ?name:String):T
+	inline public function findChildByName(name:String):Entity
 	{
-		assert(clss == null || name == null);
-		
-		if (clss != null)
-		{
-			var p = parent;
-			var n = p;
-			var t = getEntityType(clss);
-			while (n != null)
-			{
-				if (n.type == t) return cast n;
-				n = n.parent;
-			}
-			n = p;
-			var lut = getInheritLut();
-			while (n != null)
-			{
-				if (lut.hasPair(n.type, t)) return cast n;
-				n = n.parent;
-			}
-		}
-		else
-		{
-			var n = parent;
-			while (n != null)
-			{
-				if (n.name == name) return cast n;
-				n = n.parent;
-			}
-		}
-		
-		return null;
+		var e:Entity = find(ID_CHILD, name);
+		return e;
 	}
 	
 	/**
-		Returns the first descendant of type `clss` (if `name` is omitted) or the first descendant named `name` (if `clss` is omitted).
+		Returns the first child of type `clss` or null if no such child exists.
 	**/
-	public function findDescendant<T:Entity>(?clss:Class<T>, ?name:String):T
+	inline public function findChildByClss<T:Entity>(clss:Class<T>):T
 	{
-		assert(clss == null || name == null);
-		
-		if (clss != null)
-		{
-			var last =
-			if (sibling != null)
-				sibling;
-			else
-				findLastLeaf(this).preorder;
-			var n = child;
-			var t = getEntityType(clss);
-			while (n != last)
-			{
-				if (t == n.type) return cast n;
-				n = n.preorder;
-			}
-			n = child;
-			var lut = getInheritLut();
-			while (n != last)
-			{
-				if (lut.hasPair(n.type, t)) return cast n;
-				n = n.preorder;
-			}
-		}
-		else
-		{
-			var n = child;
-			var last = sibling;
-			while (n != last)
-			{
-				if (n.name == name) return cast n;
-				n = n.preorder;
-			}
-		}
-		
-		return null;
+		return find(ID_CHILD, clss);
 	}
 	
 	/**
-		Returns the first child of type `clss` (if `name` is omitted) or the first child named `name` (if `clss` is omitted).
+		Returns the first sibling named `name` or null if no such sibling exists.
 	**/
-	public function findChild<T:Entity>(?clss:Class<T>, ?name:String):T
+	inline public function findSiblingByName(name:String):Entity
 	{
-		assert(clss == null || name == null);
-		
-		var c = null;
-		
-		if (clss != null)
-		{
-			var n = child;
-			var t = getEntityType(clss);
-			while (n != null)
-			{
-				if (t == n.type) return cast n;
-				n = n.sibling;
-			}
-			n = child;
-			var lut = getInheritLut();
-			while (n != null)
-			{
-				if (lut.hasPair(n.type, t)) return cast n;
-				n = n.sibling;
-			}
-		}
-		else
-		{
-			var n = child;
-			while (n != null)
-			{
-				if (n.name == name) return cast n;
-				n = n.sibling;
-			}
-		}
-		
-		return null;
+		var e:Entity = find(ID_SIBLING, name);
+		return e;
 	}
 	
 	/**
-		Returns the first sibling of type `clss` (if `name` is omitted) or the first sibling named `name` (if `clss` is omitted).
+		Returns the first sibling of type `clss` or null if no such sibling exists.
 	**/
-	public function findSibling<T:Entity>(?clss:Class<T>, ?name:String):T
+	inline public function findSiblingByClss<T:Entity>(clss:Class<T>):T
 	{
-		assert(clss == null || name == null);
-		
-		if (parent == null) return null;
-		
-		if (clss != null)
-		{
-			var n = parent.child;
-			var t = getEntityType(clss);
-			while (n != null)
-			{
-				if (n != this)
-					if (t == n.type)
-						return cast n;
-				n = n.sibling;
-			}
-			n = parent.child;
-			var lut = getInheritLut();
-			while (n != null)
-			{
-				if (n != this)
-					if (lut.hasPair(n.type, t)) return cast n;
-				n = n.sibling;
-			}
-		}
-		else
-		{
-			var n = parent.child;
-			while (n != null)
-			{
-				if (n.name == name) return cast n;
-				n = n.sibling;
-			}
-		}
-		
-		return null;
+		return find(ID_SIBLING, clss);
 	}
 	
-	//TODO single message func?
+	/**
+		Returns the first ancestor named `name` or null if no such ancestor exists.
+	**/
+	inline public function findAncestorByName(name:String):Entity
+	{
+		var e:Entity = find(ID_ANCESTOR, name);
+		return e;
+	}
+	
+	/**
+		Returns the first ancestor of type `clss` or null if no such ancestor exists.
+	**/
+	inline public function findAncestorByClss<T:Entity>(clss:Class<T>):T
+	{
+		return find(ID_ANCESTOR, clss);
+	}
+	
+	/**
+		Returns the first descendant named `name` or null if no such descendant exists.
+	**/
+	inline public function findDescendantByName(name:String):Entity
+	{
+		var e:Entity = find(ID_DESCENDANT, name);
+		return e;
+	}
+	
+	/**
+		Returns the first descendant of type `clss` or null if no such descendant exists.
+	**/
+	inline public function findDescendantByClss<T:Entity>(clss:Class<T>):T
+	{
+		return find(ID_DESCENDANT, clss);
+	}
 	
 	/**
 		Sends a message of type `msgType` to `entity`.
 		
 		If `dispatch` is true, the message will leave the message queue immediately.
 	**/
-	public function msgTo(entity:Entity, msgType:Int, dispatch:Bool = false):Entity
+	inline public function sendTo(recipient:Entity, msgType:Int, dispatch:Bool = false)
 	{
-		var q = getMsgQue();
-		if (entity != null)
-			q.enqueue(this, entity, msgType, 0, 0);
-		else
-		{
-			q.clrMessage();
-			dispatch = false;
-		}
-		if (dispatch) q.dispatch();
-		return this;
+		send(recipient, -1, msgType, dispatch);
 	}
 	
 	/**
@@ -664,21 +559,9 @@ class Entity
 		
 		If `dispatch` is true, the message will leave the message queue immediately.
 	**/
-	public function msgToParent(msgType:Int, dispatch = false):Entity
+	inline public function sendToParent(msgType:Int, dispatch = false)
 	{
-		var e = parent;
-		var q = getMsgQue();
-		if (e != null)
-			q.enqueue(this, e, msgType, 0, -1);
-		else
-		{
-			q.clrMessage();
-			dispatch = false;
-		}
-		
-		if (dispatch) q.dispatch();
-		
-		return this;
+		send(null, ID_PARENT, msgType, dispatch);
 	}
 	
 	/**
@@ -686,26 +569,9 @@ class Entity
 		
 		If `dispatch` is true, the message will leave the message queue immediately.
 	**/
-	public function msgToAncestors(msgType:Int, dispatch = false):Entity
+	inline public function sendToAncestors(msgType:Int, dispatch = false)
 	{
-		var q = getMsgQue();
-		var e = parent;
-		if (e == null)
-		{
-			q.clrMessage();
-			return this;
-		}
-		
-		var k = depth;
-		if (k == 0) dispatch = false;
-		while (k-- > 0)
-		{
-			q.enqueue(this, e, msgType, k, -1);
-			e = e.parent;
-		}
-		
-		if (dispatch) q.dispatch();
-		return this;
+		send(null, ID_ANCESTOR, msgType, dispatch);
 	}
 	
 	/**
@@ -713,25 +579,9 @@ class Entity
 		
 		If `dispatch` is true, the message will leave the message queue immediately.
 	**/
-	public function msgToDescendants(msgType:Int, dispatch = false):Entity
+	inline public function sendToDescendants(msgType:Int, dispatch = false)
 	{
-		var q = getMsgQue();
-		var e = child;
-		if (e == null)
-		{
-			q.clrMessage();
-			return this;
-		}
-		var k = size;
-		if (k == 0) dispatch = false;
-		while (k-- > 0)
-		{
-			q.enqueue(this, e, msgType, k, 1);
-			e = e.preorder;
-		}
-		
-		if (dispatch) q.dispatch();
-		return this;
+		send(null, ID_DESCENDANT, msgType, dispatch);
 	}
 	
 	/**
@@ -739,25 +589,9 @@ class Entity
 		
 		If `dispatch` is true, the message will leave the message queue immediately.
 	**/
-	public function msgToChildren(msgType:Int, dispatch = false):Entity
+	inline public function sendToChildren(msgType:Int, dispatch = false)
 	{
-		var q = getMsgQue();
-		var e = child;
-		if (e == null)
-		{
-			q.clrMessage();
-			return this;
-		}
-		var k = numChildren;
-		if (k == 0) dispatch = false;
-		while (k-- > 0)
-		{
-			q.enqueue(this, e, msgType, k, 1);
-			e = e.sibling;
-		}
-		
-		if (dispatch) q.dispatch();
-		return this;
+		send(null, ID_CHILD, msgType, dispatch);
 	}
 	
 	/**
@@ -878,15 +712,10 @@ class Entity
 		#end
 	}
 	
-	/**
-		Handles multiple calls to `is()` in one shot by checking all classes in `x` against this class.
-	**/
-	public function isAny(clss:Array<Class<Dynamic>>):Bool
+	public function toString():String
 	{
-		for (i in clss)
-			if (is(cast i))
-				return true;
-		return false;
+		if (name == null) name = '[${ClassUtil.getClassName(this)}]';
+		return '{ Entity $name }';
 	}
 	
 	inline function publish(name:String)
@@ -897,10 +726,220 @@ class Entity
 		Es.changeName(this, mName);
 	}
 	
-	public function toString():String
+	@:noCompletion function send(?recipient:Entity, relation:Int, msgType:Int, dispatch:Bool = false)
 	{
-		if (name == null) name = '[${ClassUtil.getClassName(this)}]';
-		return '{ Entity $name }';
+		var q = getMsgQue(), e;
+		
+		if (recipient != null)
+		{
+			e = recipient;
+			if (e != null)
+				q.enqueue(this, e, msgType, 0, 0);
+			else
+			{
+				q.clrMessage();
+				dispatch = false;
+			}
+		}
+		else
+		{
+			switch (relation)
+			{
+				case ID_ANCESTOR:
+					e = parent;
+					if (e == null)
+					{
+						q.clrMessage();
+						return;
+					}
+					
+					var k = getDepth();
+					if (k == 0) dispatch = false;
+					while (k-- > 0)
+					{
+						q.enqueue(this, e, msgType, k, -1);
+						e = e.parent;
+					}
+					
+				case ID_CHILD:
+					e = child;
+					if (e == null)
+					{
+						q.clrMessage();
+						return;
+					}
+					var k = numChildren;
+					if (k == 0) dispatch = false;
+					while (k-- > 0)
+					{
+						q.enqueue(this, e, msgType, k, 1);
+						e = e.sibling;
+					}
+					
+				case ID_DESCENDANT:
+					e = child;
+					if (e == null)
+					{
+						q.clrMessage();
+						return;
+					}
+					var k = getSize();
+					if (k == 0) dispatch = false;
+					while (k-- > 0)
+					{
+						q.enqueue(this, e, msgType, k, 1);
+						e = e.preorder;
+					}
+					
+				case ID_PARENT:
+					e = parent;
+					if (e != null)
+						q.enqueue(this, e, msgType, 0, -1);
+					else
+					{
+						q.clrMessage();
+						dispatch = false;
+					}
+			}
+		}
+		
+		if (dispatch) q.dispatch();
+	}
+	
+	@:noCompletion function find<T:Entity>(relation:Int, ?clss:Class<T>, ?name:String):T
+	{
+		assert(clss == null || name == null);
+		
+		var n, t, lut;
+		
+		switch (relation)
+		{
+			case ID_ANCESTOR:
+				if (clss != null)
+				{
+					var p = parent;
+					n = p;
+					t = getEntityType(clss);
+					while (n != null)
+					{
+						if (n.type == t) return cast n;
+						n = n.parent;
+					}
+					n = p;
+					lut = getInheritLut();
+					while (n != null)
+					{
+						if (lut.hasPair(n.type, t)) return cast n;
+						n = n.parent;
+					}
+				}
+				else
+				{
+					n = parent;
+					while (n != null)
+					{
+						if (n.name == name) return cast n;
+						n = n.parent;
+					}
+				}
+				
+			case ID_CHILD:
+				if (clss != null)
+				{
+					n = child;
+					t = getEntityType(clss);
+					while (n != null)
+					{
+						if (t == n.type) return cast n;
+						n = n.sibling;
+					}
+					n = child;
+					lut = getInheritLut();
+					while (n != null)
+					{
+						if (lut.hasPair(n.type, t)) return cast n;
+						n = n.sibling;
+					}
+				}
+				else
+				{
+					n = child;
+					while (n != null)
+					{
+						if (n.name == name) return cast n;
+						n = n.sibling;
+					}
+				}
+				
+			case ID_DESCENDANT:
+				if (clss != null)
+				{
+					var last =
+					if (sibling != null)
+						sibling;
+					else
+						findLastLeaf(this).preorder;
+					n = child;
+					t = getEntityType(clss);
+					while (n != last)
+					{
+						if (t == n.type) return cast n;
+						n = n.preorder;
+					}
+					n = child;
+					lut = getInheritLut();
+					while (n != last)
+					{
+						if (lut.hasPair(n.type, t)) return cast n;
+						n = n.preorder;
+					}
+				}
+				else
+				{
+					n = child;
+					var last = sibling;
+					while (n != last)
+					{
+						if (n.name == name) return cast n;
+						n = n.preorder;
+					}
+				}
+				
+			case ID_SIBLING:
+				if (parent == null) return null;
+				
+				if (clss != null)
+				{
+					n = parent.child;
+					t = getEntityType(clss);
+					while (n != null)
+					{
+						if (n != this)
+							if (t == n.type)
+								return cast n;
+						n = n.sibling;
+					}
+					n = parent.child;
+					lut = getInheritLut();
+					while (n != null)
+					{
+						if (n != this)
+							if (lut.hasPair(n.type, t)) return cast n;
+						n = n.sibling;
+					}
+				}
+				else
+				{
+					n = parent.child;
+					while (n != null)
+					{
+						if (n.name == name) return cast n;
+						n = n.sibling;
+					}
+				}
+		}
+		
+		return null;
 	}
 	
 	@:noCompletion function onAdd() {}
@@ -950,12 +989,10 @@ class Entity
 	
 	//total number of descendants
 	@:noCompletion inline function getSize():Int return Es.getSize(this);
-	
 	@:noCompletion inline function setSize(value:Int) Es.setSize(this, value);
 
 	//length of the path from the root node to this node (root is at depth 0)
 	@:noCompletion inline function getDepth():Int return Es.getDepth(this);
-	
 	@:noCompletion inline function setDepth(value:Int) Es.setDepth(this, value);
 	
 	@:noCompletion function __getType() return 0; //overriden by macro
