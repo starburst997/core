@@ -59,19 +59,19 @@ class Timebase
 	public static var tickRate(default, null):Float = 0.01666666;
 	
 	/**
-		Processed time in seconds since application start.
+		Elapsed time in seconds since application start.
 	**/
-	public static var appTime(default, null):Float = 0;
+	public static var elapsedTime(default, null):Float = 0;
 	
 	/**
-		Processed "virtual" time in seconds (includes scaling).
+		Elapsed "virtual" time in seconds (includes scaling).
 	**/
-	public static var gameTime(default, null):Float = 0;
+	public static var elapsedGameTime(default, null):Float = 0;
 	
 	/**
 		Current frame delta time in seconds.
 	**/
-	public static var appTimeDelta(default, null):Float = 0;
+	public static var timeDelta(default, null):Float = 0;
 	
 	/**
 		Current "virtual" frame delta time in seconds (includes scaling).
@@ -139,7 +139,7 @@ class Timebase
 	public static function setTimeSource(time:Time)
 	{
 		mTime = time;
-		mTime.setTimingEventHandler(timeStep);
+		mTime.setTimingEventHandler(update);
 		mPast = mTime.now();
 	}
 	
@@ -226,16 +226,16 @@ class Timebase
 	/**
 		Performs a manual update step.
 	**/
-	public static function manualStep()
+	public static function step()
 	{
 		assert(mInitialized, "call Timebase.init() first");
-		appTimeDelta = tickRate;
-		appTime += appTimeDelta;
+		timeDelta = tickRate;
+		elapsedTime += timeDelta;
 		
 		assert(timeScale > 0);
 		
 		gameTimeDelta = tickRate * timeScale;
-		gameTime += gameTimeDelta;
+		elapsedGameTime += gameTimeDelta;
 		
 		observable.notify(TimebaseEvent.TICK, tickRate);
 		totalTicks++;
@@ -243,7 +243,7 @@ class Timebase
 		observable.notify(TimebaseEvent.RENDER, 1);
 	}
 	
-	public static function timeStep()
+	static function update()
 	{
 		if (mHalted) return;
 		
@@ -253,8 +253,8 @@ class Timebase
 		var dt = (now - mPast);
 		mPast = now;
 		
-		appTimeDelta = dt;
-		appTime += dt;
+		timeDelta = dt;
+		elapsedTime += dt;
 		
 		mFpsTicks++;
 		mFpsTime += dt;
@@ -267,7 +267,7 @@ class Timebase
 		
 		if (mFreezeDelay > 0.)
 		{
-			mFreezeDelay -= appTimeDelta;
+			mFreezeDelay -= timeDelta;
 			observable.notify(TimebaseEvent.TICK  , 0.);
 			observable.notify(TimebaseEvent.RENDER, 1.);
 			
@@ -278,7 +278,7 @@ class Timebase
 		
 		if (useFixedTimeStep)
 		{
-			mAccumulator += appTimeDelta * timeScale;
+			mAccumulator += timeDelta * timeScale;
 			
 			//clamp accumulator to prevent "spiral of death"
 			if (mAccumulator > mAccumulatorLimit)
@@ -294,7 +294,7 @@ class Timebase
 			while (mAccumulator >= tickRate)
 			{
 				mAccumulator -= tickRate;
-				gameTime += gameTimeDelta;
+				elapsedGameTime += gameTimeDelta;
 				observable.notify(TimebaseEvent.TICK, tickRate);
 				totalTicks++;
 				
@@ -310,7 +310,7 @@ class Timebase
 		{
 			mAccumulator = 0;
 			gameTimeDelta = dt * timeScale;
-			gameTime += gameTimeDelta;
+			elapsedGameTime += gameTimeDelta;
 			observable.notify(TimebaseEvent.TICK, gameTimeDelta);
 			totalTicks++;
 			observable.notify(TimebaseEvent.RENDER, 1.);

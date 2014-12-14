@@ -20,7 +20,6 @@ package de.polygonal.core.event;
 
 import de.polygonal.core.event.Observable;
 import de.polygonal.core.fmt.StringUtil;
-import de.polygonal.ds.Array2;
 import de.polygonal.ds.ArrayedStack;
 import de.polygonal.ds.Bits;
 import de.polygonal.ds.HashableItem;
@@ -191,7 +190,7 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Destroys this object by detaching all observers and explicitly nullifying all nodes, pointers and elements for GC'ing used resources.
+	 * Disposes this object by detaching all observers and explicitly nullifying all nodes, pointers and elements for GC'ing used resources.
 	 * Improves GC efficiency/performance (optional).
 	 */
 	public function free()

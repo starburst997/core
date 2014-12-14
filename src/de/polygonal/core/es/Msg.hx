@@ -24,10 +24,13 @@ import de.polygonal.core.util.Assert.assert;
 	Entities communicate through messages. A message object therefore stores the message content.
 **/
 @:build(de.polygonal.core.es.MsgMacro.addMeta())
-@:build(de.polygonal.core.macro.IntEnum.build([I, F, B, S, O, USED], true, false))
+@:build(de.polygonal.core.macro.IntConsts.build([I, F, B, S, O, USED], true, false))
 @:allow(de.polygonal.core.es.MsgQue)
 class Msg
 {
+	/**
+		Resolves the name of the given message `type`. Useful for debugging purposes.
+	**/
 	public static function name(type:Int):String
 	{
 		var meta = haxe.rtti.Meta.getType(Msg);
@@ -39,6 +42,9 @@ class Msg
 		return meta.names[0][type];
 	}
 	
+	/**
+		The total number of message types (application-wide).
+	**/
 	public static function totalMessages():Int
 	{
 		var meta = haxe.rtti.Meta.getType(Msg);

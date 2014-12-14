@@ -32,7 +32,7 @@ using de.polygonal.ds.Bits;
 /**
  * A log handler receives log messages from a log and exports them to various output devices.
  */
-@:build(de.polygonal.core.macro.IntEnum.build(
+@:build(de.polygonal.core.macro.IntConsts.build(
 [
 	DATE, TIME, TICK, LEVEL, NAME, TAG, CLASS, CLASS_SHORT, METHOD, LINE
 ], true, true))
@@ -65,7 +65,7 @@ class LogHandler implements IObserver
 	}
 	
 	/**
-	 * Destroys this object by explicitly nullifying all references for GC'ing used resources.
+	 * Disposes this object by explicitly nullifying all references for GC'ing used resources.
 	 */
 	public function free() {}
 	
@@ -224,7 +224,7 @@ class LogHandler implements IObserver
 			val = "";
 			if (hasf(DATE | TIME)) fmt = " " + fmt;
 			args.push(fmt);
-			vals.push(de.polygonal.core.time.Timebase.processedTicks % 1000);
+			vals.push(de.polygonal.core.time.Timebase.totalTicks % 1000);
 		}
 		
 		//level

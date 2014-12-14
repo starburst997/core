@@ -19,7 +19,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.es;
 
 import de.polygonal.core.fmt.StringUtil;
-import de.polygonal.core.macro.IntEnum;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.Printf;
 import haxe.ds.Vector;
@@ -32,7 +31,7 @@ import flash.Memory in Mem;
 #end
 
 /**
-	Used internally by the entity system.
+	Part of the messaging system used by the entity system.
 **/
 @:access(de.polygonal.core.es.Entity)
 @:access(de.polygonal.core.es.EntityId)
