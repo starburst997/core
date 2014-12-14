@@ -77,7 +77,7 @@ class EntitySystem
 	#if alchemy
 	static var mTopology:de.polygonal.ds.mem.ShortMemory;
 	#else
-	static var mTopology:Vector<Int>; //TODO use 16 bits
+	static var mTopology:Vector<Int>;
 	#end
 	
 	//name => [entities by name]
@@ -152,8 +152,22 @@ class EntitySystem
 		#end
 	}
 	
+	/**
+		Disposes the system by explicitly nullifying all references for GC'ing used resources.
+		
+		This nullifies all `EntityId` objects but does not include calling the free() method on all registered entities.
+	**/
 	public static function free()
 	{
+		for (i in 0...mFreeList.length)
+		{
+			if (mFreeList[i] != null)
+			{
+				mFreeList[i].id = null;
+				mFreeList[i].preorder = null;
+			}
+		}
+		
 		mFreeList = null;
 		
 		#if alchemy
@@ -176,13 +190,31 @@ class EntitySystem
 	
 	/**
 		Returns the entity that matches the given `name` or null if the entity does not exist.
+		
+		- if `clss` is omitted, returns the entity whose name is set to `name`.
+		- if `name` is omitted, returns the entity whose name is set to clss.ENTITY_NAME.
 	**/
-	inline public static function lookupByName(name:String):E return cast mEntitiesByName.get(name);
+	inline public static function findByName<T:Entity>(?name:String, ?clss:Class<T>):T
+	{
+		return
+		if (name != null)
+			cast mEntitiesByName.get(name);
+		else
+		{
+			name =
+			#if flash
+			untyped clss.ENTITY_NAME;
+			#else
+			Reflect.field(clss, "ENTITY_NAME");
+			#end
+			cast mEntitiesByName.get(name);
+		}
+	}
 	
 	/**
 		Returns the entity that matches the given `id` or null if the entity does not exist.
 	**/
-	inline public static function lookup(id:EntityId):E
+	inline public static function findById(id:EntityId):E
 	{
 		if (id.index > 0)
 		{
