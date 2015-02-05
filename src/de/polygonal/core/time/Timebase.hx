@@ -86,7 +86,7 @@ class Timebase
 	/**
 		The total number of processed ticks since application start.
 	**/
-	public static var totalTicks(default, null):Int = 0;
+	public static var elapsedTicks(default, null):Int = 0;
 	
 	/**
 	 * Current frames per second (how many frames were rendered in 1 second).
@@ -114,7 +114,7 @@ class Timebase
 	}
 	
 	static var mFreezeDelay:Float;
-	static var mHalted:Bool;
+	static var mPaused:Bool;
 	
 	static var mAccumulator:Float = 0;
 	static var mAccumulatorLimit:Float = tickRate * 10;
@@ -177,9 +177,9 @@ class Timebase
 	public static function pause()
 	{
 		assert(mInitialized, "call Timebase.init() first");
-		if (!mHalted)
+		if (!mPaused)
 		{
-			mHalted = true;
+			mPaused = true;
 			observable.notify(TimebaseEvent.PAUSE);
 		}
 	}
@@ -192,9 +192,9 @@ class Timebase
 	public static function resume()
 	{
 		assert(mInitialized, "call Timebase.init() first");
-		if (mHalted)
+		if (mPaused)
 		{
-			mHalted = false;
+			mPaused = false;
 			mAccumulator = 0.;
 			mPast = mTime.now();
 			observable.notify(TimebaseEvent.RESUME);
@@ -203,11 +203,11 @@ class Timebase
 	
 	/**
 		Toggles (pause/resume) the flow of time.
-		Triggers a `TimebaseEvent.HALT` or em>TimebaseEvent.RESUME` update.
+		Triggers a `TimebaseEvent.PAUSE` or em>TimebaseEvent.RESUME` update.
 	**/
-	public static function toggleHalt()
+	public static function togglePause()
 	{
-		mHalted ? resume() : pause();
+		mPaused ? resume() : pause();
 	}
 	
 	/**
@@ -238,14 +238,14 @@ class Timebase
 		elapsedGameTime += gameTimeDelta;
 		
 		observable.notify(TimebaseEvent.TICK, tickRate);
-		totalTicks++;
+		elapsedTicks++;
 		
 		observable.notify(TimebaseEvent.RENDER, 1);
 	}
 	
 	static function update()
 	{
-		if (mHalted) return;
+		if (mPaused) return;
 		
 		assert(timeScale > 0);
 		
@@ -296,12 +296,11 @@ class Timebase
 				mAccumulator -= tickRate;
 				elapsedGameTime += gameTimeDelta;
 				observable.notify(TimebaseEvent.TICK, tickRate);
-				totalTicks++;
-				
-				if (mHalted) break;
+				elapsedTicks++;
+				if (mPaused) break;
 			}
 			
-			if (mHalted) return;
+			if (mPaused) return;
 			
 			var alpha = mAccumulator / tickRate;
 			observable.notify(TimebaseEvent.RENDER, alpha);
@@ -312,7 +311,7 @@ class Timebase
 			gameTimeDelta = dt * timeScale;
 			elapsedGameTime += gameTimeDelta;
 			observable.notify(TimebaseEvent.TICK, gameTimeDelta);
-			totalTicks++;
+			elapsedTicks++;
 			observable.notify(TimebaseEvent.RENDER, 1.);
 		}
 	}

@@ -18,530 +18,379 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.time;
 
-import de.polygonal.core.event.IObserver;
-import de.polygonal.core.event.Observable;
+import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.ArrayedQueue;
 import de.polygonal.ds.Cloneable;
-import de.polygonal.ds.Collection;
 import de.polygonal.ds.DLL;
 import de.polygonal.ds.Heap;
 import de.polygonal.ds.Heapable;
+import de.polygonal.ds.IntHashTable;
 import de.polygonal.ds.pooling.ObjectPool;
 
 /**
- * A service that can schedule events to run after a given delay for a given amount of time, or periodically.
- */
+	A service that can schedule time intervals to run after a given delay for a given amount of time, or periodically.
+	A time interval represents a period of time between two instants.
+**/
 @:allow(de.polygonal.core.time)
+@:access(de.polygonal.core.time.TimelineListener)
 class Timeline
 {
-	public static var POOL_SIZE = 4096;
+	public static var DEFAULT_POOL_SIZE = 4096;
 	
-	public static function attach(o:IObserver, mask:Int = 0)
-	{
-		assert(mInitialized, "call Timeline.init() first");
-		if (observable == null) init();
-		observable.attach(o, mask);
-	}
+	static var mInitialized = false;
+	static var mNextId:Int;
+	static var mNextTick:Int;
 	
-	public static function detach(o:IObserver, mask:Int = 0)
-	{
-		assert(mInitialized, "call Timeline.init() first");
-		observable.detach(o, mask);
-	}
+	static var mBufferedIntervals:ArrayedQueue<TimelineNode>;
+	static var mActiveIntervals:DLL<TimelineNode>;
+	static var mPendingIntervals:Heap<TimelineNode>;
+	static var mIntervalLut:IntHashTable<TimelineNode>;
 	
-	public static var observable(default, null):Observable;
-	
-	static var _initialized = false;
-	static var _nextId = 0;
-	
-	static var _currTick:Int;
-	static var _currSubTick:Int;
-	static var _currInterval:TimeInterval;
-	
-	static var _runningIntervals:DLL<TimeInterval>;
-	static var _pendingAdditions:ArrayedQueue<TimeInterval>;
-	static var _intervalHeap:Heap<TimeInterval>;
-	static var _intervalPool:ObjectPool<TimeInterval>;
-	
-	static var _data:Array<Collection<TimeInterval>>;
-	
-	#if debug
-	static var _tickRate:Float;
-	#end
+	static var mNodePool:ObjectPool<TimelineNode>;
 	
 	public static function init()
 	{
-		if (_initialized) return;
-		_initialized = true;
+		if (mInitialized) return;
+		mInitialized = true;
 		
 		Timebase.init();
 		
-		observable = new Observable(100);
+		mNextId = 1;
+		mNextTick = 1;
 		
-		_currTick = Timebase.processedTicks;
-		_currSubTick = 0;
-		_currInterval = null;
-		_runningIntervals = new DLL<TimeInterval>();
-		_pendingAdditions = new ArrayedQueue<TimeInterval>(POOL_SIZE * 10);
-		_intervalHeap = new Heap<TimeInterval>();
-		_intervalPool = new ObjectPool<TimeInterval>(POOL_SIZE);
-		_intervalPool.allocate(true, TimeInterval);
-		_data = [_runningIntervals, _pendingAdditions, _intervalHeap];
+		mBufferedIntervals = new ArrayedQueue<TimelineNode>(4096);
+		mActiveIntervals = new DLL<TimelineNode>();
+		mPendingIntervals = new Heap<TimelineNode>();
+		mIntervalLut = new IntHashTable<TimelineNode>(1 << 16);
 		
-		#if debug
-		_tickRate = 0;
-		#end
+		mNodePool = new ObjectPool<TimelineNode>(DEFAULT_POOL_SIZE);
+		mNodePool.allocate(true, TimelineNode);
 	}
 	
-	/**
-	 * Destroys the system by removing all registered observers and explicitly nullifying all references for GC'ing used resources.
-	 * The system is automatically reinitialized once an observer is attached.
-	 */	
 	public static function free()
 	{
-		if (!_initialized) return;
-		_initialized = false;
+		if (!mInitialized) return;
+		mInitialized = false;
 		
-		for (i in _data) for (j in i) j.onCancel();
+		mBufferedIntervals.free();
+		mActiveIntervals.free();
+		mPendingIntervals.free();
+		mIntervalLut.free();
 		
-		_runningIntervals.free();
-		_runningIntervals = null;
+		mNodePool.free();
 		
-		_pendingAdditions.free();
-		_pendingAdditions = null;
-		
-		_intervalHeap.free();
-		_intervalHeap = null;
-		
-		_intervalPool.free();
-		_intervalPool = null;
-		
-		_currInterval = null;
-		_data = null;
-		
-		observable.clear(true);
-		observable = null;
+		mBufferedIntervals = null;
+		mActiveIntervals = null;
+		mPendingIntervals = null;
+		mIntervalLut = null;
+		mNodePool = null;
 	}
 	
 	/**
-	 * Schedules an event to run after <code>delay</code> seconds, for a period of <code>duration</code> seconds.<br/>
-	 * If <code>repeatCount</code> &gt; zero, the event repeats <code>repeatCount</code> times, each time waiting for <code>interval</code> seconds before the event is carried out.<br/>
-	 * If <code>repeatCount</code> &gt; zero and <em>repeatInterval</em> is omitted, <code>delay</code> is used in place of <code>repeatInterval</code>.
-	 * If repeatCount equals minus one the event runs periodically until cancelled.
-	 * @return an id that identifies the event. The id can be used to cancel a pending activity by calling <em>Timeline.get().cancel()</em>.
-	 */
-	public static function schedule(listener:TimelineListener = null, duration:Float, delay = 0., repeatCount = 0, repeatInterval = .0):Int
+		Schedules an event to run after `delay` seconds, for a period of `duration` seconds.
+		
+		Returns a unique id that identifies the event. This id can be used to cancel a pending/running time interval or instant by calling `Timeline.cancel(id)`.
+		
+		- if `repeatCount` > 0, the event repeats `repeatCount` times, each time waiting for `repeatInterval` seconds before the event is carried out again.
+		- if `repeatCount` > 0 and `repeatInterval` is omitted, `delay` is used in place of `repeatInterval`.
+		- if `repeatCount` == -1 the event runs periodically until cancelled.
+	**/
+	public static function schedule(listener:TimelineListener = null, duration:Float, delay:Float = 0, repeatCount:Int = 0, repeatInterval:Float = 0):Int
 	{
-		D.assert(_initialized, "call Timeline.init() first");
+		assert(duration >= 0);
+		assert(delay >= 0);
+		assert(repeatCount >= 0 || repeatCount == -1);
+		assert(repeatInterval >= 0);
 		
 		#if debug
-		D.assert(duration >= .0, "duration >= .0");
-		D.assert(delay >= .0, "delay >= .0");
-		D.assert(repeatCount >= 0 || repeatCount == -1, "repeatCount >= 0 || repeatCount == -1");
-		D.assert(repeatInterval >= 0, "repeatInterval >= 0");
-		if (_tickRate == 0)
-			_tickRate = Timebase.tickRate;
-		else
-		if (Timebase.tickRate != _tickRate)
-		{
-			var c = _pendingAdditions.size() + _intervalHeap.size() + _runningIntervals.size();
-			D.assert(c == 0, "tick rate can't be changed on-the-fly while there are active intervals");
-		}
+		if (repeatCount > 0 && repeatInterval == 0) assert(delay > 0);
 		#end
 		
-		if (repeatCount != 0 && repeatInterval == .0)
+		if (!mInitialized) init();
+		
+		if (repeatCount != 0 && repeatInterval == 0)
 			repeatInterval = delay; //use delay as interval
+			
+		var id = mNextId++;
 		
-		_currTick = Timebase.processedTicks;	
+		var node:TimelineNode;
 		
-		var delayTicks = Math.round(delay / Timebase.tickRate);
-		var ageTicks = _currTick + delayTicks;
-		var id = ++_nextId;
-		
-		var interval =
-		if (_intervalPool.isEmpty())
+		if (mNodePool.isEmpty())
 		{
-			L.w("TimeInterval pool exhausted");
-			new TimeInterval();
+			L.w("pool exhausted");
+			node = new TimelineNode();
 		}
 		else
 		{
-			var poolId = _intervalPool.next();
-			var interval = _intervalPool.get(poolId);
-			interval.poolId = poolId;
-			interval;
+			var poolId = mNodePool.next();
+			node = mNodePool.get(poolId);
+			node.poolId = poolId;
 		}
 		
-		interval.id = id;
-		interval.ageTicks = ageTicks;
-		interval.spawnTicks = ageTicks;
-		interval.dieTicks = ageTicks + Timebase.secondsToTicks(duration);
-		interval.subTicks = _currSubTick++;
-		interval.ticks = Timebase.secondsToTicks(repeatInterval);
-		interval.iterations = repeatCount;
-		interval.iteration = 0;
-		interval.listener = listener;
-		_pendingAdditions.enqueue(interval);
+		var now = Timebase.elapsedTime;
+		
+		node.id = id;
+		node.duration = duration;
+		node.delay = delay;
+		node.repeatCount = repeatCount;
+		node.repeatInterval = repeatInterval;
+		node.timeStart = now + delay;
+		node.timeFinish = node.timeStart + duration;
+		
+		node.iteration = 0;
+		node.listener = listener;
+		
+		mBufferedIntervals.enqueue(node);
+		mIntervalLut.set(node.id, node);
 		
 		return id;
 	}
 	
 	/**
-	 * Cancels a pending/running event.<br/>
-	 * Triggers a <em>TimelineEvent.CANCEL</em> update for this event.
-	 * @param id the id of the event. If <code>id</code> is zero, the current event is cancelled.
-	 * @return true if the event was successfully cancelled.
-	 */
-	public static function cancel(id = 0):Bool
+		Cancels or aborts a pending or running time interval.
+		Returns true if the time interval was successfully cancelled.
+	**/
+	public static function cancel(id:Int):Bool
 	{
-		D.assert(_initialized, "call Timeline.init() first");
-		
+		if (!mInitialized) return false;
 		if (id < 0) return false;
-		if (!_initialized) return false;
-		if (id == 0)
-		{
-			#if debug
-			D.assert(_currInterval != null, "_currInterval != null");
-			#end
-			
-			_currInterval.cancel();
-			return true;
-		}
 		
-		for (collection in _data)
+		var node = mIntervalLut.get(id);
+		if (node != null)
 		{
-			for (interval in collection)
-			{
-				if (interval.id == id)
-				{
-					interval.cancel();
-					return true;
-				}
-			}
+			node.cancel();
+			mIntervalLut.clr(id);
+			return true;
 		}
 		
 		return false;
 	}
 	
 	/**
-	 * Cancels all pending/running events.<br/>
-	 * Triggers a <em>TimelineEvent.CANCEL</em> update for each cancelled event.
-	 */
+		Cancels all pending running time intervals.
+	**/
 	public static function cancelAll()
 	{
-		D.assert(_initialized, "call Timeline.init() first");
+		if (!mInitialized) return;
 		
-		for (collection in _data)
+		for (i in mIntervalLut) i.cancel();
+		mIntervalLut.clear();
+		mBufferedIntervals.clear();
+		mActiveIntervals.clear();
+		mPendingIntervals.clear();
+	}
+	
+	/**
+		Updates the timeline. Should be called once every game tick.
+	**/
+	public static function update()
+	{
+		if (!mInitialized) return;
+		
+		var now = Timebase.elapsedTime;
+		
+		var h = mPendingIntervals, l = mActiveIntervals, q = mBufferedIntervals, n;
+		
+		inline function reuse(x:TimelineNode)
 		{
-			for (interval in collection)
-				interval.cancel();
-		}
-	}
-	
-	/**
-	 * The current event progress in the range <arg>&#091;0, 1&#093;</arg>.
-	 * @throws de.polygonal.core.util.AssertError <em>Timeline</em> is empty (debug only).
-	 */
-	public static var progress(get_progress, never):Float;
-	static function get_progress():Float
-	{
-		D.assert(_initialized, "call Timeline.init() first");
-		D.assert(_currInterval != null, "_currInterval != null");
-		
-		return _currInterval.getRatio();
-	}
-	
-	/**
-	 * The id of the current event.
-	 * @throws de.polygonal.core.util.AssertError <em>Timeline</em> is empty (debug only).
-	 */
-	public static var id(get_id, never):Int;
-	inline static function get_id():Int
-	{
-		D.assert(_initialized, "call Timeline.init() first");
-		D.assert(_currInterval != null, "_currInterval != null");
-		
-		return _currInterval.id;
-	}
-	
-	/**
-	 * The iteration for the current event (0=first iteration).<br/>
-	 * Returns -1 if the event runs periodically.
-	 * @throws de.polygonal.core.util.AssertError <em>Timeline</em> is empty (debug only).
-	 */
-	public static var iteration(get_iteration, never):Int;
-	inline static function get_iteration():Int
-	{
-		D.assert(_initialized, "call Timeline.init() first");
-		D.assert(_currInterval != null, "_currInterval != null");
-		
-		if (_currInterval.iterations == -1)
-			return -1;
-		else
-			return _currInterval.iteration;
-	}
-	
-	/**
-	 * Updates the timeline.
-	 */
-	public static function advance()
-	{
-		D.assert(_initialized, "call Timeline.init() first");
-		
-		_currTick = Timebase.processedTicks;
-		_currSubTick = 0;
-		
-		var interval, node, q = _pendingAdditions, h = _intervalHeap, l = _runningIntervals;
-		
-		//additions are buffered to optimize cancelling of pending intervals (heap removal is expensive)
-		for (i in 0...q.size())
-		{
-			interval = q.dequeue();
-			if (interval.isCancelled())
-				interval.onCancel();
-			else
+			if (x.poolId != -1)
 			{
-				#if debug
-				D.assert(!h.contains(interval), "!_intervalHeap.contains(interval)");
-				#end
-				h.add(interval);
+				x.listener = null;
+				mNodePool.put(x.poolId);
 			}
 		}
 		
-		//process active events
-		node = l.head;
-		while (node != null)
+		var lut = mIntervalLut;
+		inline function unregister(x:TimelineNode) lut.clr(x.id);
+		
+		//handle buffered intervals
+		mNextTick = 1;
+		while (!q.isEmpty())
 		{
-			interval = node.val;
-			if (interval.isCancelled())
-			{
-				node = node.unlink();
-				interval.onCancel();
-				continue;
-			}
-			
-			interval.ageTicks++;
-			interval.onProgress(-1);
-			
-			//die?
-			if (interval.ageTicks == interval.dieTicks)
-			{
-				node = node.unlink();
-				//loop or repeat?
-				if (interval.iterations != 0)
-				{
-					interval.onEnd();
-					interval.rise();
-					interval.subTicks = _currSubTick++;
-					q.enqueue(interval);
-				}
-				else
-				{
-					interval.reuse();
-					interval.onEnd();
-				}
-			}
-			else
-				node = node.next;
+			n = q.dequeue();
+			if (n.isCancelled()) continue;
+			n.tick = mNextTick++;
+			h.add(n);
 		}
 		
-		//process pending events
+		//handle pending intervals
 		while (true)
 		{
 			if (h.isEmpty()) break;
 			
-			//get next upcoming event
-			var interval = h.top();
+			var top = h.top();
 			
-			if (interval.isCancelled())
+			if (top.isCancelled())
 			{
 				h.pop();
-				interval.reuse();
-				interval.onCancel();
+				top.onCancel();
+				reuse(top);
+				unregister(top);
 				continue;
 			}
 			
-			//ready?
-			if (interval.ageTicks <= _currTick)
+			if (top.isReady(now))
 			{
 				h.pop();
 				
-				//blip?
-				if (interval.ageTicks == interval.dieTicks)
+				if (top.isInstant())
 				{
-					interval.onBlip();
-					
-					//loop or repeat?
-					if (interval.doRepeat())
+					top.onInstant();
+					if (top.isRepeatable())
 					{
-						interval.rise();
-						interval.subTicks = _currSubTick++;
-						q.enqueue(interval);
+						top.respawn();
+						q.enqueue(top);
 					}
 					else
-						interval.reuse();
+					{
+						reuse(top);
+						unregister(top);
+					}
 				}
 				else
 				{
-					l.append(interval);
-					interval.onStart();
-					interval.onProgress(-1);
+					top.progress = 0;
+					top.onStart();
+					top.onProgress();
+					l.append(top);
 				}
 				continue;
 			}
+			
 			break;
+		}
+		
+		//handle running time intervals
+		var walker = l.head;
+		while (walker != null)
+		{
+			n = walker.val;
+			
+			if (n.isCancelled())
+			{
+				walker = walker.unlink();
+				n.onCancel();
+				reuse(n);
+				unregister(n);
+				continue;
+			}
+			
+			n.progress = M.fclamp((now - n.timeStart) / n.duration, 0, 1);
+			n.onProgress();
+			
+			if (n.isFinished(now))
+			{
+				walker = walker.unlink();
+				n.onFinish();
+				if (n.isRepeatable())
+				{
+					n.respawn();
+					q.enqueue(n);
+				}
+				else
+				{
+					reuse(n);
+					unregister(n);
+				}
+			}
+			else
+				walker = walker.next;
 		}
 	}
 }
 
 @:publicFields
-private class TimeInterval
-	implements Heapable<TimeInterval>
-	implements Cloneable<TimeInterval>
-	implements TimelineListener
+@:access(de.polygonal.core.time.TimelineListener)
+private class TimelineNode implements Heapable<TimelineNode> implements Cloneable<TimelineNode>
 {
-	var id:Int;
-	var poolId:Int;
-	var spawnTicks:Int;
-	var ageTicks:Int;
-	var dieTicks:Int;
-	var ticks:Int;
-	var subTicks:Int;
-	var iterations:Int;
+	var timeStart:Float;
+	var timeFinish:Float;
+	var delay:Float;
+	var duration:Float;
+	var repeatInterval:Float;
+	var progress:Float;
+	
+	var tick:Int;
+	var repeatCount:Int;
 	var iteration:Int;
-	var listener:TimelineListener = null;
+	
+	var id:Int;
+	var poolId:Int = -1;
 	var position:Int;
-	var observable:Observable;
 	
-	function new()
-	{
-		observable = Timeline.observable;
-		poolId = -1;
-	}
+	var listener:TimelineListener;
 	
-	inline function getRatio():Float
-	{
-		return (ageTicks - spawnTicks) / getLife();
-	}
+	function new() {}
 	
-	inline function getLife():Int
-	{
-		return (dieTicks - spawnTicks);
-	}
+	inline function isInstant():Bool return timeStart == timeFinish;
 	
-	inline function rise()
+	inline function isCancelled():Bool return timeStart < 0;
+	
+	inline function isReady(now:Float) return timeStart <= now;
+	
+	inline function isFinished(now:Float):Bool return timeFinish <= now;
+	
+	inline function isRepeatable():Bool return repeatCount != 0;
+	
+	inline function cancel() timeStart = -1;
+	
+	inline function respawn()
 	{
-		var delayTicks = getLife() + ticks;
-		spawnTicks += delayTicks;
-		dieTicks += delayTicks;
-		ageTicks = spawnTicks;
-		
-		if (iterations != -1)
+		timeStart = timeFinish + repeatInterval;
+		timeFinish = timeStart + duration;
+		if (isRepeatable())
 		{
-			iterations--;
+			repeatCount--;
 			iteration++;
 		}
 	}
 	
-	inline function cancel()
+	inline function onInstant() listener.onInstant(id, iteration);
+	
+	inline function onStart() listener.onStart(id, iteration);
+	
+	inline function onProgress() listener.onProgress(progress);
+	
+	inline function onFinish() listener.onFinish(id, iteration);
+	
+	inline function onCancel() listener.onCancel(id);
+	
+	function compare(other:TimelineNode):Int
 	{
-		ageTicks = -1;
+		var dt = other.timeStart - timeStart;
+		return dt > 0 ? 1 : (dt < 0 ? -1 : other.tick - tick);
 	}
 	
-	inline function isCancelled():Bool
+	function clone():TimelineNode
 	{
-		return ageTicks == -1;
-	}
-	
-	inline function doRepeat():Bool
-	{
-		return iterations != 0;
-	}
-	
-	inline function reuse()
-	{
-		if (poolId != -1) Timeline._intervalPool.put(poolId);
-	}
-	
-	inline function onBlip() 
-	{
-		setCurrentInterval();
-		if (listener != null)
-			listener.onBlip();
-		else
-			observable.notify(TimelineEvent.BLIP, id);
-	}
-	
-	inline function onStart() 
-	{
-		setCurrentInterval();
-		if (listener != null)
-			listener.onStart();
-		else
-			observable.notify(TimelineEvent.INTERVAL_START, id);
-	}
-	
-	inline function onProgress(alpha:Float)
-	{
-		setCurrentInterval();
-		if (listener != null)
-			listener.onProgress(getRatio());
-		else
-			observable.notify(TimelineEvent.INTERVAL_PROGRESS, id);
-	}
-	
-	inline function onEnd() 
-	{
-		setCurrentInterval();
-		if (listener != null)
-			listener.onEnd();
-		else
-			observable.notify(TimelineEvent.INTERVAL_END, id);
-	}
-	
-	inline function onCancel() 
-	{
-		setCurrentInterval();
-		if (listener != null)
-			listener.onCancel();
-		else
-			observable.notify(TimelineEvent.CANCEL, id);
-	}
-	
-	function compare(other:TimeInterval):Int
-	{
-		var dt = other.ageTicks - ageTicks;
-		return dt == 0 ? (other.subTicks - subTicks) : dt;
-	}
-	
-	function clone():TimeInterval
-	{
-		var interval = new TimeInterval();
-		interval.id = id;
-		interval.spawnTicks = spawnTicks;
-		interval.ageTicks = ageTicks;
-		interval.dieTicks = dieTicks;
-		interval.ticks = ticks;
-		interval.subTicks = subTicks;
-		interval.iterations = iterations;
-		return interval;
+		var n = new TimelineNode();
+		n.timeStart = timeStart;
+		n.timeFinish = timeFinish;
+		n.delay = delay;
+		n.duration = duration;
+		n.repeatInterval = repeatInterval;
+		n.progress = progress;
+		n.tick = tick;
+		n.repeatCount = repeatCount;
+		n.iteration = iteration;
+		n.id = id;
+		return n;
 	}
 	
 	function toString():String
 	{
 		var s = "";
-		if (iterations == -1)
+		if (repeatCount == -1)
 			s = "repeat=inf";
 		else
-		if (iterations > 0)
-			s = 'repeat=$iterations';
-			
-		if (getLife() == 0)
-			return 'Blip id=$id[$subTicks] start=$spawnTicks $s';
+		if (repeatCount > 0)
+			s = 'repeat=$repeatCount';
+		
+		return
+		if (isInstant())
+			return Printf.format('{Instant id=$id[$tick] time=%.2f$s}', [timeStart]);
 		else
-			return Printf.format('Event id=$id[$subTicks] from=$spawnTicks to=$dieTicks progress %.2f $s,', [getRatio()]);
+			return Printf.format('{Period id=$id[$tick] start=%.2f finish=%.2f progress=%.2f$s}', [timeStart, timeFinish, progress]);
 	}
-	
-	inline function setCurrentInterval() Timeline._currInterval = this;
 }

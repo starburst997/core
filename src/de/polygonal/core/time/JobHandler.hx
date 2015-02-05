@@ -42,11 +42,9 @@ class JobHandler implements TimelineListener
 			Timeline.cancel(_jobId);
 	}
 	
-	function onBlip()
-	{
-	}
+	function onInstant(id:Int, iteration:Int) {}
 	
-	function onStart()
+	function onStart(id:Int, iteration:Int)
 	{
 		_job.onStart();
 	}
@@ -56,7 +54,7 @@ class JobHandler implements TimelineListener
 		_job.onProgress(alpha);
 	}
 	
-	function onEnd()
+	function onFinish(id:Int, iteration:Int)
 	{
 		if (_job != null)
 		{
@@ -65,7 +63,7 @@ class JobHandler implements TimelineListener
 		}
 	}
 	
-	function onCancel()
+	function onCancel(id:Int)
 	{
 		if (_job != null)
 		{

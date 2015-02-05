@@ -18,12 +18,15 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.time;
 
-@:build(de.polygonal.core.event.ObserverMacro.create
-([
-	BLIP,
-	INTERVAL_START,
-	INTERVAL_PROGRESS,
-	INTERVAL_END,
-	CANCEL
-]))
-class TimelineEvent {}
+interface TimelineListener
+{
+	private function onInstant(id:Int, iteration:Int):Void;
+	
+	private function onStart(id:Int, iteration:Int):Void;
+	
+	private function onProgress(alpha:Float):Void;
+	
+	private function onFinish(id:Int, iteration:Int):Void;
+	
+	private function onCancel(id:Int):Void;
+}

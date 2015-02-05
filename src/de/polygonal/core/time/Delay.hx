@@ -18,18 +18,18 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.time;
 
-import de.polygonal.core.time.TimeInterval;
+import de.polygonal.core.time.TimelineListener;
 
 /**
  * Carries out a deferred function call.
  */
-class Delay implements TimeInterval
+class Delay implements TimelineListener
 {
 	var mId:Int;
 	var mFunc:Void->Void;
 	
 	/**
-		Calls `f` after `delaySeconds`, unless `cancel` is called before.
+		Invokes `func` after `delay` seconds, unless `cancel` is called before.
 	**/
 	public function new(func:Void->Void, delay:Float)
 	{
@@ -43,18 +43,18 @@ class Delay implements TimeInterval
 		mFunc = null;
 	}
 	
-	function onBlip()
+	function onInstant(id:Int, iteration:Int)
 	{
 		mId = -1;
 		mFunc();
 		mFunc = null;
 	}
 	
-	function onStart() {}
+	function onStart(id:Int, iteration:Int) {}
 	
 	function onProgress(alpha:Float) {}
 	
-	function onEnd() {}
+	function onFinish(id:Int, iteration:Int) {}
 	
-	function onCancel() {}
+	function onCancel(id:Int) {}
 }
