@@ -224,7 +224,7 @@ class LogHandler implements IObserver
 			val = "";
 			if (hasf(DATE | TIME)) fmt = " " + fmt;
 			args.push(fmt);
-			vals.push(de.polygonal.core.time.Timebase.totalTicks % 1000);
+			vals.push(de.polygonal.core.time.Timebase.elapsedTicks % 1000);
 		}
 		
 		//level

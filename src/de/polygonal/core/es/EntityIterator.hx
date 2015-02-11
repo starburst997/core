@@ -26,7 +26,7 @@ class EntityIterator
 	public static function descendants(e:Entity):Iterator<Entity>
 	{
 		var i = 0;
-		var s = e.size;
+		var s = e.getSize();
 		var walker = e.preorder;
 		return
 		{
