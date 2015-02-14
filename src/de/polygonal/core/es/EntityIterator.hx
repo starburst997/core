@@ -21,6 +21,7 @@ package de.polygonal.core.es;
 /**
 	Helper class for iterating an entity hierarchy.
 **/
+@:access(de.polygonal.core.es.Entity)
 class EntityIterator
 {
 	public static function descendants(e:Entity):Iterator<Entity>
