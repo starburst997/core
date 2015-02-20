@@ -38,6 +38,7 @@ import de.polygonal.core.es.EntitySystem in Es;
 	BIT_STOP_PROPAGATION,
 	BIT_MARK_FREE,
 	BIT_NAME_PUBLISHED,
+	BIT_NO_PARENT
 ], true, false))
 @:build(de.polygonal.core.es.EntityMacro.build())
 @:autoBuild(de.polygonal.core.es.EntityMacro.build())
@@ -86,7 +87,7 @@ class Entity
 	
 	public function new(?name:String)
 	{
-		mFlags = 0;
+		mFlags = BIT_NO_PARENT;
 		type = __getType();
 		
 		Es.register(this);
@@ -350,6 +351,7 @@ class Entity
 		
 		lastChild = x;
 		
+		x.mFlags &= ~BIT_NO_PARENT;
 		x.onAdd();
 		
 		return cast x;
@@ -446,6 +448,7 @@ class Entity
 			n = n.preorder;
 		}
 		
+		x.mFlags |= BIT_NO_PARENT;
 		x.parent = null;
 		x.onRemove(this);
 		

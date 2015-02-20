@@ -280,7 +280,7 @@ class EntitySystem
 	{
 		if (mFreeList == null) init();
 		
-		assert(e.id == null && e.mFlags == 0, "Entity has already been registered");
+		assert(e.id == null, "Entity has already been registered");
 		
 		var i = mFree;
 		
