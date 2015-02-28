@@ -16,7 +16,7 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.codec;
+package de.polygonal.core.util;
 
 import de.polygonal.core.math.Limits;
 import haxe.io.Bytes;
@@ -26,13 +26,13 @@ import haxe.io.Eof;
 import haxe.io.Input;
 
 /**
- * Run-length encoder/decoder (RLE).
- */
-class RLE
+ * <h3>Run-length encoder/decoder (RLE)</h3>
+**/
+class Rle
 {
 	/**
-	 * Encodes `uncoded` into a new set of bytes
-	 */
+		Encodes `uncoded` into a new set of bytes.
+	**/
 	public static function encode(uncoded:Input):Bytes
 	{
 		var encoded = new BytesOutput();
@@ -69,7 +69,7 @@ class RLE
 		}
 		catch (end:Eof)
 		{
-			// This is to prevent errors when given an input of zero length
+			//this is to prevent errors when given an input of zero length
 			if (count > 0)
 			{
 				encoded.writeByte(prev);
@@ -91,8 +91,8 @@ class RLE
 	}
 	
 	/**
-	 * Decodes `encoded` into a new set of bytes
-	 */
+		Decodes `encoded` into a new set of bytes.
+	**/
 	public static function decode(encoded:Input):Bytes
 	{
 		var uncoded = new BytesOutput();
@@ -124,42 +124,41 @@ class RLE
 				curr = encoded.readByte();
 			}
 		}
-		catch (end:Eof)
-		{
-			
-		}
+		catch (end:Eof) {}
 		return uncoded.getBytes();
 	}
 	
 	/**
-	 * Encodes `uncoded` into a string.
-	 * Returns Bytes, instead of string because some platforms(flash) can't handle null characters in strings
-	 */
+		Encodes `uncoded` into a string.
+		
+		Returns Bytes, instead of string because some platforms like flash can't handle null characters in strings.
+	**/
 	public static inline function encodeString(uncoded:String):Bytes
 	{
 		return encodeBytes(Bytes.ofString(uncoded));
 	}
 	
 	/**
-	 * Decodes `encoded` into a string.
-	 * Takes Bytes, instead of string because some platforms(flash) can't handle null characters in strings
-	 */
+		Decodes `encoded` into a string.
+		
+		Takes Bytes, instead of string because some platforms like flash can't handle null characters in strings.
+	**/
 	public static inline function decodeString(encoded:Bytes):String
 	{
 		return decodeBytes(Bytes.ofString(encoded.toString())).toString();
 	}
 	
 	/**
-	 * Encodes `uncoded` into a a new set of bytes.
-	 */
+		Encodes `uncoded` into a a new set of bytes.
+	**/
 	public static inline function encodeBytes(uncoded:Bytes):Bytes
 	{
 		return encode(new BytesInput(uncoded));
 	}
 	
 	/**
-	 * Decodes `encoded` into a new set of bytes.
-	 */
+		Decodes `encoded` into a new set of bytes.
+	**/
 	public static inline function decodeBytes(encoded:Bytes):Bytes
 	{
 		return decode(new BytesInput(encoded));

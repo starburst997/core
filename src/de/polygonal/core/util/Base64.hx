@@ -16,107 +16,106 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.codec;
+package de.polygonal.core.util;
 
 import haxe.crypto.BaseCode;
 import haxe.io.Bytes;
 import haxe.io.BytesData;
 
 /**
- * A Base64 encoder/decoder.
- */
+	<h3>A Base64 encoder/decoder using haxe.crypto.BaseCode</h3>
+**/
 class Base64
 {
 	static var BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	
 	static var coder = new BaseCode(Bytes.ofString(BASE64_CHARS));
 	
 	/**
-	 * Encodes a `BytesData` object into a string in Base64 notation.
-	 * @param source the source data.
-	 * @param breakLines if true, breaks lines every `maxLineLength` characters.
-	 * Disabling this behavior violates strict Base64 specification, but makes the encoding faster.
-	 * @param maxLineLength the maximum line length of the output. Default is 76.
-	 */
+		Encodes `source` into a string in Base64 notation.
+		
+		@param breakLines if true, breaks lines every `maxLineLength` characters.
+		Disabling this behavior violates strict Base64 specification, but makes the encoding faster.
+		@param maxLineLength the maximum line length of the output. Default is 76.
+	**/
 	inline public static function encode(source:BytesData, breakLines = false, maxLineLength = 76):String
 	{
 		return encodeBytes(Bytes.ofData(source), breakLines, maxLineLength);
 	}
 	
 	/**
-	 * Shortcut for encoding a string into a string in Base64 notation.
-	 * @param source the source data.
-	 * @param breakLines if true, breaks lines every `maxLineLength` characters.
-	 * Disabling this behavior violates strict Base64 specification, but makes the encoding faster.
-	 * @param maxLineLength the maximum line length of the output. Default is 76.
-	 */
+		Shortcut for encoding a string into a string in Base64 notation.
+		
+		@param breakLines if true, breaks lines every `maxLineLength` characters.
+		Disabling this behavior violates strict Base64 specification, but makes the encoding faster.
+		@param maxLineLength the maximum line length of the output. Default is 76.
+	**/
 	inline public static function encodeString(source:String, breakLines = false, maxLineLength = 76):String
 	{
 		return encodeBytes(Bytes.ofString(source), breakLines, maxLineLength);
 	}
 	
 	/**
-	 * Decodes a Base64 encoded string into a `BytesData` object.
-	 * @param source the source data.
-	 * @param breakLines if true, removes all newline (\n) characters from the `source` string before
-	 * decoding it.
-	 * Use this flag if the source was encoded with `breakLines` = true.
-	 * Default is false.
-	 */
+		Decodes the Base64 encoded string `source`.
+		
+		@param breakLines if true, removes all newline (\n) characters from `source` before decoding it.
+		Use this flag if the source was encoded with `breakLines` = true. Default is false.
+	**/
 	inline public static function decode(source:String, breakLines = false):BytesData
 	{
 		return decodeBytes(source, breakLines).getData();
 	}
 	
 	/**
-	 * Shortcut for decoding a Base64 encoded string directly into a string.
-	 * @param source the source data.
-	 * @param breakLines if true, removes all newline (\n) characters from the `source` string before
-	 * decoding it.
-	 * Use this flag if the source was encoded with `breakLines` = true.
-	 * Default is false.
-	 */
+		Shortcut for decoding the Base64 encoded string `source` directly into a string.
+		
+		@param breakLines if true, removes all newline (\n) characters from `source` before decoding it.
+		Use this flag if the source was encoded with `breakLines` = true. Default is false.
+	**/
 	inline public static function decodeString(source:String, breakLines = false):String
 	{
 		var bytes = decodeBytes(source, breakLines);
 		return bytes.getString(0, bytes.length);
 	}
 	
-	inline private static function decodeBytes(source:String, breakLines = false)
+	static function decodeBytes(source:String, breakLines = false)
 	{
 		if (breakLines)
+		{
+			source = ~/\r/g.replace(source, "");
 			source = source.split("\n").join("");
+		}
 		
 		var padding = source.indexOf("=");
-		if (padding != -1)
-			source = source.substring(0, padding);
+		if (padding != -1) source = source.substring(0, padding);
 		
 		return coder.decodeBytes(Bytes.ofString(source));
 	}
 	
-	inline static function pad(str:String)
+	static function encodeBytes(source:Bytes, breakLines = false, maxLineLength = 76):String
 	{
-		return str + switch(str.length % 4)
+		inline function pad(x:String)
 		{
-			case 3:  "===";
-			case 2:  "==";
-			case 1:  "=";
-			default: "";
-		};
-	}
-	
-	inline static function split(str:String, lineLength:Int)
-	{
-		var lines = [];
-		while (str.length > lineLength)
-		{
-			lines.push(str.substring(0, lineLength));
-			str = str.substring(lineLength);
+			return x + switch(x.length % 4)
+			{
+				case 3:  "===";
+				case 2:  "==";
+				case 1:  "=";
+				default: "";
+			};
 		}
-		return lines.join("\n");
-	}
-	
-	private static function encodeBytes(source:Bytes, breakLines = false, maxLineLength = 76):String
-	{
+		
+		inline function split(x:String, lineLength:Int)
+		{
+			var lines = [];
+			while (x.length > lineLength)
+			{
+				lines.push(x.substring(0, lineLength));
+				x = x.substring(lineLength);
+			}
+			return lines.join("\n");
+		}
+		
 		var bytes = coder.encodeBytes(source);
 		var result = pad(bytes.getString(0, bytes.length));
 		return breakLines ? split(result, maxLineLength) : result;
