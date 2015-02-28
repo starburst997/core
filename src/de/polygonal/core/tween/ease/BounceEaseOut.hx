@@ -21,10 +21,9 @@ package de.polygonal.core.tween.ease;
 import de.polygonal.core.math.Interpolation;
 
 /**
-	Bounce easing out.
+	<h3>Bounce easing out</h3>
 	
-	Borrowed from Robert Penner Easing Equations v1.5
-	See http://snippets.dzone.com/posts/show/4005
+	See Robert Penner Easing Equations.
 **/
 class BounceEaseOut implements Interpolation<Float>
 {

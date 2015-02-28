@@ -22,10 +22,9 @@ import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics.M;
 
 /**
-	Exponential easing out.
+	<h3>Exponential easing out</h3>
 	
-	Borrowed from Robert Penner Easing Equations v1.5
-	See http://snippets.dzone.com/posts/show/4005
+	See Robert Penner Easing Equations.
 **/
 class ExpEaseOut implements Interpolation<Float>
 {

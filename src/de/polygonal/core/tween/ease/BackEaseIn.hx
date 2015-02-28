@@ -22,10 +22,9 @@ import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics.M;
 
 /**
-	Back easing in.
+	<h3>Back easing in</h3>
 	
-	Borrowed from Robert Penner Easing Equations v1.5
-	see http://snippets.dzone.com/posts/show/4005
+	See Robert Penner Easing Equations.
 **/
 class BackEaseIn implements Interpolation<Float>
 {

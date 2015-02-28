@@ -22,10 +22,9 @@ import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics.M;
 
 /**
-	Elastic easing out.
+	<h3>Elastic easing out</h3>
 	
-	Borrowed from Robert Penner Easing Equations v1.5
-	See http://snippets.dzone.com/posts/show/4005
+	See Robert Penner Easing Equations.
 **/
 class ElasticEaseOut implements Interpolation<Float>
 {
@@ -33,9 +32,9 @@ class ElasticEaseOut implements Interpolation<Float>
 	public var period:Float;
 	
 	/**
-	 * @param amplitude wave amplitude. Default value equals zero.
-	 * @param period wave period. Default value equals 0.3.
-	 */
+		@param amplitude wave amplitude. Default value equals zero.
+		@param period wave period. Default value equals 0.3.
+	**/
 	public function new(amplitude = .0, period = .3)
 	{
 		this.amplitude = amplitude;
