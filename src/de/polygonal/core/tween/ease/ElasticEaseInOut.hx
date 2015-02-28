@@ -32,8 +32,10 @@ class ElasticEaseInOut implements Interpolation<Float>
 	public var period:Float;
 	
 	/**
-		@param amplitude wave amplitude. Default value equals zero.
-		@param period wave period. Default value equals 0.3.
+		@param amplitude wave amplitude.
+		Default value equals zero.
+		@param period wave period.
+		Default value equals 0.3.
 	**/
 	public function new(amplitude = .0, period = 0.3)
 	{

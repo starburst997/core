@@ -28,7 +28,7 @@ class NullEase implements Interpolation<Float>
 	public function new() {}
 	
 	/**
-		Returns `t`.
+		Simply returns `t`.
 	**/
 	public function interpolate(t:Float):Float
 	{

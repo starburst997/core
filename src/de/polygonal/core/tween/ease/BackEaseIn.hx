@@ -31,7 +31,8 @@ class BackEaseIn implements Interpolation<Float>
 	public var overshoot:Float;
 	
 	/**
-		`overshoot` amount. Default value of 0.1 produces an overshoot of 10%.
+		@param overshoot overshoot amount.
+		Default value of 0.1 produces an overshoot of 10%.
 	**/
 	public function new(overshoot = .1)
 	{

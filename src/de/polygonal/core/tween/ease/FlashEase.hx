@@ -29,7 +29,7 @@ class FlashEase implements Interpolation<Float>
 	public var acceleration:Float;
 	
 	/**
-		`acceleration` defines the easing value in the range [-100,100].
+		@param acceleration defines the easing value in the range [-100,100].
 	**/
 	public function new(acceleration:Float)
 	{
