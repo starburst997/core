@@ -21,7 +21,7 @@ package de.polygonal.core.util;
 import haxe.CallStack;
 
 /**
-	Thrown when an assertion fails.
+	<h3>Thrown to indicate that an assertion failed</h3>
 **/
 class AssertError
 {
@@ -29,17 +29,14 @@ class AssertError
 	
 	public function new(?message:String, ?info:haxe.PosInfos)
 	{
+		if (message == null) message = "";
 		this.message = message;
 		
 		var stack = CallStack.toString(CallStack.callStack());
 		stack = ~/\nCalled from de\.polygonal\.core\.util\.AssertError.*$/m.replace(stack, "");
 		
-		var s = message == null ? "" : message;
-		throw 'Assertation $s failed in file ${info.fileName}, line ${info.lineNumber}, ${info.className}:: ${info.methodName}\nCall stack:${stack}';
+		message = 'Assertation $message failed in file ${info.fileName}, line ${info.lineNumber}, ${info.className}:: ${info.methodName}\nCall stack:${stack}';
 	}
 	
-	public function toString():String
-	{
-		return message;
-	}
+	public function toString():String return message;
 }

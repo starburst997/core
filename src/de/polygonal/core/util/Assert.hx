@@ -23,12 +23,15 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 #end
 
+import haxe.CallStack;
+
 typedef D = de.polygonal.core.util.Assert;
 
 /**
-	Assertion macro.
+	<h3>Assertion macro</h3>
 	
 	An assertion specifies a condition that you expect to be true at a point in your program.
+	
 	If that condition is not true, the assertion fails, throwing an instance of the `AssertError` class.
 **/
 class Assert
