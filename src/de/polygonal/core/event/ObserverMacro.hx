@@ -29,35 +29,35 @@ using de.polygonal.ds.Bits;
 class ObserverMacro
 {
 	/**
-	 * The number bits reserved for storing group ids.
-	 * E.g. using 5 bits, a total of 32 group ids (0..31, 2^5-1) and 27 event ids (32 - 5) can be encoded in a 32-bit integer.
-	 */
+		The number bits reserved for storing group ids.
+		E.g. using 5 bits, a total of 32 group ids (0..31, 2^5-1) and 27 event ids (32 - 5) can be encoded in a 32-bit integer.
+	**/
 	inline public static var NUM_GROUP_BITS = 5;
 	
 	#if !macro
 	/**
-	 * The number of bits used for encoding the update type (group & event).
-	 */
+		The number of bits used for encoding the update type (group & event).
+	**/
 	inline public static var NUM_BITS = 32;
 	
 	/**
-	 * The number of bits reserved for encoding event ids.
-	 */
+		The number of bits reserved for encoding event ids.
+	**/
 	inline public static var NUM_EVENT_BITS = 32 - NUM_GROUP_BITS;
 	
 	/**
-	 * A bit mask of all possible event bits.
-	 */
+		A bit mask of all possible event bits.
+	**/
 	inline public static var EVENT_MASK = (1 << NUM_EVENT_BITS) - 1;
 	
 	/**
-	 * A bit mask of all possible group bits.
-	 */
+		A bit mask of all possible group bits.
+	**/
 	inline public static var GROUP_MASK = ((1 << NUM_GROUP_BITS) - 1) << NUM_EVENT_BITS;
 	
 	/**
-	 * Returns an iterator over all event bit flags stored in the update id `x`.
-	 */
+		Returns an iterator over all event bit flags stored in the update id `x`.
+	**/
 	public static function extractTypes(x:Int):Iterator<Int>
 	{
 		var g = x & ObserverMacro.GROUP_MASK;

@@ -29,7 +29,7 @@ import de.polygonal.core.es.Entity in E;
 import de.polygonal.core.es.EntitySystem in ES;
 
 /**
-	The top entity that updates the entire entity hierachy.
+	The top entity responsible for updating the entire entity hierachy
 **/
 @:access(de.polygonal.core.es.EntitySystem)
 class MainLoop extends Entity implements IObserver

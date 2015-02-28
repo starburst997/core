@@ -23,12 +23,10 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 #end
 
-import haxe.CallStack;
-
 typedef D = de.polygonal.core.util.Assert;
 
 /**
-	<h3>Assertion macro</h3>
+	Assertion macro
 	
 	An assertion specifies a condition that you expect to be true at a point in your program.
 	

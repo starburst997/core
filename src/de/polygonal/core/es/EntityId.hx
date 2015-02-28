@@ -19,13 +19,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.es;
 
 /**
-	Every entity has an unique id.
+	Every entity can be identifiefd by an unique id
 **/
 @:allow(de.polygonal.core.es.EntitySystem)
 class EntityId
 {
-	public var index(default, null):Int;
-	
+	var index(default, null):Int;
 	var inner(default, null):Int;
 	
 	public function new() {}

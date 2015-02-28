@@ -22,7 +22,7 @@ import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics.M;
 
 /**
-	<h3>Elastic easing in</h3>
+	Elastic easing in
 	
 	See Robert Penner Easing Equations.
 **/

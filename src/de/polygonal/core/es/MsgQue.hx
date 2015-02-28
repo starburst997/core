@@ -31,7 +31,7 @@ import flash.Memory in Mem;
 #end
 
 /**
-	Part of the messaging system used by the entity system.
+	A messaging system used by the entity system
 **/
 @:access(de.polygonal.core.es.Entity)
 @:access(de.polygonal.core.es.EntityId)

@@ -21,7 +21,7 @@ package de.polygonal.core.tween.ease;
 import de.polygonal.core.math.Interpolation;
 
 /**
-	<h3>Circular easing out</h3>
+	Circular easing out
 	
 	See Robert Penner Easing Equations.
 **/

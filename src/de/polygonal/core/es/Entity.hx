@@ -25,7 +25,7 @@ import de.polygonal.core.util.ClassUtil;
 import de.polygonal.core.es.EntitySystem in Es;
 
 /**
-	Base entity class.
+	Base entity class
 **/
 @:access(de.polygonal.core.es.EntitySystem)
 @:access(de.polygonal.core.es.MsgQue)
@@ -73,7 +73,7 @@ class Entity
 	public var id(default, null):EntityId;
 	
 	/**
-		Every subclass of the Entity class can be identified by a unique integer value.
+		Every subclass of the Entity class can be identified by an unique integer value.
 	**/
 	public var type(default, null):Int;
 	
@@ -103,7 +103,7 @@ class Entity
 	/**
 		Recursively destroys the subtree rooted at this entity (including this entity) from the bottom up.
 		
-		This invokes the method `onFree` on each entity, giving each entity the opportunity to perform some cleanup (e.g. free resources or unregister from listeners).
+		This invokes``onFree()`` on each entity, giving each entity the opportunity to perform some cleanup (e.g. free resources or unregister from listeners).
 	**/
 	public function free()
 	{
@@ -116,7 +116,7 @@ class Entity
 	/**
 		The parent or null if this is a top entity.
 		
-		__Never modify this value.__
+		<warn>This value should never be changed by the user.</warn>
 	**/
 	public var parent(get_parent, set_parent):Entity;
 	@:noCompletion inline function get_parent():Entity
@@ -132,7 +132,7 @@ class Entity
 	/**
 		The first child or null if this entity has no children.
 		
-		__Don't modify this value.__
+		<warn>This value should never be changed by the user.</warn>
 	**/
 	public var child(get_child, set_child):Entity;
 	@:noCompletion inline function get_child():Entity
@@ -148,7 +148,7 @@ class Entity
 	/**
 		The next sibling or null if this entity has no sibling.
 		
-		__Don't modify this value.__
+		<warn>This value should never be changed by the user.</warn>
 	**/
 	public var sibling(get_sibling, set_sibling):Entity;
 	@:noCompletion inline function get_sibling():Entity
@@ -164,7 +164,7 @@ class Entity
 	/**
 		The last child or null if this entity has no children.
 		
-		__Don't modify this value.__
+		<warn>This value should never be changed by the user.</warn>
 	**/
 	public var lastChild(get_lastChild, set_lastChild):Entity;
 	@:noCompletion inline function get_lastChild():Entity
@@ -192,8 +192,9 @@ class Entity
 	}
 	
 	/**
-		The name of this entity. Default is null.
-	 */
+		The name of this entity.
+		Default is null.
+	**/
 	public var name(get_name, set_name):String;
 	@:noCompletion inline function get_name():String
 	{
@@ -209,7 +210,7 @@ class Entity
 	}
 	
 	/**
-		If true, `MainLoop` updates this entity at regular intervals by invoking the onTick() method.
+		If true, ``MainLoop`` updates this entity at regular intervals by invoking the ``onTick()`` method.
 	**/
 	public var tickable(get_tickable, set_tickable):Bool;
 	@:noCompletion inline function get_tickable():Bool
@@ -223,7 +224,7 @@ class Entity
 	}
 	
 	/**
-		If true, `MainLoop` renderes this entity at regular intervals by invoking the onDraw() method.
+		If true, ``MainLoop`` renderes this entity at regular intervals by invoking the ``onDraw()`` method.
 	**/
 	public var drawable(get_drawable, set_drawable):Bool;
 	@:noCompletion inline function get_drawable():Bool
@@ -237,7 +238,9 @@ class Entity
 	}
 	
 	/**
-		If true, this entity can receive messages. Default is true.
+		If true, this entity can receive messages.
+		
+		Default is true.
 	**/
 	public var notifiable(get_notifiable, set_notifiable):Bool;
 	@:noCompletion inline function get_notifiable():Bool
@@ -251,7 +254,9 @@ class Entity
 	}
 	
 	/**
-		If false, skips updating the subtree rooted at this node. Default is true.
+		If false, skips updating the subtree rooted at this node.
+		
+		Default is true.
 	**/
 	public var passable(get_passable, set_passable):Bool;
 	@:noCompletion inline function get_passable():Bool
@@ -265,7 +270,9 @@ class Entity
 	}
 	
 	/**
-		A received message. __Only valid inside a msgTo*() method.__
+		An incoming message.
+		
+		<warn>Only valid inside ``onMsg()``.</warn>
 	**/
 	public var incomingMessage(get_incomingMessage, never):Msg;
 	@:noCompletion function get_incomingMessage():Msg
@@ -274,7 +281,7 @@ class Entity
 	}
 	
 	/**
-		A message that will be sent when calling msgTo*().
+		A message that will be sent when calling ``EntitySystem::dispatchMessages()``.
 	**/
 	public var outgoingMessage(get_outgoingMessage, never):Msg;
 	@:noCompletion function get_outgoingMessage():Msg
@@ -455,6 +462,7 @@ class Entity
 		return;
 	}
 	
+	//TODO onRemove callback missing?
 	/**
 		Removes all child entities from this entity.
 	**/
@@ -548,7 +556,7 @@ class Entity
 	}
 	
 	/**
-		Sends a message of type `msgType` to `entity`.
+		Sends a message of type `msgType` to `recipient`.
 		
 		If `dispatch` is true, the message will leave the message queue immediately.
 	**/

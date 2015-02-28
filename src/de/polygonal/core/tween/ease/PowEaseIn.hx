@@ -21,7 +21,7 @@ package de.polygonal.core.tween.ease;
 import de.polygonal.core.math.Interpolation;
 
 /**
-	<h3>Power easing in (quadratic, cubic, quartic, quintic)</h3>
+	Power easing in (quadratic, cubic, quartic, quintic)
 	
 	See Robert Penner Easing Equations.
 **/

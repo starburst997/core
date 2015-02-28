@@ -26,7 +26,8 @@ import de.polygonal.ds.IntIntHashTable;
 import haxe.ds.IntMap;
 
 /**
-	An entity that can take the part of a subject in the observer pattern.
+	An entity that can take the part of a subject in the observer pattern
+	
 	Observers are updated by sending messages to them.
 **/
 @:access(de.polygonal.core.es.EntitySystem)

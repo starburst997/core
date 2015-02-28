@@ -24,7 +24,7 @@ import haxe.macro.Expr;
 #end
 
 /**
-	Helper macro that generates unique message ids.
+	Helper macro generating unique message ids
 	
 	Example:
 	

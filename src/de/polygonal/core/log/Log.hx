@@ -24,9 +24,10 @@ import de.polygonal.core.util.Assert.assert;
 using de.polygonal.ds.Bits;
 
 /**
- * A lightweight log.
- * Logging messages are passed to registered `LogHandler` objects.
- */
+	A lightweight log
+	
+	Logging messages are passed to registered ``LogHandler`` objects.
+**/
 class Log
 {
 	static var _counter = 0;
@@ -54,9 +55,10 @@ class Log
 	}
 	
 	/**
-	 * Adds the handler `x` to this log.
-	 * Once registered, `x` receives logging messages.
-	 */
+		Adds the handler `x` to this log.
+		
+		Once registered, `x` receives logging messages.
+	**/
 	public function addHandler(x:LogHandler)
 	{
 		#if log
@@ -67,8 +69,8 @@ class Log
 	}
 
 	/**
-	 * Removes the handler `x` from this log.
-	 */
+		Removes the handler `x` from this log.
+	**/
 	public function removeHandler(x:LogHandler)
 	{
 		#if log
@@ -77,8 +79,8 @@ class Log
 	}
 	
 	/**
-	 * Removes all handlers  from this log.
-	 */
+		Removes all handlers  from this log.
+	**/
 	public function removeAllHandlers()
 	{
 		#if log
@@ -88,28 +90,29 @@ class Log
 	}
 	
 	/**
-	 * A list of all registered log handlers.
-	 */
+		A list of all registered log handlers.
+	**/
 	public function getLogHandlers():Array<LogHandler>
 	{
 		return cast _observable.getObserverList();
 	}
 	
 	/**
-	 * Returns the name(s) of the active log level(s).
-	 * Example:
-	 * <pre class="prettyprint">
-	 * class Main
-	 * {
-	 *     static function main() {
-	 *         var log = de.polygonal.core.log.Log.getLog("Foo");
-	 *         log.setLevel(LogLevel.INFO);
-	 *         trace(log.getLevelName()); //INFO
-	 *         log.setLevel(LogLevel.INFO | LogLevel.WARN);
-	 *         trace(log.getLevelName()); //INFO|WARN
-	 *     }
-	 * }</pre>
-	 */
+		Returns the name(s) of the active log level(s).
+		
+		Example:
+		<pre class="prettyprint">
+		class Main
+		{
+		    static function main() {
+		        var log = de.polygonal.core.log.Log.getLog("Foo");
+		        log.setLevel(LogLevel.INFO);
+		        trace(log.getLevelName()); //INFO
+		        log.setLevel(LogLevel.INFO | LogLevel.WARN);
+		        trace(log.getLevelName()); //INFO|WARN
+		    }
+		}</pre>
+	**/
 	public function getLevelName():String
 	{
 		if (_level.ones() > 1)
@@ -129,33 +132,34 @@ class Log
 	}
 	
 	/**
-	 * Returns the active log level(s) encoded as a bitfield.
-	 */
+		Returns the active log level(s) encoded as a bitfield.
+	**/
 	public function getLevel():Int
 	{
 		return _level;
 	}
 	
 	/**
-	 * Sets the log level `x` for controlling logging output.
-	 * Enabling logging at a given level also enables logging at all higher levels.
-	 * Each log level is specified by a bit flag in the range 0x01 (`LogLevel.DEBUG`) to 0x08 (`LogLevel.ERROR`).
-	 * LogLevel.OFF can be used to turn off logging. The default log level is `LogLevel.DEBUG`.
-	 * Example:
-	 * <pre class="prettyprint">
-	 * import de.polygonal.core.log.LogLevel;
-	 * class Main
-	 * {
-	 *     static function main() {
-	 *         var log = de.polygonal.core.log.Log.getLog("Foo");
-	 *         log.setLevel(LogLevel.DEBUG);                 //print DEBUG, INFO, WARN and ERROR log messages
-	 *         log.setLevel(LogLevel.WARN);                  //print WARN and ERROR log messages
-	 *         log.setLevel(LogLevel.INFO | LogLevel.ERROR); //print INFO and ERROR log messages
-	 *         log.setLevel(LogLevel.OFF);                   //print nothing
-	 *     }
-	 * }</pre>
-	 * @throws de.polygonal.core.util.AssertError invalid log level (debug only).
-	 */
+		Sets the log level `x` for controlling logging output.
+		Enabling logging at a given level also enables logging at all higher levels.
+		Each log level is specified by a bit flag in the range 0x01 (`LogLevel.DEBUG`) to 0x08 (`LogLevel.ERROR`).
+		LogLevel.OFF can be used to turn off logging. The default log level is `LogLevel.DEBUG`.
+		
+		Example:
+		<pre class="prettyprint">
+		import de.polygonal.core.log.LogLevel;
+		class Main
+		{
+		    static function main() {
+		        var log = de.polygonal.core.log.Log.getLog("Foo");
+		        log.setLevel(LogLevel.DEBUG);                 //print DEBUG, INFO, WARN and ERROR log messages
+		        log.setLevel(LogLevel.WARN);                  //print WARN and ERROR log messages
+		        log.setLevel(LogLevel.INFO | LogLevel.ERROR); //print INFO and ERROR log messages
+		        log.setLevel(LogLevel.OFF);                   //print nothing
+		    }
+		}</pre>
+		@throws de.polygonal.core.util.AssertError invalid log level (debug only).
+	**/
 	#if !log inline #end
 	public function setLevel(x:Int)
 	{
@@ -182,9 +186,9 @@ class Log
 	}
 	
 	/**
-	 * Logs a `LogLevel.DEBUG` message.
-	 * @param msg the log message.
-	 */
+		Logs a `LogLevel.DEBUG` message.
+		@param msg the log message.
+	**/
 	#if !log inline #end
 	public function d(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
@@ -195,9 +199,9 @@ class Log
 	}
 	
 	/**
-	 * Logs a `LogLevel.DEBUG` message.
-	 * @param msg the log message.
-	 */
+		Logs a `LogLevel.DEBUG` message.
+		@param msg the log message.
+	**/
 	#if !log inline #end
 	public function debug(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
@@ -208,9 +212,9 @@ class Log
 	}
 	
 	/**
-	 * Logs a `LogLevel.INFO` message.
-	 * @param msg the log message.
-	 */
+		Logs a `LogLevel.INFO` message.
+		@param msg the log message.
+	**/
 	#if !log inline #end
 	public function i(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
@@ -221,9 +225,9 @@ class Log
 	}
 	
 	/**
-	 * Logs a `LogLevel.INFO` message.
-	 * @param msg the log message.
-	 */
+		Logs a `LogLevel.INFO` message.
+		@param msg the log message.
+	**/
 	#if !log inline #end
 	public function info(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
@@ -234,9 +238,9 @@ class Log
 	}
 	
 	/**
-	 * Logs a `LogLevel.WARN` message.
-	 * @param msg the log message.
-	 */
+		Logs a `LogLevel.WARN` message.
+		@param msg the log message.
+	**/
 	#if !log inline #end
 	public function w(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
@@ -247,9 +251,9 @@ class Log
 	}
 	
 	/**
-	 * Logs a `LogLevel.WARN` message.
-	 * @param msg the log message.
-	 */
+		Logs a `LogLevel.WARN` message.
+		@param msg the log message.
+	**/
 	#if !log inline #end
 	public function warn(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
@@ -260,9 +264,9 @@ class Log
 	}
 	
 	/**
-	 * Logs a `LogLevel.ERROR` message.
-	 * @param msg the log message.
-	 */
+		Logs a `LogLevel.ERROR` message.
+		@param msg the log message.
+	**/
 	#if !log inline #end
 	public function e(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
@@ -273,9 +277,9 @@ class Log
 	}
 	
 	/**
-	 * Logs a `LogLevel.ERROR` message.
-	 * @param msg the log message.
-	 */
+		Logs a `LogLevel.ERROR` message.
+		@param msg the log message.
+	**/
 	#if !log inline #end
 	public function error(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{

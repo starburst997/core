@@ -19,49 +19,49 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.fmt;
 
 /**
- * Creates a textual representation of an object or the stack.
- */
+	Creates a textual representation of an object or the stack
+**/
 class Dump
 {
 	/**
-	 * Returns a human-readable representation of the object `o`.
-	 */
-	public static function object(o:Dynamic):String
+		Returns a human-readable representation of `value`.
+	**/
+	public static function dump(value:Dynamic):String
 	{
-		return _object(o, "");
-	}
-	
-	static function _object(o:Dynamic, ws:String):String
-	{
-		var s = "\n";
-		var fields = Reflect.fields(o);
-		for (field in fields)
+		function f(x:Dynamic, ws:String):String
 		{
-			var value:Dynamic = Reflect.field(o, field);
-			switch (Type.typeof(value))
+			var s = "\n";
+			var fields = Reflect.fields(x);
+			for (field in fields)
 			{
-				case Type.ValueType.TObject:
-					s += '$ws$field:';
-					s += _object(value, '$ws|    ');
-				
-				case Type.ValueType.TClass(c):
-					switch (c)
-					{
-						case Array:
-							s += '$ws$field: [Array]';
-							s += _object(value, '$ws|    ');
-						
-						case _:
-							s += '$ws$field: $value [${Type.getClassName(c)}]\n';
-					}
-				
-				case Type.ValueType.TEnum(e):
-					s += '$ws$field: $value [Enum(${Type.getEnumName(e)})]\n';
-				
-				default:
-					s += '$ws$field: $value [${Std.string(Type.typeof(value)).substr(1)}]\n';
+				var value:Dynamic = Reflect.field(x, field);
+				switch (Type.typeof(value))
+				{
+					case Type.ValueType.TObject:
+						s += '$ws$field:';
+						s += f(value, '$ws|    ');
+					
+					case Type.ValueType.TClass(c):
+						switch (c)
+						{
+							case Array:
+								s += '$ws$field: [Array]';
+								s += f(value, '$ws|    ');
+							
+							case _:
+								s += '$ws$field: $value [${Type.getClassName(c)}]\n';
+						}
+					
+					case Type.ValueType.TEnum(e):
+						s += '$ws$field: $value [Enum(${Type.getEnumName(e)})]\n';
+					
+					default:
+						s += '$ws$field: $value [${Std.string(Type.typeof(value)).substr(1)}]\n';
+				}
 			}
+			return s;
 		}
-		return s;
+		
+		return f(value, "");
 	}
 }

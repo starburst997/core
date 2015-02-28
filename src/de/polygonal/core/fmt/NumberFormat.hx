@@ -21,18 +21,21 @@ package de.polygonal.core.fmt;
 import de.polygonal.core.math.Limits;
 import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.ds.Bits;
+import de.polygonal.core.util.Assert.assert;
 
 /**
- * Various utility functions for formatting numbers.
- */
+	Various utility functions for formatting numbers
+**/
 class NumberFormat
 {
-	static var _hexLUT = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+	static var mHexLUT:Array<String> = null;
 	
 	/**
-	 * Returns a string representation of the unsigned integer `x` in binary notation.
-	 * @param byteDelimiter a character to insert between bytes. The default value is an empty string.
-	 */
+		Returns a string representation of the unsigned integer `x` in binary notation.
+		
+		@param byteDelimiter a character to insert between bytes.
+		The default value is an empty string.
+	**/
 	public static function toBin(x:Int, byteDelimiter = "", leadingZeros = false):String
 	{
 		var n = Limits.INT_BITS - Bits.nlz(x);
@@ -51,13 +54,14 @@ class NumberFormat
 	}
 	
 	/**
-	 * Returns a string representation of the unsigned integer `x` in hexadecimal notation.
-	 */
+		Returns a string representation of the unsigned integer `x` in hexadecimal notation.
+	**/
 	public static function toHex(x:Int):String
 	{
 		if (x == 0) return "0";
 		var s = "";
-		var a = _hexLUT;
+		if (mHexLUT == null) mHexLUT = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+		var a = mHexLUT;
 		while (x != 0)
 		{
 			s = a[x & 0xF] + s;
@@ -67,8 +71,8 @@ class NumberFormat
 	}
 	
 	/**
-	 * Returns a string representation of the number in octadecimal notation.
-	 */
+		Returns a string representation of the number `x` in octadecimal notation.
+	**/
 	public static function toOct(x:Int):String
 	{
 		var s = "";
@@ -84,8 +88,8 @@ class NumberFormat
 	}
 	
 	/**
-	 * Same as `int.toString(radix)` in ActionScript 3.0.
-	 */
+		Equals ``int::toString(radix)`` in ActionScript 3.0.
+	**/
 	public static function toRadix(x:Int, radix:Int):String
 	{
 		var s = "";
@@ -100,9 +104,10 @@ class NumberFormat
 	}
 	
 	/**
-	 * Returns a string representation of the number `x` in fixed-point notation.
-	 * @param decimalPlaces the number of decimal places.
-	 */
+		Returns a string representation of the number `x` in fixed-point notation.
+		
+		@param decimalPlaces the number of decimal places.
+	**/
 	public static function toFixed(x:Float, decimalPlaces:Int):String
 	{
 		if (Math.isNaN(x))
@@ -128,22 +133,26 @@ class NumberFormat
 	}
 	
 	/**
-	 * Converts `x` measured in seconds to MM:SS.
-	 */
-	public static function toMMSS(x:Float):String
+		Formats `seconds` to MM:SS.
+	**/
+	public static function toMMSS(seconds:Float):String
 	{
-		x = Std.int(x * 1000);
-		var ms = x % 1000;
-		var r = (x - ms) / 1000;
+		seconds = Std.int(seconds * 1000);
+		var ms = seconds % 1000;
+		var r = (seconds - ms) / 1000;
 		var tmp = r % 60;
 		return (("0" + ((r - tmp) / 60)).substr(-2)) + ":" + ("0" + tmp).substr(-2);
 	}
 	
 	/**
-	 * Groups the digits in the input number by using a thousands separator.
-	 * E.g. the number 1024 is converted to the string "1.024".
-	 * @param thousandsSeparator a character to use as a thousands separator. The default value is ".".
-	 */
+		Groups the digits in the input number by using a thousands separator.
+		
+		E.g. the number 1024 is converted to the string "1.024".
+		
+		<assert>`x` is invalid</assert>
+		@param thousandsSeparator a character to use as a thousands separator.
+		The default value is ".".
+	**/
 	public static function groupDigits(x:Int, thousandsSeparator = "."):String
 	{
 		var s:String = x + "";
@@ -177,15 +186,19 @@ class NumberFormat
 		if (x < 10000000000) //[1.000.000.000, 9.999.999.999]
 			return s.substr(0, 1) + thousandsSeparator + s.substr(1, 3) + thousandsSeparator + s.substr(4, 3) + thousandsSeparator + s.substr(7);
 		
-		throw "invalid value";
+		assert(false, 'invalid value ($x)');
+		return null;
 	}
 	
 	/**
-	 * Euro cent to Euro conversion.
-	 * @param decimalSeparator a character to use as a decimal separator. The default value is ",".
-	 * @param thousandsSeparator a character to use as a thousands separator. The default value is ".".
-	 */
-	public static function centToEuro(x:Int, decimalSeparator = ",", thousandsSeparator = "."):String
+		Cent to basic unit conversion, where one cent equals 1/100 of a basic unit.
+		
+		@param decimalSeparator a character to use as a decimal separator.
+		The default value is ",".
+		@param thousandsSeparator a character to use as a thousands separator.
+		The default value is ".".
+	**/
+	public static function formatCent(x:Int, decimalSeparator = ",", thousandsSeparator = "."):String
 	{
 		var euro = Std.int(x / 100);
 		if (euro == 0)

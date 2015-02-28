@@ -23,7 +23,7 @@ import haxe.io.Bytes;
 import haxe.io.BytesData;
 
 /**
-	<h3>A Base64 encoder/decoder using haxe.crypto.BaseCode</h3>
+	A Base64 encoder/decoder using haxe.crypto.BaseCode
 **/
 class Base64
 {

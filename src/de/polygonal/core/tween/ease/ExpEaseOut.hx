@@ -22,7 +22,7 @@ import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics.M;
 
 /**
-	<h3>Exponential easing out</h3>
+	Exponential easing out
 	
 	See Robert Penner Easing Equations.
 **/

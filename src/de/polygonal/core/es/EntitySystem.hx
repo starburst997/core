@@ -25,13 +25,11 @@ import haxe.ds.Vector;
 
 import de.polygonal.core.es.Entity in E;
 
-/**
-	Short for EntitySystem.
-**/
+@:dox(hide)
 typedef Es = EntitySystem;
 
 /**
-	Manages all active entities.
+	Manages all active entities
 **/
 @:access(de.polygonal.core.es.Entity)
 @:access(de.polygonal.core.es.MsgQue)
@@ -189,30 +187,29 @@ class EntitySystem
 	inline public static function dispatchMessages() mMsgQue.dispatch();
 	
 	/**
-		Returns the entity that matches the given `name` or null if the entity does not exist.
-		
-		- if `clss` is omitted, returns the entity whose name is set to `name`.
-		- if `name` is omitted, returns the entity whose name is set to clss.ENTITY_NAME.
+		Returns the entity that matches the given `name` or null if such an entity does not exist.
 	**/
-	inline public static function findByName<T:Entity>(?name:String, ?clss:Class<T>):T
+	inline public static function findByName<T:Entity>(name:String):T
 	{
-		return
-		if (name != null)
-			cast mEntitiesByName.get(name);
-		else
-		{
-			name =
-			#if flash
-			untyped clss.ENTITY_NAME;
-			#else
-			Reflect.field(clss, "ENTITY_NAME");
-			#end
-			cast mEntitiesByName.get(name);
-		}
+		return cast mEntitiesByName.get(name);
 	}
 	
 	/**
-		Returns the entity that matches the given `id` or null if the entity does not exist.
+		Returns the entity whose name is set to `clss`::ENTITY_NAME or null if such an entity does not exist.
+	**/
+	inline public static function findByClass<T:Entity>(clss:Class<T>):T
+	{
+		var name =
+		#if flash
+		untyped clss.ENTITY_NAME;
+		#else
+		Reflect.field(clss, "ENTITY_NAME");
+		#end
+		return cast mEntitiesByName.get(name);
+	}
+	
+	/**
+		Returns the entity that matches the given `id` or null if such an entity does not exist.
 	**/
 	inline public static function findById(id:EntityId):E
 	{
@@ -525,7 +522,7 @@ class EntitySystem
 		mEntitiesByName.set(e.name, e);
 		
 		#if verbose
-		L.d('registered entity by name: $e', "es");
+		L.d('registered entity by name: ${e.name} => $e', "es");
 		#end
 	}
 }

@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.log;
 
-import de.polygonal.ds.DA;
+import de.polygonal.ds.Da;
 import haxe.ds.StringMap;
 
 using Reflect;
@@ -36,7 +36,7 @@ class LogSystem
 	public static var log:Log = null;
 	
 	static var _config:LogSystemConfig;
-	static var _logList:DA<Log> = null;
+	static var _logList:Da<Log> = null;
 	static var _logLookup:StringMap<Log> = null;
 	
 	public static function init(config:LogSystemConfig)
@@ -80,14 +80,14 @@ class LogSystem
 	}
 	
 	/**
-	 * Creates a new log or returns an existing one.
-	 */
+		Creates a new log or returns an existing one.
+	**/
 	public static function createLog(name:String, addDefaultHandler = false):Log
 	{
 		if (_logLookup == null)
 		{
 			_logLookup = new StringMap<Log>();
-			_logList = new DA<Log>();
+			_logList = new Da<Log>();
 		}
 		
 		if (_logLookup.exists(name))
@@ -107,8 +107,8 @@ class LogSystem
 	}
 	
 	/**
-	 * Unregisters an existing log.
-	 */
+		Unregisters an existing log.
+	**/
 	public static function removeLog(log:Log)
 	{
 		var keys = _logLookup.keys();

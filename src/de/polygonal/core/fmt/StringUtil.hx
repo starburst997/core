@@ -23,21 +23,21 @@ import de.polygonal.core.math.random.Random;
 import de.polygonal.core.util.Assert.assert;
 
 /**
- * Various utility functions for formatting numbers.
- */
+	Various utility functions for working with strings
+**/
 class StringUtil
 {
 	/**
-	 * Returns true if the string `x` consists of whitespace characters only.
-	 */
+		Returns true if the string `x` consists of whitespace characters only.
+	**/
 	public static function isWhite(x:String):Bool
 	{
 		return ~/\S/.match(x) == false;
 	}
 	
 	/**
-	 * Reverses the string `x`.
-	 */
+		Reverses the string `x`.
+	**/
 	public static function reverse(x:String):String
 	{
 		var t = "";
@@ -47,15 +47,15 @@ class StringUtil
 	}
 	
 	/**
-	 * Trims the string `str` to `maxLength` by replacing surplus characters with the ellipsis character (U+2026).
-	 * @param useThreeDots if true, uses three dots (...) instead of the ellipsis character.
-	 * @param `mode`=0: prepend ellipsis, `mode`=1: append ellipsis, `mode`=2: center ellipsis.
-	 */
-	public static function ellipsis(str:String, maxLength:Int, mode:Int, useThreeDots = false):String
+		Trims the string `x` to `maxLength` by replacing surplus characters with the ellipsis character (U+2026).
+		@param useThreeDots if true, uses three dots (...) instead of the ellipsis character.
+		@param mode 0=prepend ellipsis, 1=append ellipsis, 2=center ellipsis.
+	**/
+	public static function ellipsis(x:String, maxLength:Int, mode:Int, useThreeDots = false):String
 	{
-		var l = str.length;
+		var l = x.length;
 		
-		if (l <= maxLength) return str;
+		if (l <= maxLength) return x;
 		
 		if (maxLength == 0) return useThreeDots ? "..." : "…";
 		
@@ -68,23 +68,23 @@ class StringUtil
 				if (l > maxLength)
 				{
 					var ellipsisCharacter = useThreeDots ? "..." : "…";
-					return ellipsisCharacter + str.substr(l + ellipsisCharacter.length - maxLength);
+					return ellipsisCharacter + x.substr(l + ellipsisCharacter.length - maxLength);
 				}
 				else
-					return str;
+					return x;
 			
 			case 1:
 				if (l > maxLength)
 				{
 					var ellipsisCharacter = useThreeDots ? "..." : "…";
-					return str.substr(0, maxLength - ellipsisCharacter.length) + ellipsisCharacter;
+					return x.substr(0, maxLength - ellipsisCharacter.length) + ellipsisCharacter;
 				}
 				else
-					return str;
+					return x;
 			
 			case 2:
-				var l = str.length;
-				var a = str.split("");
+				var l = x.length;
+				var a = x.split("");
 				if (useThreeDots)
 				{
 					a[(l >> 1) - 1] = ".";
@@ -115,8 +115,8 @@ class StringUtil
 	}
 	
 	/**
-	 * Prepends `n` - `x`.length zeros to the string `x`.
-	 */
+		Prepends a total of (`n` - `x`.length) zeros to the string `x`.
+	**/
 	public static function fill0(x:String, n:Int):String
 	{
 		var s = "";
@@ -125,8 +125,8 @@ class StringUtil
 	}
 	
 	/**
-	 * Converts the string `x` in binary format into a decimal number.
-	 */
+		Converts the string `x` in binary format into a decimal number.
+	**/
 	public static function parseBin(x:String):Int
 	{
 		var b = 0;
@@ -148,8 +148,8 @@ class StringUtil
 	}
 	
 	/**
-	 * Converts the string `x` in hexadecimal format into a decimal number.
-	 */
+		Converts the string `x` in hexadecimal format into a decimal number.
+	**/
 	public static function parseHex(x:String):Int
 	{
 		var h = 0;
@@ -182,8 +182,8 @@ class StringUtil
 	}
 	
 	/**
-	 * Generates a random key of given `chars` and `length`.
-	 */
+		Generates a random key of given `chars` * `length`.
+	**/
 	public static function generateRandomKey(chars:String, length:Int):String
 	{
 		var s = "";
@@ -193,13 +193,21 @@ class StringUtil
 	}
 	
 	/**
-	 * Returns true if `x` is latin script only.
-	 */
+		Returns true if `x` is latin script only.
+	**/
 	public static function isLatin(x:String):Bool
 	{
 		for (i in 0...x.length)
 			if (x.charCodeAt(i) > 0x036F)
 				return false;
 		return true;
+	}
+	
+	/**
+		Escapes all regular expression meta characters in `x`.
+	**/
+	public static function escapeRegExMetaChars(x:String):String
+	{
+		return ~/([\[\]\\\^\$\*\+\?\{\|\-\\])/g.replace(x, "\\$1");
 	}
 }

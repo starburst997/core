@@ -29,9 +29,9 @@ import haxe.ds.Vector;
 import haxe.ds.IntMap;
 
 /**
- * An object with state that is observed by an `IObserver` implementation.
- * See <a href="http://en.wikipedia.org/wiki/Observer_pattern" target="_blank">http://en.wikipedia.org/wiki/Observer_pattern</a>.
- */
+	An object with state that is observed by an `IObserver` implementation.
+	See <a href="http://en.wikipedia.org/wiki/Observer_pattern" target="_blank">http://en.wikipedia.org/wiki/Observer_pattern</a>.
+**/
 class Observable extends HashableItem implements IObservable
 {
 	static var _nextGUID = 1;
@@ -44,8 +44,8 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Prints out a list of all installed observers (application-wide).
-	 */
+		Prints out a list of all installed observers (application-wide).
+	**/
 	public static function dump():String
 	{
 		var c = 0;
@@ -59,8 +59,8 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Clears all installed observers (application-wide).
-	 */
+		Clears all installed observers (application-wide).
+	**/
 	public static function release()
 	{
 		try
@@ -76,8 +76,8 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Counts the total number of observers (application-wide).
-	 */
+		Counts the total number of observers (application-wide).
+	**/
 	public static function totalObserverCount():Int
 	{
 		var c = 0;
@@ -86,53 +86,53 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Calls the function `func` whenever `source` triggers an update of one type specified in `mask`.
-	 * Example:
-	 * <pre class="prettyprint">
-	 * import de.polygonal.core.event.Observable;
-	 * import de.polygonal.core.time.Timbase;
-	 * import de.polygonal.core.time.TimbaseEvent;
-	 * class Main {
-	 *     static function main() {
-	 *         var func = function(type, userData) {
-	 *             if (type == TimebaseEvent.TICK) {
-	 *                 trace("tick");
-	 *                 return false; //stop TICK updates, but keep RENDER updates
-	 *             }
-	 *             if (type == TimebaseEvent.RENDER) {
-	 *                 trace("render");
-	 *                 return true; //keep alive
-	 *             }
-	 *         }
-	 *         Observable.bind(func, Timebase.get(), TimebaseEvent.TICK | TimebaseEvent.RENDER);
-	 *     }
-	 * }
-	 * </pre>
-	 */
+		Calls the function `func` whenever `source` triggers an update of one type specified in `mask`.
+		Example:
+		<pre class="prettyprint">
+		import de.polygonal.core.event.Observable;
+		import de.polygonal.core.time.Timbase;
+		import de.polygonal.core.time.TimbaseEvent;
+		class Main {
+		    static function main() {
+		        var func = function(type, userData) {
+		            if (type == TimebaseEvent.TICK) {
+		                trace("tick");
+		                return false; //stop TICK updates, but keep RENDER updates
+		            }
+		            if (type == TimebaseEvent.RENDER) {
+		                trace("render");
+		                return true; //keep alive
+		            }
+		        }
+		        Observable.bind(func, Timebase.get(), TimebaseEvent.TICK | TimebaseEvent.RENDER);
+		    }
+		}
+		</pre>
+	**/
 	public static function bind(func:Int->Dynamic->Bool, source:IObservable, mask = 0)
 	{
 		source.attach(Bind.get(func, mask), mask);
 	}
 	
 	/**
-	 * Delegates `IObserver.onUpdate()` to the given function `func`, as long as `func` returns true.
-	 * Example:
-	 * <pre class="prettyprint">
-	 * import de.polygonal.core.event.Observable;
-	 * import de.polygonal.core.time.TimbaseEvent;
-	 * class Main
-	 * {
-	 *     static function main() {
-	 *         var func = function(type:Int, source:Observable, userData:Dynamic):Bool {
-	 *             trace(type);
-	 *             return false; //detach from event source
-	 *         }
-	 *         var observable = new Observable();
-	 *         observable.attach(Observable.delegate(func));
-	 *     }
-	 * }
-	 * </pre>
-	 */
+		Delegates `IObserver.onUpdate()` to the given function `func`, as long as `func` returns true.
+		Example:
+		<pre class="prettyprint">
+		import de.polygonal.core.event.Observable;
+		import de.polygonal.core.time.TimbaseEvent;
+		class Main
+		{
+		    static function main() {
+		        var func = function(type:Int, source:Observable, userData:Dynamic):Bool {
+		            trace(type);
+		            return false; //detach from event source
+		        }
+		        var observable = new Observable();
+		        observable.attach(Observable.delegate(func));
+		    }
+		}
+		</pre>
+	**/
 	public static function delegate(func:Int->IObservable->Dynamic->Bool):IObserver
 	{
 		return Delegate.get(func);
@@ -160,13 +160,13 @@ class Observable extends HashableItem implements IObservable
 	var mNodeLookup:IntMap<ObserverNode>;
 	
 	/**
-	 * @param poolSize because observers are stored internally in a linked list it's necessary to create a node object per attached observer.
-	 * Thus it makes sense to reuse a node object when an observer is detached from this object instead of handling it over to the GC.
-	 * A value > 0 sets up node pool capable of reusing up to `poolSize` node objects.
-	 * Once the pool has reached its capacity new node objects are still created but not reused.
-	 * To conserve memory node objects are not pre-allocated up front - instead the pool is filled incrementally when detaching observers.
-	 * To force pre-allocation, call `reserve()`.
-	 */
+		@param poolSize because observers are stored internally in a linked list it's necessary to create a node object per attached observer.
+		Thus it makes sense to reuse a node object when an observer is detached from this object instead of handling it over to the GC.
+		A value > 0 sets up node pool capable of reusing up to `poolSize` node objects.
+		Once the pool has reached its capacity new node objects are still created but not reused.
+		To conserve memory node objects are not pre-allocated up front - instead the pool is filled incrementally when detaching observers.
+		To force pre-allocation, call `reserve()`.
+	**/
 	public function new(poolSize = 0, source:IObservable = null)
 	{
 		super();
@@ -190,9 +190,9 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Disposes this object by detaching all observers and explicitly nullifying all nodes, pointers and elements for GC'ing used resources.
-	 * Improves GC efficiency/performance (optional).
-	 */
+		Disposes this object by detaching all observers and explicitly nullifying all nodes, pointers and elements for GC'ing used resources.
+		Improves GC efficiency/performance (optional).
+	**/
 	public function free()
 	{
 		if (mFreed) return;
@@ -222,20 +222,20 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Returns the total number of attached observers.
-	 */
+		Returns the total number of attached observers.
+	**/
 	public function size():Int
 	{
 		return mObserverCount;
 	}
 	
 	/**
-	 * Explicitly allocates k node objects up front for storing observers.
-	 * Because observers are stored internally in a linked list it's necessary to create a node object per observer.
-	 * Thus it makes sense to reuse a node object when an observer is detached from this object instead of handing it over to the GC.
-	 * This improves performance when observers are frequently attached and detached.
-	 * This value can be adjusted at any time; a value of zero disables preallocation.
-	 */
+		Explicitly allocates k node objects up front for storing observers.
+		Because observers are stored internally in a linked list it's necessary to create a node object per observer.
+		Thus it makes sense to reuse a node object when an observer is detached from this object instead of handing it over to the GC.
+		This improves performance when observers are frequently attached and detached.
+		This value can be adjusted at any time; a value of zero disables preallocation.
+	**/
 	public function reserve(k:Int)
 	{
 		mPoolCapacity = k;
@@ -257,10 +257,10 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Removes all attached observers.
-	 * The internal pool defined by `reserve()` is not altered.
-	 * @param purge if true, the pool is emptied.
-	 */
+		Removes all attached observers.
+		The internal pool defined by `reserve()` is not altered.
+		@param purge if true, the pool is emptied.
+	**/
 	public function clear(purge = false)
 	{
 		if (mObserverCount > 0) _getRegistry().remove(this);
@@ -298,46 +298,46 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Registers an observer object `o` with this object so it is updated when calling `notify()`.
-	 * Example:
-	 * <pre class="prettyprint">
-	 * import de.polygonal.core.event.Observable;
-	 * import de.polygonal.core.event.IObserver;
-	 * 
-	 * @:build(de.polygonal.core.event.ObserverMacro.create(
-	 * [
-	 *     UPDATE_A,
-	 *     UPDATE_B,
-	 *     UPDATE_C
-	 * ]))
-	 * class MyEvent {}
-	 * 
-	 * class MyObserver implements IObserver {
-	 *     public function new() {}
-	 *     public function onUpdate(type:Int, source:Observable, userData:Dynamic) {}
-	 * }
-	 * 
-	 * class Main {
-	 *     public static function main() {
-	 *         var observable = new Observable();
-	 *         var observer = new MyObserver();
-	 *         
-	 *         //register with all updates (UPDATE_A, UPDATE_B, UPDATE_C)
-	 *         observable.attach(observer);
-	 *         
-	 *         //or only register with a single update
-	 *         observable.attach(observer, MyEvents.UPDATE_A);
-	 *         
-	 *         //or only register with a subset of updates
-	 *         observable.attach(observer, MyEvents.UPDATE_A | MyEvents.UPDATE_B);
-	 *     }
-	 * }</pre>
-	 * @param o the observer to register with.
-	 * @param mask a bit field of bit flags defining which event types to register with.
-	 * This can be used to select a subset of events from an event group.
-	 * By default, `o` receives all updates from an event group.
-	 * <warn>Must only contain event types from a single group, e.g. this mask is invalid: MyEventA.EVENT_X | MyEventB.EVENT_Y.</warn>
-	 */
+		Registers an observer object `o` with this object so it is updated when calling `notify()`.
+		Example:
+		<pre class="prettyprint">
+		import de.polygonal.core.event.Observable;
+		import de.polygonal.core.event.IObserver;
+		
+		@:build(de.polygonal.core.event.ObserverMacro.create(
+		[
+		    UPDATE_A,
+		    UPDATE_B,
+		    UPDATE_C
+		]))
+		class MyEvent {}
+		
+		class MyObserver implements IObserver {
+		    public function new() {}
+		    public function onUpdate(type:Int, source:Observable, userData:Dynamic) {}
+		}
+		
+		class Main {
+		    public static function main() {
+		        var observable = new Observable();
+		        var observer = new MyObserver();
+		        
+		        //register with all updates (UPDATE_A, UPDATE_B, UPDATE_C)
+		        observable.attach(observer);
+		        
+		        //or only register with a single update
+		        observable.attach(observer, MyEvents.UPDATE_A);
+		        
+		        //or only register with a subset of updates
+		        observable.attach(observer, MyEvents.UPDATE_A | MyEvents.UPDATE_B);
+		    }
+		}</pre>
+		@param o the observer to register with.
+		@param mask a bit field of bit flags defining which event types to register with.
+		This can be used to select a subset of events from an event group.
+		By default, `o` receives all updates from an event group.
+		<warn>Must only contain event types from a single group, e.g. this mask is invalid: MyEventA.EVENT_X | MyEventB.EVENT_Y.</warn>
+	**/
 	public function attach(o:IObserver, mask = 0)
 	{
 		if (mFreed) return;
@@ -418,49 +418,49 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Unregisters an observer object `o` from this object so it is no longer updated when calling `notify()`.
-	 * Example:
-	 * <pre class="prettyprint">
-	 * import de.polygonal.core.event.Observable;
-	 * import de.polygonal.core.event.IObserver;
-	 * 
-	 * @:build(de.polygonal.core.event.ObserverMacro.create(
-	 * [
-	 *     UPDATE_A,
-	 *     UPDATE_B,
-	 *     UPDATE_C
-	 * ]))
-	 * class MyEvent {}
-	 * 
-	 * class MyObserver implements IObserver {
-	 *     public function new() {}
-	 *     public function onUpdate(type:Int, source:Observable, userData:Dynamic) {}
-	 * }
-	 * 
-	 * class Main {
-	 *     public static function main() {
-	 *         var observable = new Observable();
-	 *         var observer = new MyObserver();
-	 *         
-	 *         //register with all updates (UPDATE_A, UPDATE_B, UPDATE_C, UPDATE_D)
-	 *         observable.attach(observer);
-	 *         
-	 *         //only unregister from UPDATE_A
-	 *         observable.detach(observer, MyEvents.UPDATE_A);
-	 *         
-	 *         //only unregister from UPDATE_B and UPDATE_C
-	 *         observable.detach(observer, MyEvents.UPDATE_B | MyEvents.UPDATE_C);
-	 *         
-	 *         //unregister from event group (UPDATE_A, UPDATE_B, UPDATE_C, UPDATE_D)
-	 *         observable.detach(observer);
-	 *     }
-	 * }</pre>
-	 * @param o the observer to unregister from.
-	 * @param mask a bit field of bit flags defining which event types to unregister from.
-	 * This can be used to select a subset of events from an event group.
-	 * By default, `o` is unregistered from the entire event group.
-	 * <warn>Must only contain event types from a single group.</warn>
-	 */
+		Unregisters an observer object `o` from this object so it is no longer updated when calling `notify()`.
+		Example:
+		<pre class="prettyprint">
+		import de.polygonal.core.event.Observable;
+		import de.polygonal.core.event.IObserver;
+		
+		@:build(de.polygonal.core.event.ObserverMacro.create(
+		[
+		    UPDATE_A,
+		    UPDATE_B,
+		    UPDATE_C
+		]))
+		class MyEvent {}
+		
+		class MyObserver implements IObserver {
+		    public function new() {}
+		    public function onUpdate(type:Int, source:Observable, userData:Dynamic) {}
+		}
+		
+		class Main {
+		    public static function main() {
+		        var observable = new Observable();
+		        var observer = new MyObserver();
+		        
+		        //register with all updates (UPDATE_A, UPDATE_B, UPDATE_C, UPDATE_D)
+		        observable.attach(observer);
+		        
+		        //only unregister from UPDATE_A
+		        observable.detach(observer, MyEvents.UPDATE_A);
+		        
+		        //only unregister from UPDATE_B and UPDATE_C
+		        observable.detach(observer, MyEvents.UPDATE_B | MyEvents.UPDATE_C);
+		        
+		        //unregister from event group (UPDATE_A, UPDATE_B, UPDATE_C, UPDATE_D)
+		        observable.detach(observer);
+		    }
+		}</pre>
+		@param o the observer to unregister from.
+		@param mask a bit field of bit flags defining which event types to unregister from.
+		This can be used to select a subset of events from an event group.
+		By default, `o` is unregistered from the entire event group.
+		<warn>Must only contain event types from a single group.</warn>
+	**/
 	public function detach(o:IObserver, mask:Int = 0)
 	{
 		if (mFreed) //free() was called?
@@ -523,36 +523,36 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Notifies all attached observers to indicate that the state of this object has changed.
-	 * @param type the event type.
-	 * <warn>Must only contain event types from a single group.</warn>
-	 * @param userData additional event data. Default value is null.
-	 */
+		Notifies all attached observers to indicate that the state of this object has changed.
+		@param type the event type.
+		<warn>Must only contain event types from a single group.</warn>
+		@param userData additional event data. Default value is null.
+	**/
 	public function notify(type:Int, userData:Dynamic = null)
 	{
 		_notify(type, userData);
 	}
 	
 	/**
-	 * Disables all updates of type `x`.
-	 * Improves performance if an event group repeatedly fires frequent updates that are not handled by an application (e.g. mouse move events).
-	 */
+		Disables all updates of type `x`.
+		Improves performance if an event group repeatedly fires frequent updates that are not handled by an application (e.g. mouse move events).
+	**/
 	public function muteType(x:Int)
 	{
 		_blacklist |= x;
 	}
 	
 	/**
-	 * Removes the update type `x` from a blacklist of disabled updates, see `mute()`.
-	 */
+		Removes the update type `x` from a blacklist of disabled updates, see `mute()`.
+	**/
 	public function unmuteType(x:Int)
 	{
 		_blacklist = _blacklist & ~x;
 	}
 	
 	/**
-	 * Returns true if `o` is registered with this object.
-	 */
+		Returns true if `o` is registered with this object.
+	**/
 	public function contains(o:IObserver):Bool
 	{
 		var n = mObserverList;
@@ -565,8 +565,8 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Returns an unordered list of all registered observers.
-	 */
+		Returns an unordered list of all registered observers.
+	**/
 	public function getObserverList():Array<IObserver>
 	{
 		var v = new Array<IObserver>();
@@ -580,9 +580,9 @@ class Observable extends HashableItem implements IObservable
 	}
 	
 	/**
-	 * Returns a new `ObservableIterator` object to iterate over all registered observers.
-	 * @see <a href="http://haxe.org/ref/iterators" target="_blank">http://haxe.org/ref/iterators</a>
-	 */
+		Returns a new `ObservableIterator` object to iterate over all registered observers.
+		@see <a href="http://haxe.org/ref/iterators" target="_blank">http://haxe.org/ref/iterators</a>
+	**/
 	public function iterator():Iterator<IObserver>
 	{
 		return new ObservableIterator<IObserver>(mObserverList);

@@ -22,7 +22,7 @@ import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics.M;
 
 /**
-	<h3>Power easing out (quadratic, cubic, quartic, quintic)</h3>
+	Power easing out (quadratic, cubic, quartic, quintic)
 	
 	See Robert Penner Easing Equations.
 **/

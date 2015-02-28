@@ -22,7 +22,7 @@ import de.polygonal.core.time.TimelineListener;
 
 /**
  * Carries out a deferred function call.
- */
+**/
 class Delay implements TimelineListener
 {
 	var mId:Int;

@@ -21,22 +21,22 @@ package de.polygonal.core.time;
 interface Job
 {
 	/**
-	 * Called when the job has been started.
-	 */
+		Called when the job has been started.
+	**/
 	function onStart():Void;
 	
 	/**
-	 * Called while the job is running.
-	 */
+		Called while the job is running.
+	**/
 	function onProgress(alpha:Float):Void;
 	
 	/**
-	 * Called when the job has been completed.
-	 */
+		Called when the job has been completed.
+	**/
 	function onComplete():Void;
 	
 	/**
-	 * Called when the job has been aborted.
-	 */
+		Called when the job has been aborted.
+	**/
 	function onAbort():Void;
 }

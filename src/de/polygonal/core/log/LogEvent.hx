@@ -26,13 +26,13 @@ package de.polygonal.core.log;
 #end
 /**
  * Updates triggered by a `Log` object.
- */
+**/
 class LogEvent
 {
 	#if doc
 	/**
-	 * A log message was received.
-	 */
+		A log message was received.
+	**/
 	public static var LOG_MESSAGE:Int;
 	#end
 }

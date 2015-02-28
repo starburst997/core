@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween.ease;
 
 /**
-	<h3>Enumeration of all easing interpolations</h3>
+	Enumeration of all easing interpolations
 	
 	An easing interpolator defines the rate of change of an animation.
 **/
