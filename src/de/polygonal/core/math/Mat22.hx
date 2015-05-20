@@ -73,7 +73,9 @@ class Mat22
 			m22 = col2.y;
 		}
 	}
-	/** Returns the column at index `i`**/
+	/**
+		Returns the column at index `i`
+	**/
 	inline public function getCol(i:Int, output:Vec2):Vec2
 	{
 		assert(i >= 0 && i < 2, "i >= 0 && i < 2");
@@ -92,7 +94,9 @@ class Mat22
 		return output;
 	}
 	
-	/** Assigns the values of `other` to this.**/
+	/**
+		Assigns the values of `other` to this.
+	**/
 	inline public function set(other:Mat22):Mat22
 	{
 		m11 = other.m11; m12 = other.m12;
@@ -112,7 +116,9 @@ class Mat22
 		m22 = y;
 	}
 	
-	/** Assign two columns.**/
+	/**
+		Assign two columns.
+	**/
 	inline public function setCols(u:Vec2, v:Vec2):Mat22
 	{
 		m11 = u.x; m12 = v.x;
@@ -120,7 +126,9 @@ class Mat22
 		return this;
 	}
 	
-	/** Set to identity matrix.**/
+	/**
+		Set to identity matrix.
+	**/
 	inline public function setIdentity():Mat22
 	{
 		m11 = 1; m12 = 0;
@@ -128,7 +136,9 @@ class Mat22
 		return this;
 	}
 	
-	/** Zero out all matrix elements.**/
+	/**
+		Zero out all matrix elements.
+	**/
 	inline public function setZero():Mat22
 	{
 		m11 = 0; m12 = 0;
@@ -146,7 +156,9 @@ class Mat22
 		return Math.atan2(m21, m11);
 	}
 	
-	/** Set as rotation matrix, rotating by `angle` radians.**/
+	/**
+		Set as rotation matrix, rotating by `angle` radians.
+	**/
 	inline public function setAngle(angle:Float)
 	{
 		var c = Math.cos(angle);
@@ -155,7 +167,9 @@ class Mat22
 		m21 = s; m22 = c;
 	}
 	
-	/** Set as rotation matrix, rotating by approximate `angle` radians.**/
+	/**
+		Set as rotation matrix, rotating by approximate `angle` radians.
+	**/
 	inline public function setApproxAngle(angle:Float)
 	{
 		var s = Math.sin(angle);
@@ -164,14 +178,18 @@ class Mat22
 		m21 = s; m22 = c;
 	}
 	
-	/** Multiplies all matrix elements by the scalar `x`.**/
+	/**
+		Multiplies all matrix elements by the scalar `x`.
+	**/
 	inline public function timesScalar(x:Float)
 	{
 		m11 *= x; m12 *= x;
 		m21 *= x; m22 *= x;
 	}
 	
-	/** Matrix - column vector multiplication (M*V): `rhs`' = this * `rhs`.**/
+	/**
+		Matrix - column vector multiplication (M*V): `rhs`' = this * `rhs`.
+	**/
 	inline public function timesVector(rhs:Vec2):Vec2
 	{
 		var x = rhs.x;
@@ -181,13 +199,17 @@ class Mat22
 		return rhs;
 	}
 	
-	/* Multiply vector x,y with first row**/
+	/**
+		Multiply vector x,y with first row
+	**/
 	inline public function mulx(x:Float, y:Float):Float
 	{
 		return x * m11 + y * m12;
 	}
 	
-	/* Multiply vector x,y with second row**/
+	/**
+		Multiply vector x,y with second row
+	**/
 	inline public function muly(x:Float, y:Float):Float
 	{
 		return x * m21 + y * m22;
@@ -206,7 +228,9 @@ class Mat22
 		return output;
 	}
 	
-	/** Matrix - row vector multiplication (M^t*V): `lhs`' = `lhs`*this.**/
+	/**
+		Matrix - row vector multiplication (M^t*V): `lhs`' = `lhs`*this.
+	**/
 	inline public function vectorTimes(lhs:Vec2):Vec2
 	{
 		var x = lhs.x;
@@ -216,7 +240,9 @@ class Mat22
 		return lhs;
 	}
 	
-	/** Computes the matrix transpose and returns this matrix.**/
+	/**
+		Computes the matrix transpose and returns this matrix.
+	**/
 	inline public function transpose():Mat22
 	{
 		var tmp = m21; m21 = m12; m12 = tmp;
@@ -234,7 +260,9 @@ class Mat22
 		return output;
 	}
 	
-	/** R = M*D**/
+	/**
+		R = M*D
+	**/
 	inline public function timesDiagonal(rhs:Vec2):Mat22
 	{
 		//|m11 m12| |x 0|
@@ -246,7 +274,9 @@ class Mat22
 		return this;
 	}
 	
-	/** R = M*DStores the result in `output`.**/
+	/**
+		R = M*DStores the result in `output`.
+	**/
 	inline public function timesDiagonalConst(rhs:Vec2, output:Mat22):Mat22
 	{
 		//|m11 m12| |x 0|
@@ -258,7 +288,9 @@ class Mat22
 		return output;
 	}
 	
-	/** R = D*M**/
+	/**
+		R = D*M
+	**/
 	inline public function diagonalTimes(lhs:Vec2):Mat22
 	{
 		//|x 0| |m11 m12|
@@ -270,7 +302,9 @@ class Mat22
 		return this;
 	}
 	
-	/** Post-concatenates `lhs`: this = `lhs`*this.**/
+	/**
+		Post-concatenates `lhs`: this = `lhs`*this.
+	**/
 	inline public function cat(lhs:Mat22):Mat22
 	{
 		var c11 = m11; var c12 = m12;
@@ -287,7 +321,9 @@ class Mat22
 		return this;
 	}
 	
-	/** Pre-concatenates `rhs`: this = this*`rhs`.**/
+	/**
+		Pre-concatenates `rhs`: this = this*`rhs`.
+	**/
 	inline public function precat(rhs:Mat22):Mat22
 	{
 		var c11 = rhs.m11; var c12 = rhs.m12;
@@ -358,7 +394,9 @@ class Mat22
 		return this;
 	}
 	
-	/** Returns the max-column-sum matrix norm.**/
+	/**
+		Returns the max-column-sum matrix norm.
+	**/
 	public function norm():Float
 	{
 		var colSum1 = M.fabs(m11) + M.fabs(m21);
@@ -366,7 +404,9 @@ class Mat22
 		return M.fmax(colSum1, colSum2);
 	}
 	
-	/** Divides all matrix elements by the scalar `x`.**/
+	/**
+		Divides all matrix elements by the scalar `x`.
+	**/
 	inline public function div(x:Float)
 	{
 		if (M.cmpZero(x, M.ZERO_TOLERANCE))
@@ -390,7 +430,9 @@ class Mat22
 		return c;
 	}
 	
-	/** Returns the string form of the value that the object represents.**/
+	/**
+		Returns the string form of the value that the object represents.
+	**/
 	public function toString():String
 	{
 		return Printf.format("Mat22:\n" +

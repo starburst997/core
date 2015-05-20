@@ -27,24 +27,24 @@ import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.time.Timebase;
 import de.polygonal.core.time.TimebaseEvent;
 import de.polygonal.core.time.Timeline;
-import de.polygonal.core.time.TimeSpan;
+import de.polygonal.core.time.TimelineListener;
 import de.polygonal.core.tween.ease.Ease;
 import de.polygonal.core.tween.ease.EaseFactory;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.ds.DA;
+import de.polygonal.ds.Da;
 import haxe.ds.StringMap;
 
 /**
- * Interpolates between two states by using an easing equation.
- */
-class Tween implements IObservable implements IObserver implements TimeSpan
+	Interpolates between two states by using an easing equation
+**/
+class Tween implements IObservable implements IObserver implements TimelineListener
 {
-	static var _activeTweens:DA<Tween>;
+	static var _activeTweens:Da<Tween>;
 	static var _map:StringMap<Tween>;
 	
 	/**
-	 * Stops and destroys all running tweens.
-	 */
+		Stops and destroys all running tweens.
+	**/
 	public static function stopActiveTweens()
 	{
 		for (i in _activeTweens) i.free();
@@ -52,8 +52,8 @@ class Tween implements IObservable implements IObserver implements TimeSpan
 	}
 	
 	/**
-	 * Returns the `Tween` object mapped to `key` or null if no such `Tween` exists.
-	 */
+		Returns the `Tween` object mapped to `key` or null if no such `Tween` exists.
+	**/
 	public static function get(key:String):Tween
 	{
 		if (_map == null) return null;
@@ -61,8 +61,8 @@ class Tween implements IObservable implements IObserver implements TimeSpan
 	}
 	
 	/**
-	 * Removes all non-running `Tween` objects with assigned keys.
-	 */
+		Removes all non-running `Tween` objects with assigned keys.
+	**/
 	public static function purge()
 	{
 		for (i in _map.keys())
@@ -80,8 +80,8 @@ class Tween implements IObservable implements IObserver implements TimeSpan
 	}
 	
 	/**
-	 * Helper function for tweening any `fields` of an `object`.
-	 */
+		Helper function for tweening any `fields` of an `object`.
+	**/
 	public static function create(key:String = null, object:Dynamic, fields:Dynamic, ease:Ease, to:Float, duration:Float, interpolateState = false):Tween
 	{
 		return new GenericTween(key, object, fields, ease, to , duration, interpolateState);
@@ -104,14 +104,14 @@ class Tween implements IObservable implements IObserver implements TimeSpan
 	var _observable:Observable;
 	
 	/**
-	 * @param key assigning a key makes it possible to reuse this `Tween` object later on by calling `Tween`.getKey(`key`).
-	 * To fully remove a `Tween` object call `Tween.free()`.
-	 * @param target the object that gets tweened.
-	 * @param ease the easing method. If null, no easing is applied and `Ease.None` is used instead.
-	 * @param to the target value.
-	 * @param duration the duration in seconds.
-	 * @param interpolateState if true, applies the tweened value in a separate rendering step.
-	 */
+		@param key assigning a key makes it possible to reuse this `Tween` object later on by calling `Tween`.getKey(`key`).
+		To fully remove a `Tween` object call `Tween.free()`.
+		@param target the object that gets tweened.
+		@param ease the easing method. If null, no easing is applied and `Ease.None` is used instead.
+		@param to the target value.
+		@param duration the duration in seconds.
+		@param interpolateState if true, applies the tweened value in a separate rendering step.
+	**/
 	public function new(key:String = null, target:TweenTarget, ease:Ease, to:Float, duration:Float, interpolateState = false)
 	{
 		if (ease == null) ease = Ease.None;
@@ -165,8 +165,8 @@ class Tween implements IObservable implements IObserver implements TimeSpan
 	}
 	
 	/**
-	 * The tween progress in the interval `[0, 1]`.
-	 */
+		The tween progress in the interval `[0, 1]`.
+	**/
 	inline public function getProgress():Float
 	{
 		return ChangeRange.map(_b, _min, _max, 0, 1);
@@ -285,13 +285,13 @@ class Tween implements IObservable implements IObserver implements TimeSpan
 		_target.set(M.lerp(_a, _b, alpha));
 	}
 	
-	function onBlip()
+	function onInstant(id:Int, iteration:Int)
 	{
 	}
 	
-	function onStart()
+	function onStart(id:Int, iteration:Int)
 	{
-		if (_activeTweens == null) _activeTweens = new DA<Tween>();
+		if (_activeTweens == null) _activeTweens = new Da<Tween>();
 		_activeTweens.pushBack(this);
 		if (_interpolate) Timebase.attach(this, TimebaseEvent.RENDER);
 		_a = _b = _min;
@@ -307,7 +307,7 @@ class Tween implements IObservable implements IObserver implements TimeSpan
 		notify(TweenEvent.ADVANCE, _b);
 	}
 	
-	function onEnd()
+	function onFinish(id:Int, iteration:Int)
 	{
 		if (_id == -1) return;
 		_id = -1;
@@ -330,7 +330,7 @@ class Tween implements IObservable implements IObserver implements TimeSpan
 		if (_key == null) free();
 	}
 	
-	function onCancel()
+	function onCancel(id:Int)
 	{
 		if (_activeTweens != null) _activeTweens.remove(this);
 		notify(TweenEvent.FINISH, _b);

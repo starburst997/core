@@ -21,8 +21,8 @@ package de.polygonal.core.util;
 class ClassUtil
 {
 	/**
-	 * Returns the qualified class name of `x`.
-	 */
+		Returns the qualified class name of `x`.
+	**/
 	public static function getClassName(x:Dynamic):String
 	{
 		if (Std.is(x, Class))
@@ -35,8 +35,8 @@ class ClassUtil
 	}
 	
 	/**
-	 * Returns the unqualified class name of `x`.
-	 */
+		Returns the unqualified class name of `x`.
+	**/
 	public static function getUnqualifiedClassName(x:Dynamic):String
 	{
 		if (Std.is(x, Class))
@@ -52,8 +52,8 @@ class ClassUtil
 	}
 	
 	/**
-	 * Extracts the package name from `x`.
-	 */
+		Extracts the package name from `x`.
+	**/
 	public static function getPackageName(x:Dynamic):String
 	{
 		if (Std.is(x, String))
@@ -83,8 +83,8 @@ class ClassUtil
 	}
 	
 	/**
-	 * Creates an instance of a class given by passing the fully qualified `name`.
-	 */
+		Creates an instance of a class given by passing the fully qualified `name`.
+	**/
 	public static function createInstanceOfClassName<T>(name:String, ?args:Array<Dynamic>):T
 	{
 		if (args == null) args = [];

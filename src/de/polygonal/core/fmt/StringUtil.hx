@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.fmt;
 
-import de.polygonal.core.fmt.ASCII;
+import de.polygonal.core.fmt.Ascii;
 import de.polygonal.core.math.random.Random;
 import de.polygonal.core.util.Assert.assert;
 
@@ -160,21 +160,21 @@ class StringUtil
 			var c = x.charCodeAt(i);
 			if (c == 88 || c == 120) break;
 			
-			if (ASCII.isDigit(c))
+			if (Ascii.isDigit(c))
 			{
-				h += (c - ASCII.ZERO) * (1 << j);
+				h += (c - Ascii.ZERO) * (1 << j);
 				j += 4;
 			}
 			else
-			if (c >= ASCII.A && c <= ASCII.F)
+			if (c >= Ascii.A && c <= Ascii.F)
 			{
-				h += (c - ASCII.F + 15) * (1 << j);
+				h += (c - Ascii.F + 15) * (1 << j);
 				j += 4;
 			}
 			else
-			if (c >= ASCII.a && c <= ASCII.f)
+			if (c >= Ascii.a && c <= Ascii.f)
 			{
-				h += (c - ASCII.f + 15) * (1 << j);
+				h += (c - Ascii.f + 15) * (1 << j);
 				j += 4;
 			}
 		}
@@ -198,8 +198,11 @@ class StringUtil
 	public static function isLatin(x:String):Bool
 	{
 		for (i in 0...x.length)
-			if (x.charCodeAt(i) > 0x036F)
+		{
+			var code = x.charCodeAt(i);
+			if (code > 0x036F && code != 0x20AC) //ignore euro sign
 				return false;
+		}
 		return true;
 	}
 	
@@ -210,4 +213,23 @@ class StringUtil
 	{
 		return ~/([\[\]\\\^\$\*\+\?\{\|\-\\])/g.replace(x, "\\$1");
 	}
+	
+	public static function hashCode(x:String):Int
+	{
+		var hash = 0;
+		
+		var k = x.length;
+		if (k == 0) return hash;
+		for (i in 0...k)
+		{
+			var c = x.charCodeAt(i);
+			hash = ((hash << 5) - hash) + c;
+			
+			#if js
+			hash = hash & hash; // Convert to 32bit integer
+			#end
+		}
+		
+		return hash;
+    }
 }

@@ -26,7 +26,7 @@ import haxe.io.Eof;
 import haxe.io.Input;
 
 /**
- * <h3>Run-length encoder/decoder (RLE)</h3>
+ * Run-length encoder/decoder (RLE)
 **/
 class Rle
 {

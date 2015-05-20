@@ -22,7 +22,7 @@ import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.ArrayedQueue;
 import de.polygonal.ds.Cloneable;
-import de.polygonal.ds.DLL;
+import de.polygonal.ds.Dll;
 import de.polygonal.ds.Heap;
 import de.polygonal.ds.Heapable;
 import de.polygonal.ds.IntHashTable;
@@ -43,7 +43,7 @@ class Timeline
 	static var mNextTick:Int;
 	
 	static var mBufferedIntervals:ArrayedQueue<TimelineNode>;
-	static var mActiveIntervals:DLL<TimelineNode>;
+	static var mActiveIntervals:Dll<TimelineNode>;
 	static var mPendingIntervals:Heap<TimelineNode>;
 	static var mIntervalLut:IntHashTable<TimelineNode>;
 	
@@ -60,7 +60,7 @@ class Timeline
 		mNextTick = 1;
 		
 		mBufferedIntervals = new ArrayedQueue<TimelineNode>(4096);
-		mActiveIntervals = new DLL<TimelineNode>();
+		mActiveIntervals = new Dll<TimelineNode>();
 		mPendingIntervals = new Heap<TimelineNode>();
 		mIntervalLut = new IntHashTable<TimelineNode>(1 << 16);
 		
@@ -90,7 +90,7 @@ class Timeline
 	/**
 		Schedules an event to run after `delay` seconds, for a period of `duration` seconds.
 		
-		Returns a unique id that identifies the event. This id can be used to cancel a pending/running time interval or instant by calling `Timeline.cancel(id)`.
+		Returns an unique id that identifies the event. This id can be used to cancel a pending/running time interval or instant by calling `Timeline.cancel(id)`.
 		
 		- if `repeatCount` > 0, the event repeats `repeatCount` times, each time waiting for `repeatInterval` seconds before the event is carried out again.
 		- if `repeatCount` > 0 and `repeatInterval` is omitted, `delay` is used in place of `repeatInterval`.

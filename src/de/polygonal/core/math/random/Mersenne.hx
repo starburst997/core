@@ -29,7 +29,7 @@ import haxe.ds.Vector;
 	
 	This class uses the Mersenne Twister type MT19937, it does not use the faster SIMD-oriented Mersenne Twister as that requires 64-bit integers.
 **/
-class Mersenne extends RNG
+class Mersenne extends Rng
 {
 	inline static var kN = 624;
 	inline static var kM = 397;
@@ -49,8 +49,8 @@ class Mersenne extends RNG
 	var mStateVector:de.polygonal.ds.mem.IntMemory;
 	var mKmag01:de.polygonal.ds.mem.IntMemory;
 	#else
-	var mStateVector:Vector<Int>;
-	var mKmag01:Vector<Int>;
+	var mStateVector:Vector<UInt>;
+	var mKmag01:Vector<UInt>;
 	#end
 	
 	var mCurrentEntry:Int;
@@ -66,14 +66,14 @@ class Mersenne extends RNG
 		#if (flash10 && alchemy)
 		new de.polygonal.ds.mem.IntMemory(kN);
 		#else
-		new Vector<Int>(kN);
+		new Vector<UInt>(kN);
 		#end
 		
 		mKmag01 =
 		#if (flash10 && alchemy)
 		new de.polygonal.ds.mem.IntMemory(2);
 		#else
-		new Vector<Int>(2);
+		new Vector<UInt>(2);
 		#end
 		mKmag01.set(0, 0);
 		mKmag01.set(1, kA);

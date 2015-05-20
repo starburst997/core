@@ -82,6 +82,15 @@ class Rect<T:Float>
 	{
 		return new Rect<T>(x, y, w, h);
 	}
+	
+	public function toString():String
+	{
+		return
+		if (Std.is(x, Int) && Std.is(y, Int) && Std.is(w, Int) && Std.is(h, Int))
+			'{ Rect x=$x y=$y w=$w h=$h }';
+		else
+			Printf.format('{ Rect x=%-.4f y=%-.4f w=%-.4f h=%-.4f }', [x, y, w, h]);
+	}
 }
 
 typedef Rectf = Rect<Float>;

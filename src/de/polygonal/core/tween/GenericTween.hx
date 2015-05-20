@@ -21,12 +21,11 @@ package de.polygonal.core.tween;
 import de.polygonal.core.tween.ease.Ease;
 import de.polygonal.ds.ArrayUtil;
 
-using de.polygonal.ds.BitFlags;
 using Reflect;
 
 /**
- * Supports tweening of any field of any object.
- */
+	Supports tweening of any field of any object
+**/
 class GenericTween extends Tween implements TweenTarget
 {
 	var _object:Dynamic;

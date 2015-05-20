@@ -26,12 +26,11 @@ import de.polygonal.core.log.LogMessage;
 import de.polygonal.core.util.Assert.assert;
 import haxe.ds.StringMap;
 
-using de.polygonal.ds.BitFlags;
 using de.polygonal.ds.Bits;
 
 /**
  * A log handler receives log messages from a log and exports them to various output devices.
- */
+**/
 @:build(de.polygonal.core.macro.IntConsts.build(
 [
 	DATE, TIME, TICK, LEVEL, NAME, TAG, CLASS, CLASS_SHORT, METHOD, LINE
@@ -65,22 +64,22 @@ class LogHandler implements IObserver
 	}
 	
 	/**
-	 * Disposes this object by explicitly nullifying all references for GC'ing used resources.
-	 */
+		Disposes this object by explicitly nullifying all references for GC'ing used resources.
+	**/
 	public function free() {}
 	
 	/**
-	 * Returns the active output level(s) encoded as a bitfield.
-	 */
+		Returns the active output level(s) encoded as a bitfield.
+	**/
 	public function getLevel():Int
 	{
 		return _level;
 	}
 	
 	/**
-	 * Returns the name(s) of the active output level(s).
-	 * @see `Log#getLevelName()`.
-	 */
+		Returns the name(s) of the active output level(s).
+		@see `Log#getLevelName()`.
+	**/
 	public function getLevelName():String
 	{
 		if (_level.ones() > 1)
@@ -100,23 +99,23 @@ class LogHandler implements IObserver
 	}
 	
 	/**
-	 * Sets the log level `x` specifying which message levels will be ultimately handled.
-	 * Example:
-	 * <pre class="prettyprint">
-	 * import de.polygonal.core.log.LogLevel;
-	 * import de.polygonal.core.log.Log;
-	 * import de.polygonal.core.log.handler.TraceHandler;
-	 * class Main
-	 * {
-	 *     static function main() {
-	 *         var log = Log.getLog("Foo");
-	 *         log.setLevel(LogLevel.DEBUG); //print DEBUG, INFO, WARN and ERROR logging messages
-	 *         var handler = new TraceHandler();
-	 *         handler.setLevel(Level.WARN); //log allows all levels, but the handler filters out everything except Level.WARN.
-	 *     }
-	 * }</pre>
-	 * @throws de.polygonal.core.util.AssertError invalid log level (debug only).
-	 */
+		Sets the log level `x` specifying which message levels will be ultimately handled.
+		Example:
+		<pre class="prettyprint">
+		import de.polygonal.core.log.LogLevel;
+		import de.polygonal.core.log.Log;
+		import de.polygonal.core.log.handler.TraceHandler;
+		class Main
+		{
+		    static function main() {
+		        var log = Log.getLog("Foo");
+		        log.setLevel(LogLevel.DEBUG); //print DEBUG, INFO, WARN and ERROR logging messages
+		        var handler = new TraceHandler();
+		        handler.setLevel(Level.WARN); //log allows all levels, but the handler filters out everything except Level.WARN.
+		    }
+		}</pre>
+		@throws de.polygonal.core.util.AssertError invalid log level (debug only).
+	**/
 	public function setLevel(x:Int)
 	{
 		#if debug
@@ -140,30 +139,30 @@ class LogHandler implements IObserver
 	}
 	
 	/**
-	 * The current logging format encoded as a bitfield.
-	 */
+		The current logging format encoded as a bitfield.
+	**/
 	public function getFormat():Int
 	{
 		return mBits;
 	}
 	
 	/**
-	 * Adds extra information to a logging message.
-	 * Example:
-	 * <pre class="prettyprint">
-	 * import de.polygonal.core.log.LogHandler;
-	 * import de.polygonal.core.log.handler.TraceHandler;
-	 * class Main
-	 * {
-	 *     static function main() {
-	 *         var handler = new TraceHandler();
-	 *         handler.setFormat(LogHandler.TIME | LogHandler.NAME);</pre>
-	 *     }
-	 * }</pre>
-	 */
+		Adds extra information to a logging message.
+		Example:
+		<pre class="prettyprint">
+		import de.polygonal.core.log.LogHandler;
+		import de.polygonal.core.log.handler.TraceHandler;
+		class Main
+		{
+		    static function main() {
+		        var handler = new TraceHandler();
+		        handler.setFormat(LogHandler.TIME | LogHandler.NAME);</pre>
+		    }
+		}</pre>
+	**/
 	public function setFormat(flags:Int, tag:String = null)
 	{
-		if (flags == 0) nulf();
+		if (flags == 0) mBits = 0;
 		if (tag != null)
 		{
 			if (_tagFormat == null)
@@ -203,13 +202,13 @@ class LogHandler implements IObserver
 		//date & time
 		fmt = "%s";
 		val = "";
-		if (hasf(DATE | TIME))
+		if (hasBits(DATE | TIME))
 		{
 			var date = Date.now().toString();
-			if (getf(DATE | TIME) == DATE | TIME)
+			if (mBits.getBits(DATE | TIME) == DATE | TIME)
 				val = date.substr(5); //mm-dd hh:mm:ss
 			else
-			if (hasf(TIME))
+			if (hasBits(TIME))
 				val = date.substr(11); //hh:mm:ss
 			else
 				val = date.substr(5, 5); //mm-dd
@@ -218,22 +217,22 @@ class LogHandler implements IObserver
 		vals.push(val);
 		
 		//tick
-		if (hasf(TICK))
+		if (hasBits(TICK))
 		{
 			fmt = "%03d";
 			val = "";
-			if (hasf(DATE | TIME)) fmt = " " + fmt;
+			if (hasBits(DATE | TIME)) fmt = " " + fmt;
 			args.push(fmt);
-			vals.push(de.polygonal.core.time.Timebase.elapsedTicks % 1000);
+			vals.push(de.polygonal.core.time.Timebase.numTickCalls % 1000);
 		}
 		
 		//level
 		fmt = "%s";
 		val = "";
-		if (hasf(LEVEL))
+		if (hasBits(LEVEL))
 		{
 			val = LogLevel.getShortName(_message.outputLevel);
-			if (hasf(DATE | TIME | TICK)) fmt = " %s";
+			if (hasBits(DATE | TIME | TICK)) fmt = " %s";
 		}
 		args.push(fmt);
 		vals.push(val);
@@ -241,9 +240,9 @@ class LogHandler implements IObserver
 		//log name
 		fmt = "%s";
 		val = "";
-		if (hasf(NAME))
+		if (hasBits(NAME))
 		{
-			if (hasf(LEVEL)) fmt = "/%s";
+			if (hasBits(LEVEL)) fmt = "/%s";
 			val = _message.log.name;
 		}
 		args.push(fmt);
@@ -252,7 +251,7 @@ class LogHandler implements IObserver
 		//message tag
 		fmt = "%s";
 		val = "";
-		if (hasf(TAG))
+		if (hasBits(TAG))
 		{
 			if (_message.tag != null)
 			{
@@ -265,14 +264,14 @@ class LogHandler implements IObserver
 		
 		//position infos
 		fmt = "%s";
-		if (hasf(CLASS | METHOD | LINE))
+		if (hasBits(CLASS | METHOD | LINE))
 		{
 			fmt = "(";
 			
-			if (hasf(CLASS))
+			if (hasBits(CLASS))
 			{
 				var className = _message.posInfos.className;
-				if (hasf(CLASS_SHORT))
+				if (hasBits(CLASS_SHORT))
 					className = className.substr(className.lastIndexOf(".") + 1);
 				if (className.length > 30)
 					className = StringUtil.ellipsis(className, 30, 0);
@@ -281,18 +280,18 @@ class LogHandler implements IObserver
 				vals.push(className);
 			}
 			
-			if (hasf(METHOD))
+			if (hasBits(METHOD))
 			{
 				var methodName = _message.posInfos.methodName;
 				if (methodName.length > 30) methodName = StringUtil.ellipsis(methodName, 30, 0);
 				
-				fmt += hasf(CLASS) ? ".%s" : "%s";
+				fmt += hasBits(CLASS) ? ".%s" : "%s";
 				vals.push(methodName);
 			}
 			
-			if (hasf(LINE))
+			if (hasBits(LINE))
 			{
-				fmt += hasf(CLASS | METHOD) ? " %04d" : "%04d";
+				fmt += hasBits(CLASS | METHOD) ? " %04d" : "%04d";
 				vals.push(_message.posInfos.lineNumber);
 			}
 			
@@ -309,15 +308,15 @@ class LogHandler implements IObserver
 		if (Std.is(s, String) && s.indexOf("\n") != -1)
 		{
 			var pre = "";
-			if (hasf(LEVEL))
+			if (hasBits(LEVEL))
 				pre = LogLevel.getShortName(_message.outputLevel);
-			if (hasf(NAME))
+			if (hasBits(NAME))
 			{
-				if (hasf(LEVEL))
+				if (hasBits(LEVEL))
 					pre += "/";
 				pre += _message.log.name;
 			}
-			if (hasf(TAG))
+			if (hasBits(TAG))
 				if (_message.tag != null)
 					pre += "/" + _message.tag;
 			
@@ -343,4 +342,6 @@ class LogHandler implements IObserver
 	{
 		mBits = DEFAULT_FORMAT;
 	}
+	
+	inline function hasBits(mask:Int) return mBits.hasBits(mask);
 }

@@ -38,17 +38,17 @@ class Timebase
 	
 	/**
 		Converts `ticks` to seconds.
-	 */
+	**/
 	inline public static function ticksToSeconds(ticks:Int):Float
 	{
 		return ticks * tickRate;
 	}
 	
 	/**
-	 * If true, time is consumed using a fixed time step.
-	 * 
-	 * Default is true.
-	 */
+		If true, time is consumed using a fixed time step.
+		
+		Default is true.
+	**/
 	public static var useFixedTimeStep:Bool = true;
 	
 	/**
@@ -86,19 +86,19 @@ class Timebase
 	/**
 		The total number of processed ticks since application start.
 	**/
-	public static var elapsedTicks(default, null):Int = 0;
+	public static var numTickCalls(default, null):Int = 0;
 	
 	/**
-	 * Current frames per second (how many frames were rendered in 1 second).
-	 * 
-	 * Updated every second.
-	 */
+		The total number of rendered frames since application start.
+	**/
+	public static var numDrawCalls(default, null):Int = 0;
+	
+	/**
+		Current frames per second (how many frames were rendered in 1 second).
+		
+		Updated every second.
+	**/
 	public static var fps(default, null):Int = 60;
-	
-	
-	
-	
-	
 	
 	public static var observable(default, null):Observable = null;
 	public static function attach(o:IObserver, mask:Int = 0)
@@ -161,7 +161,7 @@ class Timebase
 		Sets the update rate measured in ticks per second, e.g. a value of 60 indicates that `TimebaseEvent.TICK` is fired 60 times per second (or every ~16.6ms).
 		
 		@param max the accumulator limit in seconds. If omitted, `max` is set to ten times `ticksPerSecond`.
-	 */
+	**/
 	public static function setTickRate(ticksPerSecond:Int, max = -1.)
 	{
 		tickRate = 1 / ticksPerSecond;
@@ -238,9 +238,10 @@ class Timebase
 		elapsedGameTime += gameTimeDelta;
 		
 		observable.notify(TimebaseEvent.TICK, tickRate);
-		elapsedTicks++;
+		numTickCalls++;
 		
 		observable.notify(TimebaseEvent.RENDER, 1);
+		numDrawCalls++;
 	}
 	
 	static function update()
@@ -260,7 +261,7 @@ class Timebase
 		mFpsTime += dt;
 		if (mFpsTime >= 1)
 		{
-			mFpsTime -= 1;
+			mFpsTime = 0;
 			fps = mFpsTicks;
 			mFpsTicks = 0;
 		}
@@ -268,8 +269,10 @@ class Timebase
 		if (mFreezeDelay > 0.)
 		{
 			mFreezeDelay -= timeDelta;
-			observable.notify(TimebaseEvent.TICK  , 0.);
+			observable.notify(TimebaseEvent.TICK, 0.);
 			observable.notify(TimebaseEvent.RENDER, 1.);
+			numTickCalls++;
+			numDrawCalls++;
 			
 			if (mFreezeDelay <= 0.)
 				observable.notify(TimebaseEvent.FREEZE_END);
@@ -283,9 +286,6 @@ class Timebase
 			//clamp accumulator to prevent "spiral of death"
 			if (mAccumulator > mAccumulatorLimit)
 			{
-				#if verbose
-				L.w(Printf.format("accumulator clamped from %.2f to %.2f seconds", [mAccumulator, mAccumulatorLimit]));
-				#end
 				observable.notify(TimebaseEvent.CLAMP, mAccumulator);
 				mAccumulator = mAccumulatorLimit;
 			}
@@ -296,7 +296,7 @@ class Timebase
 				mAccumulator -= tickRate;
 				elapsedGameTime += gameTimeDelta;
 				observable.notify(TimebaseEvent.TICK, tickRate);
-				elapsedTicks++;
+				numTickCalls++;
 				if (mPaused) break;
 			}
 			
@@ -304,6 +304,7 @@ class Timebase
 			
 			var alpha = mAccumulator / tickRate;
 			observable.notify(TimebaseEvent.RENDER, alpha);
+			numDrawCalls++;
 		}
 		else
 		{
@@ -311,8 +312,9 @@ class Timebase
 			gameTimeDelta = dt * timeScale;
 			elapsedGameTime += gameTimeDelta;
 			observable.notify(TimebaseEvent.TICK, gameTimeDelta);
-			elapsedTicks++;
+			numTickCalls++;
 			observable.notify(TimebaseEvent.RENDER, 1.);
+			numDrawCalls++;
 		}
 	}
 }

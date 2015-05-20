@@ -18,6 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math.random;
 
+import de.polygonal.core.math.random.Rng;
 import de.polygonal.core.util.Assert.assert;
 
 /**
@@ -27,7 +28,7 @@ import de.polygonal.core.util.Assert.assert;
 	
 	The seed value has to be in the range [0,2^31 - 1].
 **/
-class ParkMiller extends RNG
+class ParkMiller extends Rng
 {
 	var mSeedf:Float;
 	
@@ -37,13 +38,15 @@ class ParkMiller extends RNG
 	public function new(seed:Int = 1)
 	{
 		super();
-		this.seed = 1;
+		this.seed = seed;
 	}
+	
+	override function get_seed():Int return Std.int(mSeedf);
 	
 	override function set_seed(value:Int):Int
 	{
-		assert(seed >= 0 && seed < Limits.INT32_MAX);
-		mSeedf = seed;
+		assert(value >= 0 && value < Limits.INT32_MAX);
+		mSeedf = value;
 		super.set_seed(value);
 		return value;
 	}

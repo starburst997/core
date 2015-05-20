@@ -21,7 +21,7 @@ package de.polygonal.core.tween.ease;
 import de.polygonal.core.math.Interpolation;
 
 /**
-	<h3>Linear interpolation (no easing)</h3>
+	Linear interpolation (no easing)
 **/
 class NullEase implements Interpolation<Float>
 {

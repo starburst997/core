@@ -27,7 +27,7 @@ import de.polygonal.core.util.Assert.assert;
 	
 	The seed value has to be in the range [0,2^31 - 1].
 **/
-class ParkMiller31 extends RNG
+class ParkMiller31 extends Rng
 {
 	/**
 		Default seed value is 1.
@@ -35,7 +35,7 @@ class ParkMiller31 extends RNG
 	public function new(seed:Int = 1)
 	{
 		super();
-		this.seed = 1;
+		this.seed = seed;
 	}
 	
 	override function set_seed(value:Int):Int

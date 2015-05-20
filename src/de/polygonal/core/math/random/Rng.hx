@@ -23,7 +23,7 @@ import de.polygonal.core.math.Mathematics.M;
 /**
 	Random number generator base class.
 **/
-class RNG
+class Rng
 {
 	var mSeed:Int;
 	

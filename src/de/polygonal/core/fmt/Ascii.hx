@@ -26,7 +26,7 @@ package de.polygonal.core.fmt;
 	- Codes 33 through 126 are printable graphic characters.
 	- Unprintable control characters except newline are omitted.
 **/
-class ASCII
+class Ascii
 {
 	/**
 		Returns true if `x` is an ASCII character.

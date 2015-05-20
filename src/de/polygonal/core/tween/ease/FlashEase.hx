@@ -22,7 +22,7 @@ import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics.M;
 
 /**
-	<h3>The "classic" flash easing with an easing value in the range [-100,100]</h3>
+	The "classic" flash easing with an easing value in the range [-100,100]
 **/
 class FlashEase implements Interpolation<Float>
 {

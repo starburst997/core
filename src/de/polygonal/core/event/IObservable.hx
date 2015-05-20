@@ -28,31 +28,31 @@ package de.polygonal.core.event;
  * the most significant bits (5 bits by default, see `Observable.NUM_GROUP_BITS`) are reserved for this purpose; the remaining bits hold the update type in form of a bit flag.
  * It is therefore possible to store a total of 2^`Observable.NUM_GROUP_BITS` - 1 groups, and each group can define a total of 32 - `Observable.NUM_GROUP_BITS` unique events.
  * See <a href="http://en.wikipedia.org/wiki/Observer_pattern" target="_blank">http://en.wikipedia.org/wiki/Observer_pattern</a>.
- */
+**/
 interface IObservable
 {
 	/**
-	 * Registers `o` with an `IObservable` object so `o` is updated when calling `notify()`.
-	 * @param o the observer to register with.
-	 * @param mask a bit field of bit flags defining which event types to register with.
-	 * This can be used to select a subset of events from an event group.
-	 * By default, `o` receives all updates from an event group.
-	 */
+		Registers `o` with an `IObservable` object so `o` is updated when calling `notify()`.
+		@param o the observer to register with.
+		@param mask a bit field of bit flags defining which event types to register with.
+		This can be used to select a subset of events from an event group.
+		By default, `o` receives all updates from an event group.
+	**/
 	function attach(o:IObserver, mask:Int = 0):Void;
 	
 	/**
-	 * Unregisters `o` from an `IObservable` object so `o` is no longer updated when calling `notify()`.
-	 * @param o the observer to unregister from.
-	 * @param mask a bit field of bit flags defining which event types to unregister from.
-	 * This can be used to select a subset of events from an event group.
-	 * By default, `o` is unregistered from the entire event group.
-	 */
+		Unregisters `o` from an `IObservable` object so `o` is no longer updated when calling `notify()`.
+		@param o the observer to unregister from.
+		@param mask a bit field of bit flags defining which event types to unregister from.
+		This can be used to select a subset of events from an event group.
+		By default, `o` is unregistered from the entire event group.
+	**/
 	function detach(o:IObserver, mask:Int = 0):Void;
 	
 	/**
-	 * Notifies all attached observers to indicate that the state of an `IObservable` object has changed.
-	 * @param type the event type.
-	 * @param userData additional event data. Default value is null.
-	 */
+		Notifies all attached observers to indicate that the state of an `IObservable` object has changed.
+		@param type the event type.
+		@param userData additional event data. Default value is null.
+	**/
 	function notify(type:Int, userData:Dynamic = null):Void;
 }

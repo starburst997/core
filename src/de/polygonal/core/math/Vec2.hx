@@ -189,7 +189,7 @@ class Vec2 extends Coord2f
 	/**
 		The vector length.
 	**/
-	inline function length():Float
+	inline public function length():Float
 	{
 		return Math.sqrt(lengthSq());
 	}
@@ -197,7 +197,7 @@ class Vec2 extends Coord2f
 	/**
 		The squared vector length.
 	**/
-	inline function lengthSq():Float
+	inline public function lengthSq():Float
 	{
 		return x * x + y * y;
 	}

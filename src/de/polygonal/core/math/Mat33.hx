@@ -66,7 +66,9 @@ class Mat33
 		setIdentity();
 	}
 	
-	/** Returns the column at index `i`**/
+	/**
+		Returns the column at index `i`
+	**/
 	inline public function getCol(i:Int, output:Vec3):Vec3
 	{
 		assert(i >= 0 && i < 3, "i >= 0 && i < 3");
@@ -92,7 +94,9 @@ class Mat33
 		return output;
 	}
 	
-	/** Assigns the values of `other` to this.**/
+	/**
+		Assigns the values of `other` to this.
+	**/
 	inline public function of(other:Mat33):Mat33
 	{
 		m11 = other.m11; m12 = other.m12; m13 = other.m13;
@@ -101,7 +105,9 @@ class Mat33
 		return this;
 	}
 	
-	/** Assign three columns.**/
+	/**
+		Assign three columns.
+	**/
 	inline public function setCols(u:Vec3, v:Vec3, w:Vec3):Mat33
 	{
 		m11 = u.x; m12 = v.x; m13 = w.x;
@@ -110,7 +116,9 @@ class Mat33
 		return this;
 	}
 	
-	/** Set to identity matrix.**/
+	/**
+		Set to identity matrix.
+	**/
 	inline public function setIdentity():Mat33
 	{
 		m11 = 1; m12 = 0; m13 = 0;
@@ -119,7 +127,9 @@ class Mat33
 		return this;
 	}
 	
-	/** Zero out all matrix elements.**/
+	/**
+		Zero out all matrix elements.
+	**/
 	inline public function setZero():Mat33
 	{
 		m11 = 0; m12 = 0; m13 = 0;
@@ -128,7 +138,9 @@ class Mat33
 		return this;
 	}
 	
-	/** Set as rotation matrix, rotating by `angle` radians around x-axis.**/
+	/**
+		Set as rotation matrix, rotating by `angle` radians around x-axis.
+	**/
 	inline public function setRotateX(angle:Float):Mat33
 	{
 		var s = Math.sin(angle);
@@ -139,7 +151,9 @@ class Mat33
 		return this;
 	}
 	
-	/** Set as rotation matrix, rotating by `angle` radians around y-axis.**/
+	/**
+		Set as rotation matrix, rotating by `angle` radians around y-axis.
+	**/
 	inline public function setRotateY(angle:Float):Mat33
 	{
 		var s = Math.sin(angle);
@@ -150,7 +164,9 @@ class Mat33
 		return this;
 	}
 	
-	/** Set as rotation matrix, rotating by `angle` radians around z-axis.**/
+	/**
+		Set as rotation matrix, rotating by `angle` radians around z-axis.
+	**/
 	inline public function setRotateZ(angle:Float):Mat33
 	{
 		var s = Math.sin(angle);
@@ -171,7 +187,9 @@ class Mat33
 		return Math.atan2(m21, m11);
 	}
 	
-	/** Set as rotation matrix, rotating by `angle` radians in 2d space.**/
+	/**
+		Set as rotation matrix, rotating by `angle` radians in 2d space.
+	**/
 	inline public function setRotate2(angle:Float):Mat33
 	{
 		var s = Math.sin(angle);
@@ -181,7 +199,9 @@ class Mat33
 		return this;
 	}
 	
-	/** Multiplies all matrix elements by the scalar `x`.**/
+	/**
+		Multiplies all matrix elements by the scalar `x`.
+	**/
 	inline public function timesScalar(x:Float)
 	{
 		m11 *= x; m12 *= x; m13 *= x;
@@ -189,7 +209,9 @@ class Mat33
 		m31 *= x; m32 *= x; m33 *= x;
 	}
 	
-	/** Matrix - column vector multiplication (M*V): `rhs`' = this * `rhs`.**/
+	/**
+		Matrix - column vector multiplication (M*V): `rhs`' = this * `rhs`.
+	**/
 	inline public function timesVector(rhs:Vec3):Vec3
 	{
 		var x = rhs.x;
@@ -216,7 +238,9 @@ class Mat33
 		return output;
 	}
 	
-	/** Matrix - row vector multiplication (M^t*V): `lhs`' = `lhs`*this.**/
+	/**
+		Matrix - row vector multiplication (M^t*V): `lhs`' = `lhs`*this.
+	**/
 	inline public function vectorTimes(lhs:Vec3):Vec3
 	{
 		var x = lhs.x;
@@ -228,7 +252,9 @@ class Mat33
 		return lhs;
 	}
 	
-	/** Computes the matrix transpose and returns this matrix.**/
+	/**
+		Computes the matrix transpose and returns this matrix.
+	**/
 	inline public function transpose():Mat33
 	{
 		var t;
@@ -250,7 +276,9 @@ class Mat33
 		return output;
 	}
 	
-	/** R = M*D**/
+	/**
+		R = M*D
+	**/
 	inline public function timesDiagonal(rhs:Vec3):Mat33
 	{
 		//|m11 m12 m13| |x 0 0|
@@ -265,7 +293,9 @@ class Mat33
 		return this;
 	}
 	
-	/** R = M*DStores the result in `output`.**/
+	/**
+		R = M*DStores the result in `output`.
+	**/
 	inline public function timesDiagonalConst(rhs:Vec3, output:Mat33):Mat33
 	{
 		//|m11 m12 m13| |x 0 0|
@@ -280,7 +310,9 @@ class Mat33
 		return output;
 	}
 	
-	/** R = D*M**/
+	/**
+		R = D*M
+	**/
 	inline public function diagonalTimes(lhs:Vec3):Mat33
 	{
 		//|x 0 0| |m11 m12 m13|
@@ -295,7 +327,9 @@ class Mat33
 		return this;
 	}
 	
-	/** Post-concatenates `lhs`: this = `lhs`*this.**/
+	/**
+		Post-concatenates `lhs`: this = `lhs`*this.
+	**/
 	inline public function cat(lhs:Mat33):Mat33
 	{
 		var c11 = m11; var c12 = m12; var c13 = m13;
@@ -323,7 +357,9 @@ class Mat33
 		return this;
 	}
 	
-	/** Pre-concatenates `rhs`: this = this*`rhs`.**/
+	/**
+		Pre-concatenates `rhs`: this = this*`rhs`.
+	**/
 	inline public function precat(rhs:Mat33):Mat33
 	{
 		var c11 = rhs.m11; var c12 = rhs.m12; var c13 = rhs.m13;
@@ -404,7 +440,9 @@ class Mat33
 		return output;
 	}
 	
-	/** Divides all matrix elements by the scalar `x`.**/
+	/**
+		Divides all matrix elements by the scalar `x`.
+	**/
 	inline public function div(x:Float)
 	{
 		if (M.cmpZero(x, M.ZERO_TOLERANCE))
@@ -422,7 +460,9 @@ class Mat33
 		}
 	}
 	
-	/** Returns the string form of the value that this object represents.**/
+	/**
+		Returns the string form of the value that this object represents.
+	**/
 	public function toString():String
 	{
 		return Printf.format("Mat33:\n" +
