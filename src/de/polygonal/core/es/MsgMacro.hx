@@ -17,6 +17,8 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 package de.polygonal.core.es;
+import sys.FileSystem;
+import sys.io.File;
 
 #if macro
 import haxe.macro.Context;
@@ -55,14 +57,45 @@ import haxe.macro.Expr;
 class MsgMacro
 {
 	#if macro
-	static var mNextId:Int = 0;
-	static var mNames:Array<String> = [];
+	inline public static var FILE = ".de.polygonal.core.es.msg_macro";
 	#end
 	
 	macro static function build(e:Expr):Array<Field>
 	{
-		var pos = Context.currentPos();
+		var p = Context.currentPos();
 		var fields = Context.getBuildFields();
+		var module = Context.getLocalClass().get().module;
+		
+		function getNext(ident:String):Int
+		{
+			ident = '$module.$ident';
+			var next = 0;
+			var c = 0;
+			if (FileSystem.exists(FILE))
+			{
+				var s = File.getContent(FILE);
+				var exists = false;
+				var a = s.split("\n");
+				for (i in a)
+				{
+					if (i == ident)
+					{
+						exists = true;
+						next = c;
+						break;
+					}
+					c++;
+				}
+				if (!exists)
+				{
+					File.saveContent(FILE, s + '\n$ident');
+					next = c;
+				}
+			}
+			else
+				File.saveContent(FILE, ident);
+			return next;
+		}
 		
 		switch (e.expr)
 		{
@@ -75,26 +108,24 @@ class MsgMacro
 							switch (c)
 							{
 								case CIdent(d):
-									mNames.push(d);
-									fields.push(
-									{
+									var next = getNext(d);
+									if (next > 0x7FFF) Context.fatalError("message type out of range [0, 0x7FFF]", p);
+									fields.push
+									({
 										name: d,
-										doc: null,
+										doc: 'A global unique id that identifies messages of type $d.',
 										meta: [],
 										access: [AStatic, APublic, AInline],
-										kind: FVar(TPath({pack: [], name: "Int", params: [], sub: null}), {expr: EConst(CInt(Std.string(mNextId))), pos: pos}),
-										pos: pos
+										kind: FVar(TPath({pack: [], name: "Int", params: [], sub: null}), {expr: EConst(CInt(Std.string(next))), pos: p}),
+										pos: p
 									});
-									mNextId++;
 									
-									if (mNextId > 0x7FFF) Context.error("message type out of range [0, 0x7FFF]", pos);
-									
-								case _: Context.error("unsupported declaration", pos);
+								case _: Context.error("unsupported declaration", p);
 							}
-						case _: Context.error("unsupported declaration", pos);
+						case _: Context.error("unsupported declaration", p);
 					}
 				}
-			case _: Context.error("unsupported declaration", pos);
+			case _: Context.error("unsupported declaration", p);
 		}
 		
 		return fields;
@@ -102,24 +133,24 @@ class MsgMacro
 	
 	macro static function addMeta():Array<Field>
 	{
-		var pos = Context.currentPos();
-		
+		var p = Context.currentPos();
 		Context.onGenerate(function(_)
 		{
 			switch (Context.getModule("de.polygonal.core.es.Msg")[0])
 			{
 				case TInst(t, params):
+					if (!FileSystem.exists(FILE)) return;
+					var s = File.getContent(FILE);
 					var a = [];
-					for (name in mNames)
-						a.push({expr: EConst(CString(name)), pos: pos});
+					for (name in s.split("\n"))
+						a.push({expr: EConst(CString(name)), pos: p});
 					var ct = t.get();
-					if (ct.meta.has("names"))
-					{
-						ct.meta.remove("names");
-						ct.meta.remove("count");
-					}
-					ct.meta.add("names", [{expr: EArrayDecl(a), pos: pos}], pos);
-					ct.meta.add("count", [{expr: EConst(CString(Std.string(mNextId))), pos: pos}], pos);
+					if (ct.meta.has("names")) ct.meta.remove("names");
+					if (ct.meta.has("count")) ct.meta.remove("count");
+					
+					if (Context.defined("debug"))
+						ct.meta.add("names", [{expr: EArrayDecl(a), pos: p}], p);
+					ct.meta.add("count", [{expr: EConst(CString(Std.string(a.length))), pos: p}], p);
 				case _:
 			}
 		});

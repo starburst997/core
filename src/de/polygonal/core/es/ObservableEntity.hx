@@ -18,7 +18,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
-import de.polygonal.core.es.EntitySystem.Es;
 import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.BucketList;
@@ -421,7 +420,7 @@ class ObservableEntity extends Entity
 		i = k;
 		while (i-- > 0) q.enqueue(this, entities[a[i].index], msgType, --k, 0);
 		
-		if (dispatch) Es.dispatchMessages();
+		if (dispatch) EntitySystem.dispatchMessages();
 	}
 	
 	function removeAll(id:EntityId)

@@ -89,7 +89,7 @@ class MsgQue
 		mMessages = new Array<Msg>();
 		
 		#if verbose
-		L.d('found ${Msg.totalMessages()} message types', "es");
+		L.d('there are ${Msg.totalMessages()} message types', "es");
 		#end
 	}
 	

@@ -22,10 +22,11 @@ package de.polygonal.core.es;
 	Every entity can be identifiefd by an unique id
 **/
 @:allow(de.polygonal.core.es.EntitySystem)
+@:keep
 class EntityId
 {
-	var index(default, null):Int;
-	var inner(default, null):Int;
+	public var index(default, null):Int;
+	public var inner(default, null):Int;
 	
 	public function new() {}
 	

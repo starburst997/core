@@ -25,9 +25,6 @@ import haxe.ds.Vector;
 
 import de.polygonal.core.es.Entity in E;
 
-@:dox(hide)
-typedef Es = EntitySystem;
-
 /**
 	Manages all active entities
 **/
@@ -303,6 +300,7 @@ class EntitySystem
 		{
 			var t = e.type;
 			lut.set(t, t);
+			
 			var sc:Class<E> = Reflect.field(Type.getClass(e), "SUPER_CLASS");
 			while (sc != null)
 			{
@@ -356,7 +354,11 @@ class EntitySystem
 	static function freeEntityTree(e:E)
 	{
 		#if verbose
-		L.d('freeing up ${e.getSize() + 1} entities ...', "es");
+		var c = e.getSize() + 1;
+		if (c > 1)
+			L.d('freeing up $c entities ...', "es");
+		else
+			L.d('freeing up one entity ...', "es");
 		#end
 		
 		if (e.getSize() < 512)
@@ -478,6 +480,11 @@ class EntitySystem
 		}
 		
 		e.mFlags |= E.BIT_MARK_FREE;
+		
+		#if verbose
+		L.d('free ${e.name}');
+		#end
+		
 		e.onFree();
 		unregister(e);
 	}
@@ -507,6 +514,11 @@ class EntitySystem
 		for (e in a)
 		{
 			e.mFlags |= E.BIT_MARK_FREE;
+			
+			#if verbose
+			L.d('free ${e.name}');
+			#end
+			
 			e.onFree();
 			unregister(e);
 		}

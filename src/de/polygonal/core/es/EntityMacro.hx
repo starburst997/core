@@ -22,13 +22,18 @@ package de.polygonal.core.es;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import sys.FileSystem;
+import sys.io.File;
 #end
 
 /**
-	Injects some static fields into every class extending de.polygonal.core.es.Entity.
+	Injects some static fields into every class extending from de.polygonal.core.es.Entity
 **/
 class EntityMacro
 {
+	#if macro
+	inline public static var FILE = ".de.polygonal.core.es.entity_macro";
+	#end
+	
 	macro public static function build():Array<Field>
 	{
 		//create unique name for local classes defined in a module
@@ -42,7 +47,23 @@ class EntityMacro
 		if (moduleName.indexOf(className) == -1)
 			name += '_$className'; //moduleName_className
 		
-		next++; //increment unqiue id
+		var next = 0;
+		if (FileSystem.exists(FILE))
+		{
+			next = Std.parseInt(File.getContent(FILE)) + 1;
+			File.saveContent(FILE, Std.string(next));
+		}
+		else
+			File.saveContent(FILE, "0");
+		
+		function field(pkg:String)
+		{
+			var p = Context.currentPos();
+			var a = pkg.split(".");
+			var e = {expr: EConst(CIdent(a[0])), pos: p};
+			for (i in 1...a.length) e = {expr: EField(e, a[i]), pos: p};
+			return FVar(null, e);
+		}
 		
 		var fields = Context.getBuildFields();
 		var p = Context.currentPos();
@@ -55,7 +76,7 @@ class EntityMacro
 			meta: [{name: ":keep", pos: p}],
 			access: [APublic, AStatic],
 			
-			#if AOT //workaround for adobe iOS AOT compiler as it somehow messes up the integer values; doesn't seem to happen when using floats.
+			#if aot //workaround for adobe iOS AOT compiler as it somehow messes up the integer values; doesn't seem to happen when using floats.
 			kind: FVar(TPath({pack: [], name: "Float", params: [], sub: null}), {expr: EConst(CFloat(Std.string(next))), pos: p}),
 			#else
 			kind: FVar(TPath({pack: [], name: "Int", params: [], sub: null}), {expr: EConst(CInt(Std.string(next))), pos: p}),
@@ -88,19 +109,7 @@ class EntityMacro
 			pos: p
 		});
 		
-		if (name == "Entity")
-		{
-			var fout = sys.io.File.write("./entity_macro.cache", false);
-			fout.writeString("" + Date.now());
-			fout.close();
-			Context.registerModuleDependency(c.module, "./entity_macro.cache");
-			Context.onMacroContextReused(function()
-			{
-				next = -1;
-				return false;
-			});
-			return fields; //don't modify Entity constructor
-		}
+		if (name == "Entity") return fields; //don't modify Entity constructor
 		
 		fields.push(
 		{
@@ -121,17 +130,4 @@ class EntityMacro
 		
 		return fields;
 	}
-	
-	#if macro
-	static var next = -1;
-	
-	static function field(pkg:String)
-	{
-		var p = Context.currentPos();
-		var a = pkg.split(".");
-		var e = {expr: EConst(CIdent(a[0])), pos: p};
-		for (i in 1...a.length) e = {expr: EField(e, a[i]), pos: p};
-		return FVar(null, e);
-	}
-	#end
 }

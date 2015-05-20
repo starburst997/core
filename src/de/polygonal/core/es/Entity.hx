@@ -42,6 +42,8 @@ import de.polygonal.core.es.EntitySystem in Es;
 ], true, false))
 @:build(de.polygonal.core.es.EntityMacro.build())
 @:autoBuild(de.polygonal.core.es.EntityMacro.build())
+@:keep
+@:keepSub
 class Entity
 {
 	inline static var ID_ANCESTOR = 1;
@@ -53,7 +55,7 @@ class Entity
 	inline static function getEntityType<T:Entity>(clss:Class<T>):Int
 	{
 		#if flash
-		#if AOT
+		#if aot
 		return untyped Std.int(clss["ENTITY_TYPE"]); //Float->Int, see EntityMacro
 		#else
 		return untyped clss["ENTITY_TYPE"];
@@ -121,6 +123,7 @@ class Entity
 	public var parent(get_parent, set_parent):Entity;
 	@:noCompletion inline function get_parent():Entity
 	{
+		assert(mFlags & BIT_MARK_FREE == 0);
 		return Es.getParent(this);
 	}
 	@:noCompletion inline function set_parent(value:Entity)
@@ -692,17 +695,9 @@ class Entity
 	}
 	
 	/**
-		Stops message propagation if called inside `onMsg()`.
-	**/
-	inline function stop()
-	{
-		mFlags |= BIT_STOP_PROPAGATION;
-	}
-	
-	/**
 		Convenience method for casting this Entity to the type `clss`.
 	**/
-	inline function as<T:Entity>(clss:Class<T>):T
+	inline public function as<T:Entity>(clss:Class<T>):T
 	{
 		#if flash
 		return untyped __as__(this, clss);
@@ -714,13 +709,33 @@ class Entity
 	/**
 		Convenience method for Std.is(this, `clss`);
 	**/
-	inline function is<T>(clss:Class<T>):Bool
+	inline public function is<T>(clss:Class<T>):Bool
 	{
 		#if flash
 		return untyped __is__(this, clss);
 		#else
 		return Std.is(this, clss);
 		#end
+	}
+	
+	/**
+		Stops message propagation if called inside `onMsg()`.
+	**/
+	inline function stop()
+	{
+		mFlags |= BIT_STOP_PROPAGATION;
+	}
+	
+	function isDescendantOf(other:Entity):Bool
+	{
+		var e = this;
+		while (e != null)
+		{
+			if (e.parent == other)
+				return true;
+			e = e.parent;
+		}
+		return false;
 	}
 	
 	public function toString():String
@@ -771,7 +786,7 @@ class Entity
 						q.enqueue(this, e, msgType, k, -1);
 						e = e.parent;
 					}
-					
+				
 				case ID_CHILD:
 					e = child;
 					if (e == null)
@@ -786,7 +801,7 @@ class Entity
 						q.enqueue(this, e, msgType, k, 1);
 						e = e.sibling;
 					}
-					
+				
 				case ID_DESCENDANT:
 					e = child;
 					if (e == null)
@@ -801,7 +816,7 @@ class Entity
 						q.enqueue(this, e, msgType, k, 1);
 						e = e.preorder;
 					}
-					
+				
 				case ID_PARENT:
 					e = parent;
 					if (e != null)
@@ -816,6 +831,8 @@ class Entity
 		
 		if (dispatch) q.dispatch();
 	}
+
+	inline function findByClass<T:Entity>(clss:Class<T>):T return EntitySystem.findByClass(clss);
 	
 	@:noCompletion function find<T:Entity>(relation:Int, ?clss:Class<T>, ?name:String):T
 	{
@@ -853,7 +870,7 @@ class Entity
 						n = n.parent;
 					}
 				}
-				
+			
 			case ID_CHILD:
 				if (clss != null)
 				{
@@ -881,7 +898,7 @@ class Entity
 						n = n.sibling;
 					}
 				}
-				
+			
 			case ID_DESCENDANT:
 				if (clss != null)
 				{
@@ -915,7 +932,7 @@ class Entity
 						n = n.preorder;
 					}
 				}
-				
+			
 			case ID_SIBLING:
 				if (parent == null) return null;
 				
@@ -935,7 +952,10 @@ class Entity
 					while (n != null)
 					{
 						if (n != this)
-							if (lut.hasPair(n.type, t)) return cast n;
+						{
+							if (lut.hasPair(n.type, t))
+								return cast n;
+						}
 						n = n.sibling;
 					}
 				}

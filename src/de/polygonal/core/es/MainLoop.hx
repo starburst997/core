@@ -26,7 +26,6 @@ import de.polygonal.core.time.Timeline;
 import haxe.ds.Vector;
 
 import de.polygonal.core.es.Entity in E;
-import de.polygonal.core.es.EntitySystem in ES;
 
 /**
 	The top entity responsible for updating the entire entity hierachy
@@ -34,6 +33,13 @@ import de.polygonal.core.es.EntitySystem in ES;
 @:access(de.polygonal.core.es.EntitySystem)
 class MainLoop extends Entity implements IObserver
 {
+	public static var instance(get_instance, never):MainLoop;
+	static function get_instance():MainLoop
+	{
+		var e = EntitySystem.findByClass(MainLoop);
+		return e == null ? new MainLoop() : e;
+	}
+	
 	public var paused = false;
 	
 	var mStack:Array<E> = [];
@@ -53,7 +59,7 @@ class MainLoop extends Entity implements IObserver
 		Timebase.attach(this);
 		Timeline.init();
 		
-		mBufferedEntities = new Vector<E>(ES.MAX_SUPPORTED_ENTITIES);
+		mBufferedEntities = new Vector<E>(EntitySystem.MAX_SUPPORTED_ENTITIES);
 	}
 	
 	override function onFree()
