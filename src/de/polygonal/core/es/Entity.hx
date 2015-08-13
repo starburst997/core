@@ -653,19 +653,30 @@ class Entity
 	**/
 	public function setFirst()
 	{
-		if (parent == null) return; //no parent?
-		if (parent.child == this) return; //first child?
+		if (parent == null || parent.child == this) return; //no parent or already first?
 		
 		var c = parent.child;
-		var pre = c.findPredecessor(this);
 		
-		if (sibling == null)
-			parent.lastChild = this;
+		while (c != null) //find predecessor to this entity
+		{
+			if (c.sibling == this) break;
+			c = c.sibling;
+		}
 		
-		pre.preorder = preorder;
-		pre.sibling = sibling;
-		preorder = sibling = c;
-		parent.child = parent.preorder = this;
+		if (this == parent.lastChild)
+		{
+			parent.lastChild = c;
+			findLastLeaf(c).preorder = findLastLeaf(this).preorder;
+		}
+		else
+			findLastLeaf(c).preorder = sibling;
+		
+		c.sibling = sibling;
+		sibling = parent.child;
+		findLastLeaf(this).preorder = parent.child;
+		
+		parent.child = this;
+		parent.preorder = this;
 	}
 	
 	/**
