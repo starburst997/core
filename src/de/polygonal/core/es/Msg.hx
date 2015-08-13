@@ -61,15 +61,15 @@ class Msg
 	@:noCompletion var mFlags:Int;
 	
 	/**
-		Integer value. Only valid if hasInt() == true.
+		Integer value. Only valid if hasInt() is true.
 	**/
-	public var int(get_int, set_int):Int;
-	@:noCompletion inline function get_int():Int
+	public var i(get_i, set_i):Int;
+	@:noCompletion inline function get_i():Int
 	{
 		assert(mFlags & I > 0, "no int stored");
 		return mInt;
 	}
-	@:noCompletion inline function set_int(value:Int):Int
+	@:noCompletion inline function set_i(value:Int):Int
 	{
 		assert(mFlags & USED == 0);
 		
@@ -79,15 +79,15 @@ class Msg
 	}
 	
 	/**
-		Float value. Only valid if hasFloat() == true.
+		Float value. Only valid if hasFloat() is true.
 	**/
-	public var float(get_float, set_float):Float;
-	@:noCompletion inline function get_float():Float
+	public var f(get_f, set_f):Float;
+	@:noCompletion inline function get_f():Float
 	{
 		assert(mFlags & F > 0, "no float stored");
 		return mFloat;
 	}
-	@:noCompletion inline function set_float(value:Float):Float
+	@:noCompletion inline function set_f(value:Float):Float
 	{
 		assert(mFlags & USED == 0);
 		
@@ -97,15 +97,15 @@ class Msg
 	}
 	
 	/**
-		Boolean value. Only valid if hasBool() == true.
+		Boolean value. Only valid if hasBool() is true.
 	**/
-	public var bool(get_bool, set_bool):Bool;
-	@:noCompletion inline function get_bool():Bool
+	public var b(get_b, set_b):Bool;
+	@:noCompletion inline function get_b():Bool
 	{
 		assert(mFlags & B > 0, "no bool stored");
 		return mBool;
 	}
-	@:noCompletion inline function set_bool(value:Bool):Bool
+	@:noCompletion inline function set_b(value:Bool):Bool
 	{
 		assert(mFlags & USED == 0);
 		
@@ -115,15 +115,15 @@ class Msg
 	}
 	
 	/**
-		String value. Only valid if hasString() == true.
+		String value. Only valid if hasString() is true.
 	**/
-	public var string(get_string, set_string):String;
-	@:noCompletion inline function get_string():String
+	public var s(get_s, set_s):String;
+	@:noCompletion inline function get_s():String
 	{
 		assert(mFlags & S > 0, "no string stored");
 		return mString;
 	}
-	@:noCompletion inline function set_string(value:String):String
+	@:noCompletion inline function set_s(value:String):String
 	{
 		assert(mFlags & USED == 0);
 		
@@ -135,13 +135,13 @@ class Msg
 	/**
 		Dynamic value. Only valid if hasObject() == true.
 	**/
-	public var object(get_object, set_object):Dynamic;
-	@:noCompletion inline function get_object():Dynamic
+	public var o(get_o, set_o):Dynamic;
+	@:noCompletion inline function get_o():Dynamic
 	{
 		assert(mFlags & O > 0, "no object stored");	
 		return mObject;
 	}
-	@:noCompletion inline function set_object(value:Dynamic):Dynamic
+	@:noCompletion inline function set_o(value:Dynamic):Dynamic
 	{
 		assert(mFlags & USED == 0);
 		

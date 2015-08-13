@@ -55,19 +55,21 @@ class Entity
 	inline static function getEntityType<T:Entity>(clss:Class<T>):Int
 	{
 		#if flash
-		#if aot
-		return untyped Std.int(clss["ENTITY_TYPE"]); //Float->Int, see EntityMacro
-		#else
+			#if aot
+			return untyped Std.int(clss["ENTITY_TYPE"]); //Float->Int, see EntityMacro
+			#else
+			return untyped clss["ENTITY_TYPE"];
+			#end
+		#elseif js
 		return untyped clss["ENTITY_TYPE"];
-		#end
 		#else
 		return Reflect.field(clss, "ENTITY_TYPE");
 		#end
 	}
 	
-	inline static function getMsgQue() return Es.mMsgQue;
+	inline static function getMsgQue() return EntitySystem.mMsgQue;
 	
-	inline static function getInheritLut() return Es.mInheritanceLut;
+	inline static function getInheritLut() return EntitySystem.mInheritanceLut;
 	
 	/**
 		Every entity has an unique identifier.
@@ -84,6 +86,8 @@ class Entity
 	**/
 	public var preorder(default, null):Entity;
 	
+	public var phase:Int = -1;
+	
 	@:noCompletion var mFlags:Int;
 	@:noCompletion var mName:String;
 	
@@ -92,7 +96,7 @@ class Entity
 		mFlags = BIT_NO_PARENT;
 		type = __getType();
 		
-		Es.register(this);
+		EntitySystem.register(this);
 		
 		#if debug
 		if (name == null)
@@ -430,7 +434,12 @@ class Entity
 		else
 		{
 			//case 2: second to last child is removed
-			var prev = child.findPredecessor(x);
+			var prev = child;
+			while (prev != null) //find predecessor
+			{
+				if (prev.sibling == x) break;
+				prev = prev.sibling;
+			}
 			
 			assert(prev != null);
 			
@@ -709,12 +718,12 @@ class Entity
 	/**
 		Convenience method for Std.is(this, `clss`);
 	**/
-	inline public function is<T>(clss:Class<T>):Bool
+	inline public function is<T:Entity>(clss:Class<T>):Bool
 	{
 		#if flash
 		return untyped __is__(this, clss);
 		#else
-		return Std.is(this, clss);
+		return getInheritLut().hasPair(type, getEntityType(clss));
 		#end
 	}
 	
@@ -744,9 +753,13 @@ class Entity
 		return '{ Entity $name }';
 	}
 	
-	inline function publish(name:String)
+	function publish(?name:String)
 	{
 		assert(mFlags & BIT_NAME_PUBLISHED == 0);
+		
+		if (name == null)
+			name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
+		
 		this.name = name;
 		mFlags |= BIT_NAME_PUBLISHED;
 		Es.changeName(this, mName);
@@ -832,7 +845,10 @@ class Entity
 		if (dispatch) q.dispatch();
 	}
 
-	inline function findByClass<T:Entity>(clss:Class<T>):T return EntitySystem.findByClass(clss);
+	inline function lookup<T:Entity>(clss:Class<T>):T
+	{
+		return EntitySystem.lookup(clss);
+	}
 	
 	@:noCompletion function find<T:Entity>(relation:Int, ?clss:Class<T>, ?name:String):T
 	{
@@ -988,19 +1004,6 @@ class Entity
 	@:noCompletion function onPostDraw(alpha:Float) {}
 	
 	@:noCompletion function onMsg(msgType:Int, sender:Entity) {}
-	
-	@:noCompletion inline function findPredecessor(e:Entity):Entity
-	{
-		assert(parent == e.parent);
-		 
-		var i = this;
-		while (i != null)
-		{
-			if (i.sibling == e) break;
-			i = i.sibling;
-		}
-		return i;
-	}
 	
 	@:noCompletion inline function findLastLeaf(e:Entity):Entity
 	{

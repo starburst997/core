@@ -33,13 +33,6 @@ import de.polygonal.core.es.Entity in E;
 @:access(de.polygonal.core.es.EntitySystem)
 class MainLoop extends Entity implements IObserver
 {
-	public static var instance(get_instance, never):MainLoop;
-	static function get_instance():MainLoop
-	{
-		var e = EntitySystem.findByClass(MainLoop);
-		return e == null ? new MainLoop() : e;
-	}
-	
 	public var paused = false;
 	
 	var mStack:Array<E> = [];

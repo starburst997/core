@@ -194,7 +194,7 @@ class EntitySystem
 	/**
 		Returns the entity whose name is set to `clss`::ENTITY_NAME or null if such an entity does not exist.
 	**/
-	inline public static function findByClass<T:Entity>(clss:Class<T>):T
+	inline public static function lookup<T:Entity>(clss:Class<T>):T
 	{
 		var name =
 		#if flash
