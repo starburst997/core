@@ -734,6 +734,92 @@ class Entity
 	}
 	
 	/**
+		Sort children by phase.
+	**/
+	public function sortChildren()
+	{
+		var t = findLastLeaf(lastChild).preorder;
+		
+		//merge sort taken from de.polygonal.ds.Sll
+		var h = child;
+		var p, q, e, tail = null;
+		var insize = 1;
+		var nmerges, psize, qsize, i;
+		while (true)
+		{
+			p = h;
+			h = tail = null;
+			nmerges = 0;
+			while (p != null)
+			{
+				nmerges++;
+				psize = 0; q = p;
+				for (i in 0...insize)
+				{
+					psize++;
+					q = q.sibling;
+					if (q == null) break;
+				}
+				qsize = insize;
+				while (psize > 0 || (qsize > 0 && q != null))
+				{
+					if (psize == 0)
+					{
+						e = q;
+						q = q.sibling;
+						qsize--;
+					}
+					else
+					if (qsize == 0 || q == null)
+					{
+						e = p;
+						p = p.sibling;
+						psize--;
+					}
+					else
+					if (q.phase - p.phase >= 0)
+					{
+						e = p;
+						p = p.sibling;
+						psize--;
+					}
+					else
+					{
+						e = q;
+						q = q.sibling;
+						qsize--;
+					}
+					
+					if (tail != null)
+						tail.sibling = e;
+					else
+						h = e;
+					
+					tail = e;
+				}
+				p = q;
+			}
+			tail.sibling = null;
+			if (nmerges <= 1) break;
+			insize <<= 1;
+		}
+		
+		child = h;
+		lastChild = tail;
+		
+		//rebuild preorder links
+		preorder = child;
+		var c = child;
+		var l = lastChild;
+		while (c != l)
+		{
+			findLastLeaf(c).preorder = c.sibling;
+			c = c.sibling;
+		}
+		findLastLeaf(lastChild).preorder = t;
+	}
+	
+	/**
 		Convenience method for casting this Entity to the type `clss`.
 	**/
 	inline public function as<T:Entity>(clss:Class<T>):T
