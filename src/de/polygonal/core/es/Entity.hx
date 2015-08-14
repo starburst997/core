@@ -686,30 +686,28 @@ class Entity
 	{
 		if (parent == null || sibling == null) return; //no parent or already last?
 		
-		var c = parent.child;
+		var c = parent.child, last, tmp;
+		
 		if (c == this) //first child?
 		{
-			while (c.sibling != null) c = c.sibling; //find last child
-			c.sibling = this;
-			
-			preorder = c.preorder;
-			c.preorder = this;
-			parent.child = parent.preorder = sibling;
+			parent.preorder = parent.child = sibling;
 		}
 		else
 		{
-			while (c != null) //find predecessor to this
+			while (c != null) //find predecessor to this entity
 			{
 				if (c.sibling == this) break;
 				c = c.sibling;
 			}
 			
-			c.sibling = c.preorder = sibling;
-			sibling.sibling = this;
-			preorder = sibling.preorder;
-			sibling.preorder = this;
+			findLastLeaf(c).preorder = c.sibling = sibling;
 		}
 		
+		last = parent.lastChild;
+		last.sibling = this;
+		tmp = findLastLeaf(last).preorder;
+		findLastLeaf(last).preorder = this;
+		findLastLeaf(this).preorder = tmp;
 		sibling = null;
 		parent.lastChild = this;
 	}
