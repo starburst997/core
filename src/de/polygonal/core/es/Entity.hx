@@ -474,27 +474,48 @@ class Entity
 		return;
 	}
 	
-	//TODO onRemove callback missing?
 	/**
 		Removes all child entities from this entity.
 	**/
 	public function removeChildren():Entity
 	{
-		var n = child;
-		while (n != null)
+		var k = getSize();
+		
+		var c = child, next, p, d;
+		while (c != null)
 		{
-			var hook = n.sibling;
+			next = c.sibling;
 			
-			var i = findLastLeaf(n);
-			preorder = i.preorder;
-			i.preorder = null;
+			findLastLeaf(c).preorder = null;
 			
-			n.parent = n.sibling = null;
-			n = hook;
+			d = c.getDepth();
+			p = c.preorder;
+			while (p != null)
+			{
+				p.setDepth(p.getDepth() - d);
+				p = p.preorder;
+			}
+			c.setDepth(0);
+			
+			c.sibling = c.parent = null;
+			c.mFlags |= BIT_NO_PARENT;
+			c.onRemove(this);
+			
+			c = next;
 		}
 		
-		child = null;
-		lastChild = null;
+		child = lastChild = null;
+		preorder = sibling;
+		numChildren = 0;
+		
+		//update size on ancestors
+		var n = parent;
+		while (n != null)
+		{
+			n.setSize(n.getSize() - k);
+			n = n.parent;
+		}
+		setSize(0);
 		
 		return this;
 	}
