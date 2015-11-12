@@ -199,6 +199,8 @@ class EntitySystem
 		var name =
 		#if flash
 		untyped clss.ENTITY_NAME;
+		#elseif js
+		untyped __js__('clss["ENTITY_NAME"]');
 		#else
 		Reflect.field(clss, "ENTITY_NAME");
 		#end
