@@ -121,7 +121,7 @@ class MsgQue
 		assert(sender != null);
 		assert(recipient != null);
 		assert(type >= 0 && type <= 0xFFFF);
-		assert(mSize < mCapacity, "message queue exhausted");
+		assert(mSize < mCapacity, 'message queue exhausted (size=$mSize capacity=$mCapacity)');
 		
 		var i = (mFront + mSize) % mCapacity;
 		mSize++;
@@ -138,6 +138,7 @@ class MsgQue
 			return;
 		}
 		
+		#if debug
 		#if (verbose == "extra")
 		var senderName = sender.name == null ? "N/A" : sender.name;
 		var recipientName = recipient.name == null ? "N/A" : recipient.name;
@@ -149,6 +150,7 @@ class MsgQue
 		if (msgName.length > 20) msgName = StringUtil.ellipsis(msgName, 20, 1, true);
 		
 		L.d(Printf.format('enqueue message %30s -> %-30s: %-20s (remaining: $remaining)', [senderName, recipientName, msgName]), "es");
+		#end
 		#end
 		
 		if (dir > 0) type |= 0x8000; //dispatch to descendants
@@ -293,6 +295,7 @@ class MsgQue
 				continue;
 			}
 			
+			#if debug
 			#if (verbose == "extra")
 			var data = mMessages[mCurrMsgInIndex] != null ? mMessages[mCurrMsgInIndex] : null;
 			var senderId = sender.name == null ? Std.string(sender.id) : sender.name;
@@ -305,6 +308,7 @@ class MsgQue
 			if (msgName.length > 20) msgName = StringUtil.ellipsis(msgName, 20, 1, true);
 			
 			L.d(Printf.format('message %30s -> %-30s: %-20s $data (remaining: $skipCount)', [senderId, recipientId, msgName, skipCount]), "es");
+			#end
 			#end
 			
 			//notify recipient
