@@ -192,11 +192,24 @@ class Mathematics
 	}
 	
 	/**
-		Wraps `x` to the interval [`min`,`max`] so `min` <= `x` <= `max`.
+		Normalize `x` to [0,`y`).
 	**/
-	inline public static function wrap(x:Int, min:Int, max:Int):Int
+	inline public static function wrap(x:Float, y:Float)
 	{
-		return x < min ? (x - min) + max + 1: ((x > max) ? (x - max) + min - 1: x);
+		x = x % y;
+		if (x < 0) x += y;
+		return x;
+	}
+	
+	/**
+		Normalize `x` to [-`y`,`y`).
+	**/
+	inline public static function wrapSym(x:Float, y:Float)
+	{
+		if (y < 0) y = -y;
+		x = (x + y) % (2 * y);
+		if (x < 0) x += (2 * y);
+		return x - y;
 	}
 	
 	/**
@@ -247,18 +260,6 @@ class Mathematics
 		return (x < -i) ? -i : (x > i) ? i : x;
 	}
 	
-	/**
-		Wraps `x` to the interval [`min`,`max`].
-	**/
-	inline public static function fwrap(value:Float, lower:Float, upper:Float):Float
-	{
-		#if cpp
-		return value - (cast((value - lower) / (upper - lower)) * (upper - lower));
-		#else
-		return value - (Std.int((value - lower) / (upper - lower)) * (upper - lower));
-		#end
-	}
-
 	/**
 		Returns true if the signs of `x` and `y` are equal.
 	**/
@@ -506,23 +507,6 @@ class Mathematics
 	inline public static function inRange(x:Float, min:Float, max:Float):Bool
 	{
 		return x >= min && x <= max;
-	}
-	
-	/**
-		Wraps an angle `x` to the range [-PI,PI].
-	**/
-	inline public static function wrapToPI(x:Float):Float
-	{
-		x += PI;
-		return (x - PI2 * Math.floor(x / PI2)) - PI;
-	}
-	
-	/**
-		Wraps an angle `x` to the range [0,2*PI].
-	**/
-	inline public static function wrapToPI2(x:Float):Float
-	{
-		return (x - PI2 * Math.floor(x / PI2));
 	}
 	
 	/**
