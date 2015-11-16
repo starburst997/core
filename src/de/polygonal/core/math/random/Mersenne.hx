@@ -174,7 +174,7 @@ class Mersenne extends Rng
 	/**
 		Returns an integral number in the interval [0,0xFFFFFFFF].
 	**/
-	override public function random():Float
+	override public function rand():Float
 	{
 		if (mCurrentEntry >= kN)
 		{
@@ -234,9 +234,9 @@ class Mersenne extends Rng
 		#end
 	}
 	
-	override public function randomFloat():Float
+	override public function randFloat():Float
 	{
-		return random() * (1. / 4294967296.);
+		return rand() * (1. / 4294967296.);
 	}
 	
 	inline function getMag01(i:Int)

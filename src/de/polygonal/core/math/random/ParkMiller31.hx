@@ -48,7 +48,7 @@ class ParkMiller31 extends Rng
 	/**
 		Returns an integral number in the interval [0,0x7FFFFFFF).
 	**/
-	override public function random():Float
+	override public function rand():Float
 	{
 		var lo = 16807 * (mSeed & 0xFFFF);
 		var hi = 16807 * (mSeed >>> 16);
@@ -61,8 +61,8 @@ class ParkMiller31 extends Rng
 		return mSeed = lo;
 	}
 	
-	override public function randomFloat():Float
+	override public function randFloat():Float
 	{
-		return random() / 2147483647.;
+		return rand() / 2147483647.;
 	}
 }

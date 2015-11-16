@@ -54,14 +54,14 @@ class ParkMiller extends Rng
 	/**
 		Returns an integral number in the interval [0,0x7FFFFFFF).
 	**/
-	override public function random():Float
+	override public function rand():Float
 	{
 		mSeedf = (mSeedf * 16807.) % 2147483647.;
 		return mSeedf;
 	}
 	
-	override public function randomFloat():Float
+	override public function randFloat():Float
 	{
-		return random() / 2147483647.;
+		return rand() / 2147483647.;
 	}
 }

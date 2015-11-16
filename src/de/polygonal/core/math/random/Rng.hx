@@ -51,7 +51,7 @@ class Rng
 		
 		_The number is returned as a double to prevent overflow since some targets don't support unsigned 32-bit integers._
 	**/
-	public function random():Float
+	public function rand():Float
 	{
 		return throw "override for implementation";
 	}
@@ -59,7 +59,7 @@ class Rng
 	/**
 		Returns a real number in the range [0,1).
 	**/
-	public function randomFloat():Float
+	public function randFloat():Float
 	{
 		return throw "override for implementation";
 	}
@@ -67,34 +67,34 @@ class Rng
 	/**
 		Returns an integral number in the interval [`min`,`max`].
 	**/
-	inline public function randomRange(min:Int, max:Int):Int
+	inline public function randRange(min:Int, max:Int):Int
 	{
 		var l = min - .4999;
 		var h = max + .4999;
-		return M.round(l + (h - l) * randomFloat());
+		return M.round(l + (h - l) * randFloat());
 	}
 	
 	/**
 		Returns a real number in the interval [`min`,`max`).
 	**/
-	inline public function randomFloatRange(min:Float, max:Float):Float
+	inline public function randFloatRange(min:Float, max:Float):Float
 	{
-		return min + (max - min) * randomFloat();
+		return min + (max - min) * randFloat();
 	}
 	
 	/**
 		Returns an integral number in the interval [-`range`,`range`].
 	**/
-	inline public function randomSym(range:Int):Float
+	inline public function randSymmetric(range:Int):Float
 	{
-		return randomRange(-range, range);
+		return randRange(-range, range);
 	}
 	
 	/**
 		Returns a real number in the interval [-`range`,`range`).
 	**/
-	inline public function randomFloatSym(range:Float):Float
+	inline public function randFloatSymmetric(range:Float):Float
 	{
-		return randomFloatRange(-range, range);
+		return randFloatRange(-range, range);
 	}
 }

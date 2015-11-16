@@ -47,7 +47,7 @@ class Random
 	/**
 		Returns a random integral number in the interval [-`range`,`range`].
 	**/
-	inline public static function randSym(range:Int):Float
+	inline public static function randSymmetric(range:Int):Float
 	{
 		return randRange(-range, range);
 	}
@@ -79,7 +79,7 @@ class Random
 	/**
 		Returns a random real number in the interval [-`range`,`range`).
 	**/
-	inline public static function frandSym(range:Float):Float
+	inline public static function frandSymmetric(range:Float):Float
 	{
 		return frandRange(-range, range);
 	}
