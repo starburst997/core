@@ -738,6 +738,24 @@ class Entity
 	**/
 	public function sortChildren()
 	{
+		if (numChildren < 1) return;
+		
+		//quick test if sorting is necessary
+		var sorted = true;
+		var c = child;
+		var p = c.phase;
+		c = c.sibling;
+		while (c != null)
+		{
+			if (c.phase < p)
+			{
+				sorted = false;
+				break;
+			}
+			c = c.sibling;
+		}
+		if (sorted) return;
+		
 		var t = findLastLeaf(lastChild).preorder;
 		
 		//merge sort taken from de.polygonal.ds.Sll
