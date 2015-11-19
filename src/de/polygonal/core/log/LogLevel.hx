@@ -70,7 +70,7 @@ class LogLevel
 	/**
 		Returns the human-readable name of a log level.
 	**/
-	inline static public function getName(level:Int):String
+	public static function getName(level:Int):String
 	{
 		return
 		switch (Bits.ntz(level))
@@ -84,7 +84,7 @@ class LogLevel
 		}
 	}
 	
-	inline static public function getShortName(level:Int):String
+	public static function getShortName(level:Int):String
 	{
 		return
 		switch (Bits.ntz(level))

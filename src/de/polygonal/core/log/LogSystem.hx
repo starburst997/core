@@ -20,6 +20,7 @@ package de.polygonal.core.log;
 
 import de.polygonal.ds.Da;
 import haxe.ds.StringMap;
+import de.polygonal.core.util.Assert.assert;
 
 using Reflect;
 
@@ -35,18 +36,23 @@ class LogSystem
 {
 	public static var log:Log = null;
 	
-	static var _config:LogSystemConfig;
-	static var _logList:Da<Log> = null;
-	static var _logLookup:StringMap<Log> = null;
+	static var mConfig:LogSystemConfig;
+	
+	static var mLogList:Da<Log> = null;
+	static var mLogLookup:StringMap<Log> = null;
+	
+	static var mInitialized = false;
 	
 	public static function init(config:LogSystemConfig)
 	{
 		if (log != null) return;
-		_config = config;
+		
+		mConfig = config;
+		mInitialized = true;
+		
 		log = createLog("global", false);
 		
-		for (i in config.globalHandler)
-			log.addHandler(i);
+		for (i in config.globalHandler) log.addHandler(i);
 		
 		#if !no_traces
 		if (config.hasField("redirectTraceToDebugLog") && config.field("redirectTraceToDebugLog") == true)
@@ -84,25 +90,27 @@ class LogSystem
 	**/
 	public static function createLog(name:String, addDefaultHandler = false):Log
 	{
-		if (_logLookup == null)
+		assert(mInitialized, "Call LogSystem.init() first.");
+		
+		if (mLogLookup == null)
 		{
-			_logLookup = new StringMap<Log>();
-			_logList = new Da<Log>();
+			mLogLookup = new StringMap<Log>();
+			mLogList = new Da<Log>();
 		}
 		
-		if (_logLookup.exists(name))
-			return _logLookup.get(name);
+		if (mLogLookup.exists(name))
+			return mLogLookup.get(name);
 		
 		var log = new Log(name);
 		
-		_logLookup.set(name, log);
+		mLogLookup.set(name, log);
 		
-		if (addDefaultHandler && _config != null)
+		if (addDefaultHandler && mConfig != null)
 		{
-			for (i in _config.globalHandler)
+			for (i in mConfig.globalHandler)
 				log.addHandler(cast i);
 		}
-		_logList.pushBack(log);
+		mLogList.pushBack(log);
 		return log;
 	}
 	
@@ -111,15 +119,15 @@ class LogSystem
 	**/
 	public static function removeLog(log:Log)
 	{
-		var keys = _logLookup.keys();
+		var keys = mLogLookup.keys();
 		for (i in keys)
 		{
-			if (_logLookup.exists(i))
+			if (mLogLookup.exists(i))
 			{
 				if (log.name == i)
 				{
-					_logLookup.remove(i);
-					_logList.remove(log);
+					mLogLookup.remove(i);
+					mLogList.remove(log);
 					break;
 				}
 			}

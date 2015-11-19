@@ -57,18 +57,11 @@ class Activity extends Entity
 		
 		Default is true.
 	**/
-	public function isFullSize():Bool
-	{
-		return true;
-	}
+	public function isFullSize():Bool return true;
 	
-	/**
-		Default is true.
-	**/
-	public function isPersistent():Bool
-	{
-		return true;
-	}
+	public function isPersistent():Bool return true;
+	
+	public function isDecisionMaking():Bool return false;
 	
 	var mIntent:Intent;
 	
@@ -88,7 +81,7 @@ class Activity extends Entity
 	{
 		assert(state == ActivityState.Running, "starting an activity is only allowed while in the \"Running\" state");
 		
-		ActivityManager.instance.start(this, cl, true, extras);
+		lookup(ActivityManager).start(this, cl, true, extras);
 	}
 	
 	/**
@@ -96,7 +89,7 @@ class Activity extends Entity
 	**/
 	function startActivity(cl:Class<Activity>, ?extras:Dynamic)
 	{
-		ActivityManager.instance.start(this, cl, false, extras);
+		lookup(ActivityManager).start(this, cl, false, extras);
 	}
 	
 	/**
@@ -105,9 +98,9 @@ class Activity extends Entity
 	@:access(de.polygonal.core.activity.ActivityManager)
 	function finish(?extras:Dynamic)
 	{
-		assert(state == ActivityState.Created || state == ActivityState.Running, "finishing an activity is only allowed while in the \"Created\" or \"Running\" state");
+		assert(state == ActivityState.Running, "finishing an activity is only allowed while in the \"Running\" state");
 		
-		ActivityManager.instance.finish(this, extras);
+		lookup(ActivityManager).finish(this, extras);
 	}
 	
 	/**
@@ -206,7 +199,7 @@ class Activity extends Entity
 	@:dox(show)
 	function onPause()
 	{
-		assert(state == ActivityState.Running);
+		assert(state == ActivityState.Running, Std.string(state));
 		
 		changeState(ActivityState.Paused);
 	}
@@ -253,9 +246,9 @@ class Activity extends Entity
 	function changeState(newState:ActivityState)
 	{
 		assert(newState != null);
-
+		
 		#if verbose
-		L.d('[$name]: state change: $state -> $newState', "activity");
+		L.d('$name: $state -> $newState', "activity");
 		#end
 		state = newState;
 	}

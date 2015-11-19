@@ -38,10 +38,11 @@ class Coord2<T:Float>
 		y = other.y;
 	}
 	
-	inline public function set(x:T, y:T)
+	inline public function set(x:T, y:T):Coord2<T>
 	{
 		this.x = x;
 		this.y = y;
+		return this;
 	}
 	
 	inline public function isZero():Bool

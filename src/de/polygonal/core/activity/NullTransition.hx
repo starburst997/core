@@ -18,17 +18,32 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.activity;
 
-class Intent
+import de.polygonal.core.activity.Activity;
+import de.polygonal.core.activity.Transition.TransitionType;
+import de.polygonal.core.activity.TransitionListener;
+import meta.Scene;
+
+@:access(meta.Scene)
+class NullTransition implements TransitionListener
 {
-	public var caller(default, null):Activity;
-	
-	public var extras(default, null):Dynamic;
-	
-	public var isChild:Bool;
-	
-	public function new(caller:Activity, extras:Dynamic)
+	public function new()
 	{
-		this.caller = caller;
-		this.extras = extras == null ? {} : extras;
+	}
+	
+	public function getDuration(a:Activity, b:Activity, type:TransitionType):Float
+	{
+		return 0;
+	}
+	
+	public function onStart(a:Activity, b:Activity, type:TransitionType)
+	{
+	}
+	
+	public function onProgress(a:Activity, b:Activity, progress:Float, type:TransitionType)
+	{
+	}
+	
+	public function onFinish(a:Activity, b:Activity, type:TransitionType)
+	{
 	}
 }

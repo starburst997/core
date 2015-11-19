@@ -20,6 +20,7 @@ package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.util.Assert.assert;
 
 /**
 	Elastic easing in+out
@@ -37,8 +38,10 @@ class ElasticEaseInOut implements Interpolation<Float>
 		@param period wave period.
 		Default value equals 0.3.
 	**/
-	public function new(amplitude = .0, period = 0.3)
+	public function new(amplitude = .0, period = .3)
 	{
+		assert(period > 0);
+		
 		this.amplitude = amplitude;
 		this.period = period;
 	}

@@ -862,7 +862,7 @@ class Entity
 	}
 	
 	/**
-		Stops message propagation if called inside `onMsg()`.
+		Stops message propagation to the subtree rooted at this entity if called inside `onMsg()`.
 	**/
 	inline function stop()
 	{

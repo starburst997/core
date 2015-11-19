@@ -19,6 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.activity;
 
 import de.polygonal.core.es.Entity;
+import de.polygonal.core.time.Delay;
 import de.polygonal.core.time.Interval;
 import de.polygonal.core.util.ClassUtil;
 import haxe.ds.StringMap;
@@ -31,6 +32,8 @@ abstract TransitionType(Int)
     var Change = 3;
 }
 
+//wait delay if activity needs preparation time
+
 @:access(de.polygonal.core.activity.Activity)
 @:access(de.polygonal.core.activity.ActivityManager)
 class Transition extends Entity
@@ -38,21 +41,20 @@ class Transition extends Entity
 	var mA:Activity;
 	var mB:Activity;
 	var mInterval:Interval = new Interval(1);
-	var mListener:TransitionListener;
+	var mListener:TransitionListener = null;
 	var mType:TransitionType;
 	var mTransitionLookup = new StringMap<TransitionListener>();
+	var mPhase = 0;
 	
 	public function new() 
 	{
 		super();
-		tickable = false;
-		drawable = false;
 	}
 	
 	public function register(from:Class<Activity>, to:Class<Activity>, effect:TransitionListener)
 	{
-		var a = from == null ? "*" : ClassUtil.getUnqualifiedClassName(from);
-		var b = to == null ? "*" : ClassUtil.getUnqualifiedClassName(to);
+		var a = from == null ? "*" : ClassUtil.getClassName(from);
+		var b = to == null ? "*" : ClassUtil.getClassName(to);
 		mTransitionLookup.set('$a-$b', effect);
 	}
 	
@@ -84,37 +86,77 @@ class Transition extends Entity
 	
 	function run(a:Activity, b:Activity, type:TransitionType)
 	{
-		var nameA = a == null ? "null" : ClassUtil.getUnqualifiedClassName(a);
-		var nameB = ClassUtil.getUnqualifiedClassName(b);
+		mListener = resolveEffect(a, b);
 		
-		var lut = mTransitionLookup;
-		do
+		switch (type)
 		{
-			mListener = lut.get('$nameA-$nameB');
-			if (mListener != null) break;
+			case Change, Push:
+				if (b.isDecisionMaking())
+					mListener = new NullTransition();
 			
-			mListener = lut.get('*-$nameB');
-			if (mListener != null) break;
-			
-			mListener = lut.get('$nameA-*');
-			if (mListener != null) break;
-			
-			mListener = lut.get('*-*');
-			if (mListener != null) break;
+			case Pop:
+				if (a.isDecisionMaking())
+					mListener = new NullTransition();
 		}
-		while (false);
 		
-		mListener == null ? finish(a, b, type) : start(a, b, type);
+		if (mListener == null) mListener = new NullTransition();
+		
+		start(a, b, type);
+	}
+	
+	function resolveEffect(a:Activity, b:Activity):TransitionListener
+	{
+		var nameA = a == null ? "null" : ClassUtil.getClassName(a);
+		var nameB = ClassUtil.getClassName(b);
+		
+		var l:TransitionListener;
+		
+		inline function test(key:String):Bool
+		{
+			l = mTransitionLookup.get(key);
+			return (l != null || mTransitionLookup.exists(key));
+		}
+		
+		if (test('$nameA-$nameB')) return l;
+		
+		if (b != null)
+		{
+			var s = Type.getSuperClass(Type.getClass(b));
+			while (s != null && s != Activity)
+			{
+				if (test('$nameA-${Type.getClassName(s)}')) return l;
+				s = Type.getSuperClass(s);
+			}
+		}
+		
+		if (a != null)
+		{
+			var s = Type.getSuperClass(Type.getClass(a));
+			while (s != null && s != Activity)
+			{
+				if (test('${Type.getClassName(s)}-$nameB')) return l;
+				s = Type.getSuperClass(s);
+			}
+		}
+		
+		if (test('*-$nameB')) return l;
+		if (test('$nameA-*')) return l;
+		if (test('*-*')) return l;
+		
+		return null;
 	}
 	
 	function start(a:Activity, b:Activity, type:TransitionType)
 	{
 		mA = a;
 		mB = b;
+		
+		var sa = a == null ? "-" : a.name;
+		var sb = b == null ? "-" : b.name;
 		mListener.onStart(a, b, type);
 		mType = type;
 		mInterval.duration = mListener.getDuration(a, b, type);
-		tickable = true;
+		mPhase = 1;
 	}
 	
 	function finish(a:Activity, b:Activity, type:TransitionType)
@@ -179,23 +221,35 @@ class Transition extends Entity
 	
 	override function onTick(dt:Float)
 	{
-		mListener.onProgress(mA, mB, mInterval.advance(dt), mType);
-		if (mInterval.finished)
+		switch (mPhase)
 		{
-			mListener.onFinish(mA, mB, mType);
-			tickable = false;
-			drawable = true;
+			case 0:
+			case 1:
+				mListener.onProgress(mA, mB, mInterval.advance(dt), mType);
+				if (mInterval.finished)
+				{
+					var sa = mA == null ? "-" : mA.name;
+					var sb = mB == null ? "-" : mB.name;
+					mListener.onFinish(mA, mB, mType);
+					mPhase = 2;
+				}
+			
+			case 3:
+				mPhase = 0;
+				var a = mA;
+				var b = mB;
+				mA = null;
+				mB = null;
+				finish(a, b, mType);
 		}
 	}
 	
 	override function onDraw(alpha:Float)
 	{
-		drawable = false;
-		var a = mA;
-		var b = mB;
-		mA = null;
-		mB = null;
-		finish(a, b, mType);
+		switch (mPhase)
+		{
+			case 2: mPhase = 3;
+		}
 	}
 	
 	function getStackedActivitiesBelowIncluding(e:Activity):Array<Activity>
@@ -213,7 +267,7 @@ class Transition extends Entity
 	
 	function getStackedActivitiesAboveIncluding(e:Activity):Array<Activity>
 	{
-		inline function findChildActivity(x:Entity):Activity
+		function findChildActivity(x:Entity):Activity
 		{
 			var a = null;
 			var c = x.child;
@@ -229,8 +283,24 @@ class Transition extends Entity
 			return a;
 		}
 		
-		var c = e;
-		while (c.child != null) c = findChildActivity(c);
+		var t = e;
+		var c:Activity = null;
+		while (t.child != null) //can be null t
+		{
+			c = findChildActivity(t);
+			
+			trace('child activity of $t IS $c');
+			
+			if (c == null)
+			{
+				c = t;
+				break;
+			}
+			
+			t = c;
+		}
+		
+		if (c == null) c = e; //TODO verify
 		
 		var out = [];
 		var p = c;

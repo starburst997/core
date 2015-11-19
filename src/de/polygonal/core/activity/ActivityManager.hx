@@ -20,7 +20,8 @@ package de.polygonal.core.activity;
 
 import de.polygonal.core.activity.Activity.ActivityState;
 import de.polygonal.core.es.Entity;
-import de.polygonal.core.es.EntitySystem.Es;
+import de.polygonal.core.es.EntitySystem;
+import de.polygonal.core.time.Delay;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.Da;
 
@@ -35,14 +36,7 @@ import de.polygonal.ds.Da;
 @:access(de.polygonal.core.activity.Activity)
 class ActivityManager extends Entity
 {
-	public static var instance(get_instance, never):ActivityManager;
-	static function get_instance():ActivityManager
-	{
-		var e = Es.findByClass(ActivityManager);
-		return e == null ? new ActivityManager() : e;
-	}
-	
-	var mActivityInstances:Da<Activity> = new Da<Activity>();
+	var mActivityInstances = new Da<Activity>();
 	
 	var mTop:Activity;
 	var mRoot:Activity;
@@ -69,6 +63,8 @@ class ActivityManager extends Entity
 		super();
 		publish(ActivityManager.ENTITY_NAME);
 		transition = add(Transition);
+		
+		L.d("ActivityManager initialized.", "activity");
 	}
 	
 	/**
@@ -178,22 +174,18 @@ class ActivityManager extends Entity
 		}
 		
 		newActivity.mIntent = new Intent(caller, extras);
-		newActivity.mIntent.createChildActivity = asChild;
+		newActivity.mIntent.isChild = asChild;
 		
-		if (instanceCreated) newActivity.onCreate(); //None -> Created
+		//None -> Created
+		if (instanceCreated) newActivity.onCreate(); 
 		
-		if (newActivity.state == ActivityState.Destroyed) //finish() called inside onCreate()?
-		{
-			//"decision-making" activities are always destroyed inside finish()
-			mActivityInstances.remove(newActivity);
-			return;
-		}
+		if (newActivity.isDecisionMaking()) mActivityInstances.remove(newActivity);
 		
 		#if debug
 		if (!asChild) assert(newActivity.isFullSize(), "a root activity has to cover the entire screen");
 		#end
 		
-		inline function pauseActivitiesAboveIncluding(x:Activity)
+		function pauseActivitiesAboveIncluding(x:Activity)
 		{
 			var p:Entity = x;
 			while (p != null && p.is(Activity))
@@ -237,33 +229,34 @@ class ActivityManager extends Entity
 			mTop.onPause();
 			mTop.add(newActivity);
 			
-			newActivity.onStart(); //Created -> Started
+			var top = mTop;
+			var runTransition = transition.push.bind(top, newActivity);
 			
-			var tmp = mTop;
 			mTop = newActivity;
-			
-			transition.push(tmp, newActivity);
+			newActivity.onStart(); //Created -> Started
+			runTransition();
 		}
 		else
 		{
-			trace('case2');
-			add(newActivity);
+			var top = mTop;
 			
-			newActivity.onStart(); //Created -> Started
-			
-			if (mTop != null)
+			var runTransition =
+			if (top != null)
 			{
-				pauseActivitiesAboveIncluding(mTop);
-				
-				var tmp = mTop;
+				pauseActivitiesAboveIncluding(top);
 				mTop = newActivity;
-				transition.change(tmp, newActivity);
+				transition.change.bind(top, newActivity);
 			}
 			else
 			{
 				mTop = mRoot = newActivity;
-				transition.push(null, newActivity);
+				transition.push.bind(null, newActivity);
 			}
+			
+			add(newActivity);
+			
+			newActivity.onStart(); //Created -> Started
+			runTransition();
 		}
 	}
 	
@@ -275,7 +268,7 @@ class ActivityManager extends Entity
 			return;
 		}
 		
-		assert(activity == mTop, "only the running activity (the topmost,visible activity) can be finished");
+		assert(activity == mTop, "only the running activity (the topmost, visible activity) can be finished");
 		assert(activity.parent != null);
 		
 		if (activity.isChildActivity())
@@ -316,6 +309,7 @@ class ActivityManager extends Entity
 		else
 		{
 			activity.onPause();
+			
 			transition.pop(activity, null);
 		}
 	}

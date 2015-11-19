@@ -159,9 +159,9 @@ class EaseFactory
 			case BackOut(overshoot):   return overshoot == .1 ? mBackEaseOut   : new BackEaseOut(overshoot);
 			case BackInOut(overshoot): return overshoot == .1 ? mBackEaseInOut : new BackEaseInOut(overshoot);
 			
-			case ElasticIn(period, amplitude):    return (period == 0. && amplitude == .3) ? mElasticEaseIn    : new ElasticEaseIn(amplitude, period);
-			case ElasticOut(period, amplitude):   return (period == 0. && amplitude == .3) ? mElasticEaseOut   : new ElasticEaseOut(amplitude, period);
-			case ElasticInOut(period, amplitude): return (period == 0. && amplitude == .3) ? mElasticEaseInOut : new ElasticEaseInOut(amplitude, period);
+			case ElasticIn(amplitude, period):    return (amplitude == .0 && period == .3) ? mElasticEaseIn    : new ElasticEaseIn(amplitude, period);
+			case ElasticOut(amplitude, period):   return (amplitude == .0 && period == .3) ? mElasticEaseOut   : new ElasticEaseOut(amplitude, period);
+			case ElasticInOut(amplitude, period): return (amplitude == .0 && period == .3) ? mElasticEaseInOut : new ElasticEaseInOut(amplitude, period);
 			
 			case BounceIn:    return mBounceEaseIn;
 			case BounceOut:   return mBounceEaseOut;

@@ -42,9 +42,9 @@ enum Ease
 	BackIn(overshoot:Float);
 	BackOut(overshoot:Float);
 	BackInOut(overshoot:Float);
-	ElasticIn(period:Float, amplitude:Float);
-	ElasticOut(period:Float, amplitude:Float);
-	ElasticInOut(period:Float, amplitude:Float);
+	ElasticIn(amplitude:Float, period:Float);
+	ElasticOut(amplitude:Float, period:Float);
+	ElasticInOut(amplitude:Float, period:Float);
 	BounceIn;
 	BounceOut;
 	BounceInOut;

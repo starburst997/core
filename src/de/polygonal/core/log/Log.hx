@@ -30,27 +30,27 @@ using de.polygonal.ds.Bits;
 **/
 class Log
 {
-	static var _counter = 0;
+	static var mCounter = 0;
 	
 	public var name(default, null):String;
 	
 	public var inclTag:EReg = null;
 	public var exclTag:EReg = null;
 	
-	var _observable:Observable;
-	var _mask:Int;
-	var _level:Int;
-	var _logMessage:LogMessage;
-	var _tagFilter:EReg;
+	var mObservable:Observable;
+	var mMask:Int;
+	var mLevel:Int;
+	var mMessage:LogMessage;
+	var mTagFilter:EReg;
 	
 	public function new(name:String)
 	{
 		this.name = name;
 		
-		_mask = 0;
-		_level = 0;
-		_observable = new Observable();
-		_logMessage = new LogMessage();
+		mMask = 0;
+		mLevel = 0;
+		mObservable = new Observable();
+		mMessage = new LogMessage();
 		setLevel(LogLevel.DEBUG);
 	}
 	
@@ -62,19 +62,18 @@ class Log
 	public function addHandler(x:LogHandler)
 	{
 		#if log
-		for (observer in _observable)
-			if (observer == x) return;
-		_observable.attach(x, 0);
+		for (observer in mObservable) if (observer == x) return;
+		mObservable.attach(x, 0);
 		#end
 	}
-
+	
 	/**
 		Removes the handler `x` from this log.
 	**/
 	public function removeHandler(x:LogHandler)
 	{
 		#if log
-		_observable.detach(x);
+		mObservable.detach(x);
 		#end
 	}
 	
@@ -84,8 +83,7 @@ class Log
 	public function removeAllHandlers()
 	{
 		#if log
-		for (handler in _observable.getObserverList())
-			removeHandler(cast handler);
+		for (handler in mObservable.getObserverList()) removeHandler(cast handler);
 		#end
 	}
 	
@@ -94,7 +92,7 @@ class Log
 	**/
 	public function getLogHandlers():Array<LogHandler>
 	{
-		return cast _observable.getObserverList();
+		return cast mObservable.getObserverList();
 	}
 	
 	/**
@@ -115,20 +113,20 @@ class Log
 	**/
 	public function getLevelName():String
 	{
-		if (_level.ones() > 1)
+		if (mLevel.ones() > 1)
 		{
 			var a = new Array<String>();
 			var i = LogLevel.DEBUG;
 			while (i < LogLevel.ALL)
 			{
-				if ((_level & i) > 0)
+				if ((mLevel & i) > 0)
 					a.push(LogLevel.getName(i));
 				i <<= 1;
 			}
 			return a.join("|");
 		}
 		
-		return LogLevel.getName(_level);
+		return LogLevel.getName(mLevel);
 	}
 	
 	/**
@@ -136,7 +134,7 @@ class Log
 	**/
 	public function getLevel():Int
 	{
-		return _level;
+		return mLevel;
 	}
 	
 	/**
@@ -168,19 +166,19 @@ class Log
 		assert((x & LogLevel.ALL) > 0, "(x & LogLevel.ALL) > 0");
 		#end
 		
-		_level = x;
+		mLevel = x;
 		
 		if (x.ones() > 1)
 		{
-			_mask = x;
+			mMask = x;
 			return;
 		}
 		
-		_mask = LogLevel.ALL;
+		mMask = LogLevel.ALL;
 		while (x > LogLevel.DEBUG)
 		{
 			x >>= 1;
-			_mask = _mask.clrBits(x);
+			mMask = mMask.clrBits(x);
 		}
 		#end
 	}
@@ -193,8 +191,8 @@ class Log
 	public function d(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		#if log
-		if (_observable.size() > 0)
-			if (_mask.hasBits(LogLevel.DEBUG)) output(LogLevel.DEBUG, msg, tag, posInfos);
+		if (mObservable.size() > 0)
+			if (mMask.hasBits(LogLevel.DEBUG)) output(LogLevel.DEBUG, msg, tag, posInfos);
 		#end
 	}
 	
@@ -206,8 +204,8 @@ class Log
 	public function debug(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		#if log
-		if (_observable.size() > 0)
-			if (_mask.hasBits(LogLevel.DEBUG)) output(LogLevel.DEBUG, msg, tag, posInfos);
+		if (mObservable.size() > 0)
+			if (mMask.hasBits(LogLevel.DEBUG)) output(LogLevel.DEBUG, msg, tag, posInfos);
 		#end
 	}
 	
@@ -219,8 +217,8 @@ class Log
 	public function i(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		#if log
-		if (_observable.size() > 0)
-			if (_mask.hasBits(LogLevel.INFO)) output(LogLevel.INFO, msg, tag, posInfos);
+		if (mObservable.size() > 0)
+			if (mMask.hasBits(LogLevel.INFO)) output(LogLevel.INFO, msg, tag, posInfos);
 		#end
 	}
 	
@@ -232,8 +230,8 @@ class Log
 	public function info(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		#if log
-		if (_observable.size() > 0)
-			if (_mask.hasBits(LogLevel.INFO)) output(LogLevel.INFO, msg, tag, posInfos);
+		if (mObservable.size() > 0)
+			if (mMask.hasBits(LogLevel.INFO)) output(LogLevel.INFO, msg, tag, posInfos);
 		#end
 	}
 	
@@ -245,8 +243,8 @@ class Log
 	public function w(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		#if log
-		if (_observable.size() > 0)
-			if (_mask.hasBits(LogLevel.WARN)) output(LogLevel.WARN, msg, tag, posInfos);
+		if (mObservable.size() > 0)
+			if (mMask.hasBits(LogLevel.WARN)) output(LogLevel.WARN, msg, tag, posInfos);
 		#end
 	}
 	
@@ -258,8 +256,8 @@ class Log
 	public function warn(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		#if log
-		if (_observable.size() > 0)
-			if (_mask.hasBits(LogLevel.WARN)) output(LogLevel.WARN, msg, tag, posInfos);
+		if (mObservable.size() > 0)
+			if (mMask.hasBits(LogLevel.WARN)) output(LogLevel.WARN, msg, tag, posInfos);
 		#end
 	}
 	
@@ -271,8 +269,8 @@ class Log
 	public function e(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		#if log
-		if (_observable.size() > 0)
-			if (_mask.hasBits(LogLevel.ERROR)) output(LogLevel.ERROR, msg, tag, posInfos);
+		if (mObservable.size() > 0)
+			if (mMask.hasBits(LogLevel.ERROR)) output(LogLevel.ERROR, msg, tag, posInfos);
 		#end
 	}
 	
@@ -284,8 +282,8 @@ class Log
 	public function error(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		#if log
-		if (_observable.size() > 0)
-			if (_mask.hasBits(LogLevel.ERROR)) output(LogLevel.ERROR, msg, tag, posInfos);
+		if (mObservable.size() > 0)
+			if (mMask.hasBits(LogLevel.ERROR)) output(LogLevel.ERROR, msg, tag, posInfos);
 		#end
 	}
 
@@ -299,16 +297,16 @@ class Log
 			if (exclTag.match(tag))
 				return;
 		
-		_counter++; if (_counter == 1000) _counter = 0;
+		mCounter++; if (mCounter == 1000) mCounter = 0;
 		
 		if (msg == null) msg = "null";
 		
-		_logMessage.id          = _counter;
-		_logMessage.msg         = msg;
-		_logMessage.tag         = tag;
-		_logMessage.log         = this;
-		_logMessage.outputLevel = level;
-		_logMessage.posInfos    = posInfos;
-		_observable.notify(LogEvent.LOG_MESSAGE, _logMessage);
+		mMessage.id = mCounter;
+		mMessage.msg = msg;
+		mMessage.tag = tag;
+		mMessage.log = this;
+		mMessage.outputLevel = level;
+		mMessage.posInfos = posInfos;
+		mObservable.notify(LogEvent.LOG_MESSAGE, mMessage);
 	}
 }

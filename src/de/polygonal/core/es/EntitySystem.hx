@@ -316,7 +316,7 @@ class EntitySystem
 	{
 		assert(e.id != null);
 		
-		#if (verbose=="extra")
+		#if (verbose == "extra")
 		L.d('$e is gone', "es");
 		#end
 		

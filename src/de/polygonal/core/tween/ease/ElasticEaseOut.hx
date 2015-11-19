@@ -20,6 +20,7 @@ package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.util.Assert.assert;
 
 /**
 	Elastic easing out
@@ -39,6 +40,8 @@ class ElasticEaseOut implements Interpolation<Float>
 	**/
 	public function new(amplitude = .0, period = .3)
 	{
+		assert(period > 0);
+		
 		this.amplitude = amplitude;
 		this.period = period;
 	}

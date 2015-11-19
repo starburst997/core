@@ -25,11 +25,11 @@ class Interval
 	public var duration(get_duration, set_duration):Float;
 	inline function get_duration():Float
 	{
-		return _duration;
+		return mDuration;
 	}
 	inline function set_duration(x:Float):Float
 	{
-		_duration = x;
+		mDuration = x;
 		reset();
 		return x;
 	}
@@ -37,7 +37,7 @@ class Interval
 	public var alpha(get_alpha, never):Float;
 	inline function get_alpha():Float
 	{
-		return M.fmin(_t0 / _t1, 1);
+		return M.fmin(mMin / mMax, 1);
 	}
 	
 	public var finished(get_finished, never):Bool;
@@ -49,14 +49,14 @@ class Interval
 	public var remainingSeconds(get_remainingSeconds, never):Float;
 	inline function get_remainingSeconds():Float
 	{
-		return _t1 - _t0;
+		return mMax - mMin;
 	}
 	
 	public var hold:Bool;
 	
-	var _t0:Float;
-	var _t1:Float;
-	var _duration:Float;
+	var mMin:Float;
+	var mMax:Float;
+	var mDuration:Float;
 	
 	public function new(duration:Float = 0)
 	{
@@ -65,13 +65,13 @@ class Interval
 	
 	inline public function reset()
 	{
-		_t0 = 0;
-		_t1 = duration;
+		mMin = 0;
+		mMax = duration;
 	}
 	
 	inline public function advance(dt:Float):Float
 	{
-		if (!hold) _t0 += dt;
+		if (!hold) mMin += dt;
 		return alpha;
 	}
 }
