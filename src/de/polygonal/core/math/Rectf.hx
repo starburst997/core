@@ -22,28 +22,27 @@ package de.polygonal.core.math;
 	A min-widths representation of a rectangle in 2-dimensional space,
 	whose sides are parallel to the coordinate axes.
 **/
-#if !doc @:generic #end
-class Rect<T:Float>
+class Rectf
 {
 	/**
 		The x coordinate of the top-left corner of the rectangle.
 	**/
-	public var x:T;
+	public var x:Float;
 	
 	/**
 		The y coordinate of the top-left corner of the rectangle.
 	**/
-	public var y:T;
+	public var y:Float;
 	
 	/**
 		The width of the rectangle.
 	**/
-	public var w:T;
+	public var w:Float;
 	
 	/**
 		The height of the rectangle.
 	**/
-	public var h:T;
+	public var h:Float;
 	
 	/**
 		The x coordinate of the bottom-right corner of the rectangle.
@@ -57,7 +56,7 @@ class Rect<T:Float>
 	public var b(get_b, never):Float;
 	inline function get_b():Float return y + h;
 	
-	public function new(x:T = untyped 0, y:T = untyped 0, w:T = untyped 0, h:T = untyped 0)
+	public function new(x:Float = 0, y:Float = 0, w:Float = 0, h:Float = 0)
 	{
 		this.x = x;
 		this.y = y;
@@ -65,7 +64,7 @@ class Rect<T:Float>
 		this.h = h;
 	}
 	
-	inline public function of(other:Rect<T>)
+	inline public function of(other:Rectf)
 	{
 		x = other.x;
 		y = other.y;
@@ -73,25 +72,18 @@ class Rect<T:Float>
 		h = other.h;
 	}
 	
-	inline public function equals(other:Rect<T>):Bool
+	inline public function equals(other:Rectf):Bool
 	{
 		return x == other.x && y == other.y && w == other.w && h == other.h;
 	}
 	
-	public function clone():Rect<T>
+	public function clone():Rectf
 	{
-		return new Rect<T>(x, y, w, h);
+		return new Rectf(x, y, w, h);
 	}
 	
 	public function toString():String
 	{
-		return
-		if (Std.is(x, Int) && Std.is(y, Int) && Std.is(w, Int) && Std.is(h, Int))
-			'{ Rect x=$x y=$y w=$w h=$h }';
-		else
-			Printf.format('{ Rect x=%-.4f y=%-.4f w=%-.4f h=%-.4f }', [x, y, w, h]);
+		return Printf.format('{ Rect x=%-.4f y=%-.4f w=%-.4f h=%-.4f }', [x, y, w, h]);
 	}
 }
-
-typedef Rectf = Rect<Float>;
-typedef Recti = Rect<Int>;
