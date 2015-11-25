@@ -214,6 +214,27 @@ class StringUtil
 		return ~/([\[\]\\\^\$\*\+\?\{\|\-\\])/g.replace(x, "\\$1");
 	}
 	
+	/**
+		Returns the byte length of the utf-8 encoded string `x`.
+	**/
+	public static function utf8Len(x:String):Int
+	{
+		var n = 0, c;
+		for (i in 0...x.length)
+		{
+			c = x.charCodeAt(i);
+			n +=
+			if (c <= 0x7f) 1;
+			else if (c <= 0x7ff) 2;
+			else if (c <= 0xffff) 3;
+			else if (c <= 0x10ffff) 4;
+			else
+				throw 'Invalid Unicode character : 0x${StringTools.hex(c)}';
+		}
+		
+		return n;
+	}
+	
 	public static function hashCode(x:String):Int
 	{
 		var hash = 0;
