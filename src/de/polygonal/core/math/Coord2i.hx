@@ -21,24 +21,23 @@ package de.polygonal.core.math;
 /**
 	A point representing a location in (`x`,`y`) coordinate space.
 **/
-#if !doc @:generic #end
-class Coord2<T:Float>
+class Coord2i
 {
-	public var x:T;
-	public var y:T;
+	public var x:Int;
+	public var y:Int;
 	
-	public function new(x:T = untyped 0, y:T = untyped 0)
+	public function new(x:Int = 0, y:Int = 0)
 	{
 		set(x, y);
 	}
 	
-	inline public function of(other:Coord2<T>)
+	inline public function of(other:Coord2i)
 	{
 		x = other.x;
 		y = other.y;
 	}
 	
-	inline public function set(x:T, y:T):Coord2<T>
+	inline public function set(x:Int, y:Int):Coord2i
 	{
 		this.x = x;
 		this.y = y;
@@ -47,30 +46,26 @@ class Coord2<T:Float>
 	
 	inline public function isZero():Bool
 	{
-		return untyped x == 0 && y == 0;
+		return x == 0 && y == 0;
 	}
 	
-	inline public function zero()
+	inline public function makeZero()
 	{
-		x = cast 0;
-		y = cast 0;
+		x = y = 0;
 	}
 	
-	inline public function equals(other:Coord2<T>):Bool
+	inline public function equals(other:Coord2i):Bool
 	{
 		return other.x == x && other.y == y;
 	}
 	
-	public function clone():Coord2<T>
+	public function clone():Coord2i
 	{
-		return new Coord2<T>(x, y);
+		return new Coord2i(x, y);
 	}
 	
 	public function toString():String
 	{
-		return Printf.format("{ Coord2 %-.4f %-.4f }", [x, y]);
+		return '{ Coord2i $x $y }';
 	}
 }
-
-typedef Coord2f = Coord2<Float>;
-typedef Coord2i = Coord2<Int>;

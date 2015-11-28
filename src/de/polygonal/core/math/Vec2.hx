@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
-import de.polygonal.core.math.Coord2.Coord2f;
+import de.polygonal.core.math.Coord2f;
 import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.math.random.Random;
 
