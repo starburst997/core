@@ -43,8 +43,10 @@ class ObservableEntity extends Entity
 	var mAttachStatus2:AS;
 	#end
 	
-	public function new(name:String = null, bucketSize = 4, shrink = true)
+	public function new(name:String = null, isGlobal:Bool = false, bucketSize = 4, shrink = true)
 	{
+		super(name, isGlobal);
+		
 		var k = Msg.totalMessages() + 1; //use zero index to store observers attached to all types
 		mBuckets = new BucketList<EntityId>(M.max(k, 2), bucketSize, shrink);
 		

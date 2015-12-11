@@ -60,8 +60,8 @@ class ActivityManager extends Entity
 	
 	function new()
 	{
-		super();
-		publish(ActivityManager.ENTITY_NAME);
+		super(true);
+		
 		transition = add(Transition);
 		
 		L.d("ActivityManager initialized.", "activity");

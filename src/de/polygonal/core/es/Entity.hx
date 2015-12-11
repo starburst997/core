@@ -88,22 +88,26 @@ class Entity
 	
 	public var phase:Int = -1;
 	
-	@:noCompletion var mFlags:Int;
-	@:noCompletion var mName:String;
+	/**
+		The name of this entity.
+		
+		Default is null.
+	**/
+	public var name(default, null):String = null;
 	
-	public function new(?name:String)
+	@:noCompletion var mFlags:Int;
+	
+	public function new(?name:String, isGlobal:Bool = false)
 	{
 		mFlags = BIT_NO_PARENT;
 		type = __getType();
 		
-		EntitySystem.register(this);
+		if (isGlobal && name == null)
+			name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
 		
-		#if debug
-		if (name == null)
-			name = ClassUtil.getUnqualifiedClassName(this);
-		#end
+		this.name = name;
 		
-		if (name != null) mName = name;
+		EntitySystem.register(this, isGlobal);
 	}
 	
 	/**
@@ -195,24 +199,6 @@ class Entity
 	@:noCompletion inline function set_numChildren(value:Int):Int
 	{
 		Es.setNumChildren(this, value);
-		return value;
-	}
-	
-	/**
-		The name of this entity.
-		Default is null.
-	**/
-	public var name(get_name, set_name):String;
-	@:noCompletion inline function get_name():String
-	{
-		return mName;
-	}
-	@:noCompletion function set_name(value:String):String
-	{
-		if (value == name) return value;
-		if (mFlags & BIT_NAME_PUBLISHED > 0)
-			Es.changeName(this, value);
-		mName = value;
 		return value;
 	}
 	
@@ -885,18 +871,6 @@ class Entity
 	{
 		if (name == null) name = '[${ClassUtil.getClassName(this)}]';
 		return '{ Entity $name }';
-	}
-	
-	function publish(?name:String)
-	{
-		assert(mFlags & BIT_NAME_PUBLISHED == 0);
-		
-		if (name == null)
-			name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
-		
-		this.name = name;
-		mFlags |= BIT_NAME_PUBLISHED;
-		Es.changeName(this, mName);
 	}
 	
 	@:noCompletion function send(?recipient:Entity, relation:Int, msgType:Int, dispatch:Bool = false)

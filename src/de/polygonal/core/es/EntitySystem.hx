@@ -272,7 +272,7 @@ class EntitySystem
 		return s;
 	}
 	
-	static function register(e:E)
+	static function register(e:E, isGlobal:Bool)
 	{
 		if (mFreeList == null) init();
 		
@@ -295,7 +295,11 @@ class EntitySystem
 		id.index = i;
 		e.id = id;
 		
-		if (e.name != null) registerName(e);
+		if (isGlobal)
+		{
+			assert(e.name != null);
+			registerName(e);
+		}
 		
 		var lut = mInheritanceLut;
 		if (!lut.hasKey(e.type))
@@ -461,14 +465,6 @@ class EntitySystem
 	inline static function pos(e:E, shift:Int):Int
 	{
 		return (e.id.index << 3) + shift;
-	}
-	
-	static function changeName(e:E, newName:String)
-	{
-		if (e.name != null)
-			mEntitiesByName.remove(e.name);
-		e.mName = newName;
-		registerName(e);
 	}
 	
 	static function freeRecursive(e:E)
