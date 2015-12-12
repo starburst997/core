@@ -79,27 +79,39 @@ class Entity
 	/**
 		Every subclass of the Entity class can be identified by an unique integer value.
 	**/
-	public var type(default, null):Int;
+	public var type(get_type, never):Int;
+	inline function get_type():Int return mBits >>> 16;
 	
-	public var phase:Int = -1;
+	/**
+		Execution order (smaller value equals higher priority); only effective after calling `sortChildren()`.
+		
+		Default is 0.
+	**/
+	public var phase(get_phase, set_phase):Int;
+	inline function get_phase():Int return mBits >>> 8 & 0xFF;
+	inline function set_phase(value:Int):Int
+	{
+		assert(value >= 0 && value <= 0xFF, "invalid phase");
+		mBits |= (value & 0xFF) << 8;
+		
+		return value;
+	}
 	
 	/**
 		The name of this entity.
 		
 		Default is null.
 	**/
-	public var name(default, null):String = null;
+	public var name(default, null):String;
 	
-	@:noCompletion var mFlags:Int;
+	@:noCompletion var mBits:Int;
 	
 	public function new(?name:String, isGlobal:Bool = false)
 	{
-		mFlags = BIT_NO_PARENT;
-		type = __getType();
+		mBits = (__getType() << 16) | BIT_NO_PARENT;
 		
 		if (isGlobal && name == null)
 			name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
-		
 		this.name = name;
 		
 		EntitySystem.register(this, isGlobal);
@@ -112,7 +124,7 @@ class Entity
 	**/
 	public function free()
 	{
-		if (mFlags & BIT_MARK_FREE > 0) return;
+		if (mBits & BIT_MARK_FREE > 0) return;
 		
 		if (parent != null) parent.remove(this);
 		Es.freeEntityTree(this);
@@ -126,7 +138,7 @@ class Entity
 	public var preorder(get_preorder, set_preorder):Entity;
 	@:noCompletion inline function get_preorder():Entity
 	{
-		assert(mFlags & BIT_MARK_FREE == 0);
+		assert(mBits & BIT_MARK_FREE == 0);
 		return Es.getPreorder(this);
 	}
 	@:noCompletion inline function set_preorder(value:Entity)
@@ -143,7 +155,7 @@ class Entity
 	public var parent(get_parent, set_parent):Entity;
 	@:noCompletion inline function get_parent():Entity
 	{
-		assert(mFlags & BIT_MARK_FREE == 0);
+		assert(mBits & BIT_MARK_FREE == 0);
 		return Es.getParent(this);
 	}
 	@:noCompletion inline function set_parent(value:Entity)
@@ -220,11 +232,12 @@ class Entity
 	public var tickable(get_tickable, set_tickable):Bool;
 	@:noCompletion inline function get_tickable():Bool
 	{
-		return mFlags & BIT_SKIP_TICK == 0;
+		return mBits & BIT_SKIP_TICK == 0;
 	}
 	@:noCompletion function set_tickable(value:Bool):Bool
 	{
-		mFlags = value ? (mFlags & ~BIT_SKIP_TICK) : (mFlags | BIT_SKIP_TICK);
+		value ? mBits &= ~BIT_SKIP_TICK : mBits |= BIT_SKIP_TICK;
+		
 		return value;
 	}
 	
@@ -234,11 +247,12 @@ class Entity
 	public var drawable(get_drawable, set_drawable):Bool;
 	@:noCompletion inline function get_drawable():Bool
 	{
-		return mFlags & BIT_SKIP_DRAW == 0;
+		return mBits & BIT_SKIP_DRAW == 0;
 	}
 	@:noCompletion function set_drawable(value:Bool):Bool
 	{
-		mFlags = value ? (mFlags & ~BIT_SKIP_DRAW) : (mFlags | BIT_SKIP_DRAW);
+		value ? mBits &= ~BIT_SKIP_DRAW : mBits |= BIT_SKIP_DRAW;
+		
 		return value;
 	}
 	
@@ -250,11 +264,12 @@ class Entity
 	public var notifiable(get_notifiable, set_notifiable):Bool;
 	@:noCompletion inline function get_notifiable():Bool
 	{
-		return mFlags & BIT_SKIP_MSG == 0;
+		return mBits & BIT_SKIP_MSG == 0;
 	}
 	@:noCompletion function set_notifiable(value:Bool):Bool
 	{
-		mFlags = value ? (mFlags & ~BIT_SKIP_MSG) : (mFlags | BIT_SKIP_MSG);
+		value ? mBits &= ~BIT_SKIP_MSG : mBits |= BIT_SKIP_MSG;
+		
 		return value;
 	}
 	
@@ -266,11 +281,12 @@ class Entity
 	public var passable(get_passable, set_passable):Bool;
 	@:noCompletion inline function get_passable():Bool
 	{
-		return mFlags & BIT_SKIP_SUBTREE == 0;
+		return mBits & BIT_SKIP_SUBTREE == 0;
 	}
 	@:noCompletion function set_passable(value:Bool):Bool
 	{
-		mFlags = value ? (mFlags & ~BIT_SKIP_SUBTREE) : (mFlags | BIT_SKIP_SUBTREE);
+		value ? mBits &= ~BIT_SKIP_SUBTREE : mBits |= BIT_SKIP_SUBTREE;
+		
 		return value;
 	}
 	
@@ -363,7 +379,7 @@ class Entity
 		
 		lastChild = x;
 		
-		x.mFlags &= ~BIT_NO_PARENT;
+		x.mBits &= ~BIT_NO_PARENT;
 		x.onAdd();
 		
 		return cast x;
@@ -465,7 +481,7 @@ class Entity
 			n = n.preorder;
 		}
 		
-		x.mFlags |= BIT_NO_PARENT;
+		x.mBits |= BIT_NO_PARENT;
 		x.parent = null;
 		x.onRemove(this);
 		
@@ -496,7 +512,7 @@ class Entity
 			c.setDepth(0);
 			
 			c.sibling = c.parent = null;
-			c.mFlags |= BIT_NO_PARENT;
+			c.mBits |= BIT_NO_PARENT;
 			c.onRemove(this);
 			
 			c = next;
@@ -864,7 +880,7 @@ class Entity
 	**/
 	inline function stop()
 	{
-		mFlags |= BIT_STOP_PROPAGATION;
+		mBits |= BIT_STOP_PROPAGATION;
 	}
 	
 	function isDescendantOf(other:Entity):Bool

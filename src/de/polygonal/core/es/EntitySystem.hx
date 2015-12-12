@@ -358,10 +358,10 @@ class EntitySystem
 		e.preorder = null;
 		
 		//remove from name => entity mapping
-		if (e.mFlags & E.BIT_IS_GLOBAL > 0)
+		if (e.mBits & E.BIT_IS_GLOBAL > 0)
 		{
 			mEntitiesByName.remove(e.name);
-			e.mFlags &= ~E.BIT_IS_GLOBAL;
+			e.mBits &= ~E.BIT_IS_GLOBAL;
 		}
 		
 		//mark as removed by setting msb to one
@@ -440,7 +440,7 @@ class EntitySystem
 			n = sibling;
 		}
 		
-		e.mFlags |= E.BIT_MARK_FREE;
+		e.mBits |= E.BIT_MARK_FREE;
 		
 		#if verbose
 		L.d('free ${e.name}');
@@ -474,7 +474,7 @@ class EntitySystem
 		
 		for (e in a)
 		{
-			e.mFlags |= E.BIT_MARK_FREE;
+			e.mBits |= E.BIT_MARK_FREE;
 			
 			#if verbose
 			L.d('free ${e.name}');
@@ -493,7 +493,7 @@ class EntitySystem
 			throw '${e.name} already registered to ${mEntitiesByName.get(e.name)}';
 		
 		mEntitiesByName.set(e.name, e);
-		e.mFlags |= E.BIT_IS_GLOBAL;
+		e.mBits |= E.BIT_IS_GLOBAL;
 		
 		#if verbose
 		L.d('registered entity by name: ${e.name} => $e', "es");

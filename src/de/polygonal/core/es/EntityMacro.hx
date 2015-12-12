@@ -111,6 +111,8 @@ class EntityMacro
 		
 		if (name == "Entity") return fields; //don't modify Entity constructor
 		
+		if (next > 0xffff) Context.fatalError("type value out of bounds", Context.currentPos());
+		
 		fields.push(
 		{
 			name: "__getType",

@@ -110,7 +110,7 @@ class MsgQue
 	{
 		if (mCurrMsgOut != null)
 		{
-			mCurrMsgOut.mFlags = 0;
+			mCurrMsgOut.mBits = 0;
 			mCurrMsgOut.mObject = null;
 			mCurrMsgOut = null;
 		}
@@ -126,7 +126,7 @@ class MsgQue
 		var i = (mFront + mSize) % mCapacity;
 		mSize++;
 		
-		if (recipient.mFlags & (E.BIT_SKIP_MSG | E.BIT_MARK_FREE) > 0)
+		if (recipient.mBits & (E.BIT_SKIP_MSG | E.BIT_MARK_FREE) > 0)
 		{
 			//enqueue message even if recipient doesn't want it;
 			//this is required for properly stopping a message propagation (when an entity calls stop())
@@ -185,9 +185,9 @@ class MsgQue
 		//increment counter if batch is complete and data is set
 		if (remaining == 0)
 		{
-			if (mCurrMsgOut != null && mCurrMsgOut.mFlags > 0)
+			if (mCurrMsgOut != null && mCurrMsgOut.mBits > 0)
 			{
-				mCurrMsgOut.mFlags |= Msg.USED;
+				mCurrMsgOut.mBits |= Msg.USED;
 				mFreeMsgIndex++; 
 				mCurrMsgOut = null;
 			}
@@ -283,7 +283,7 @@ class MsgQue
 			mFront = (mFront + 1) % c;
 			mSize--;
 			
-			if (sender == null || recipient == null || (sender.mFlags | recipient.mFlags) & E.BIT_MARK_FREE > 0)
+			if (sender == null || recipient == null || (sender.mBits | recipient.mBits) & E.BIT_MARK_FREE > 0)
 			{
 				#if verbose
 				numSkippedMessages++;
@@ -312,7 +312,7 @@ class MsgQue
 			#end
 			
 			//notify recipient
-			if (recipient.mFlags & (E.BIT_SKIP_MSG | E.BIT_MARK_FREE) == 0)
+			if (recipient.mBits & (E.BIT_SKIP_MSG | E.BIT_MARK_FREE) == 0)
 			{
 				recipient.onMsg(type, sender);
 				
@@ -325,7 +325,7 @@ class MsgQue
 				numSkippedMessages++;
 			#end
 			
-			if (recipient.mFlags & E.BIT_STOP_PROPAGATION > 0)
+			if (recipient.mBits & E.BIT_STOP_PROPAGATION > 0)
 			{
 				if (dir > 0)
 				{
@@ -346,7 +346,7 @@ class MsgQue
 				
 				//recipient stopped notification;
 				//reset flag and skip remaining messages in current batch
-				recipient.mFlags &= ~E.BIT_STOP_PROPAGATION;
+				recipient.mBits &= ~E.BIT_STOP_PROPAGATION;
 				mFront = (mFront + skipCount) % c;
 				mSize -= skipCount;
 			}
@@ -361,7 +361,7 @@ class MsgQue
 		for (i in 0...mMessages.length)
 		{
 			assert(mMessages[i] != null);
-			mMessages[i].mFlags = 0;
+			mMessages[i].mBits = 0;
 			mMessages[i].mObject = null;
 		}
 		mFreeMsgIndex = 0;

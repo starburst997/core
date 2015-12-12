@@ -58,7 +58,8 @@ class Msg
 	@:noCompletion var mBool:Bool;
 	@:noCompletion var mString:String;
 	@:noCompletion var mObject:Dynamic;
-	@:noCompletion var mFlags:Int;
+	
+	@:noCompletion var mBits:Int;
 	
 	/**
 		Integer value. Only valid if hasInt() is true.
@@ -66,14 +67,15 @@ class Msg
 	public var i(get_i, set_i):Int;
 	@:noCompletion inline function get_i():Int
 	{
-		assert(mFlags & I > 0, "no int stored");
+		assert(mBits & I > 0, "no int stored");
+		
 		return mInt;
 	}
 	@:noCompletion inline function set_i(value:Int):Int
 	{
-		assert(mFlags & USED == 0);
+		assert(mBits & USED == 0);
 		
-		mFlags |= I;
+		mBits |= I;
 		mInt = value;
 		return value;
 	}
@@ -84,14 +86,15 @@ class Msg
 	public var f(get_f, set_f):Float;
 	@:noCompletion inline function get_f():Float
 	{
-		assert(mFlags & F > 0, "no float stored");
+		assert(mBits & F > 0, "no float stored");
+		
 		return mFloat;
 	}
 	@:noCompletion inline function set_f(value:Float):Float
 	{
-		assert(mFlags & USED == 0);
+		assert(mBits & USED == 0);
 		
-		mFlags |= F;
+		mBits |= F;
 		mFloat = value;
 		return value;
 	}
@@ -102,14 +105,15 @@ class Msg
 	public var b(get_b, set_b):Bool;
 	@:noCompletion inline function get_b():Bool
 	{
-		assert(mFlags & B > 0, "no bool stored");
+		assert(mBits & B > 0, "no bool stored");
+		
 		return mBool;
 	}
 	@:noCompletion inline function set_b(value:Bool):Bool
 	{
-		assert(mFlags & USED == 0);
+		assert(mBits & USED == 0);
 		
-		mFlags |= B;
+		mBits |= B;
 		mBool = value;
 		return value;
 	}
@@ -120,14 +124,15 @@ class Msg
 	public var s(get_s, set_s):String;
 	@:noCompletion inline function get_s():String
 	{
-		assert(mFlags & S > 0, "no string stored");
+		assert(mBits & S > 0, "no string stored");
+		
 		return mString;
 	}
 	@:noCompletion inline function set_s(value:String):String
 	{
-		assert(mFlags & USED == 0);
+		assert(mBits & USED == 0);
 		
-		mFlags |= S;
+		mBits |= S;
 		mString = value;
 		return value;
 	}
@@ -138,14 +143,16 @@ class Msg
 	public var o(get_o, set_o):Dynamic;
 	@:noCompletion inline function get_o():Dynamic
 	{
-		assert(mFlags & O > 0, "no object stored");	
+		assert(mBits & O > 0, "no object stored");
+		
 		return mObject;
 	}
+	
 	@:noCompletion inline function set_o(value:Dynamic):Dynamic
 	{
-		assert(mFlags & USED == 0);
+		assert(mBits & USED == 0);
 		
-		mFlags |= O;
+		mBits |= O;
 		mObject = value;
 		return value;
 	}
@@ -153,39 +160,40 @@ class Msg
 	/**
 		True if the message stores an integer value.
 	**/
-	inline public function hasInt() return mFlags & I > 0;
+	inline public function hasInt() return mBits & I > 0;
 	
 	/**
 		True if the message stores a float value.
 	**/
-	inline public function hasFloat() return mFlags & F > 0;
+	inline public function hasFloat() return mBits & F > 0;
 	
 	/**
 		True if the message stores an integer value.
 	**/
-	inline public function hasBool() return mFlags & B > 0;
+	inline public function hasBool() return mBits & B > 0;
 	
 	/**
 		True if the message stores a string value.
 	**/
-	inline public function hasString() return mFlags & S > 0;
+	inline public function hasString() return mBits & S > 0;
 	
 	/**
 		Trhe if the message stores an object.
 	**/
-	inline public function hasObject() return mFlags & O > 0;
+	inline public function hasObject() return mBits & O > 0;
 	
 	function new() {}
 	
 	@:noCompletion function toString():String
 	{
 		var a = [];
-		if (mFlags & I > 0) a.push('int=$mInt');
-		if (mFlags & F > 0) a.push('float=$mFloat');
-		if (mFlags & B > 0) a.push('bool=$mBool');
-		if (mFlags & S > 0) a.push('string=$mString');
-		if (mFlags & O > 0) a.push('object=$mObject');
+		if (mBits & I > 0) a.push('i=$mInt');
+		if (mBits & F > 0) a.push('f=$mFloat');
+		if (mBits & B > 0) a.push('b=$mBool');
+		if (mBits & S > 0) a.push('s=$mString');
+		if (mBits & O > 0) a.push('o=$mObject');
 		if (a.length > 0) return '{ Msg a.join(", ") }';
+		
 		return "{ Msg }";
 	}
 }
