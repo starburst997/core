@@ -354,16 +354,19 @@ class EntitySystem
 		#end
 		mFree = i;
 		
+		//don't forget to nullify preorder pointer
+		e.preorder = null;
+		
 		//remove from name => entity mapping
-		if (e.mFlags & E.BIT_NAME_PUBLISHED > 0)
+		if (e.mFlags & E.BIT_IS_GLOBAL > 0)
+		{
 			mEntitiesByName.remove(e.name);
+			e.mFlags &= ~E.BIT_IS_GLOBAL;
+		}
 		
 		//mark as removed by setting msb to one
 		e.id.inner |= 0x80000000;
 		e.id = null;
-		
-		//don't forget to nullify preorder pointer
-		e.preorder = null;
 	}
 	
 	static function freeEntityTree(e:E)
@@ -381,6 +384,9 @@ class EntitySystem
 		else
 			freeIterative(e); //inverse levelorder traversal
 	}
+	
+	inline static function getPreorder(e:E):E return mFreeList[get(pos(e, OFFSET_PREORDER))];
+	inline static function setPreorder(e:E, value:E) set(pos(e, OFFSET_PREORDER), value == null ? 0 : value.id.index);
 	
 	inline static function getParent(e:E):E return mFreeList[get(pos(e, OFFSET_PARENT))];
 	inline static function setParent(e:E, value:E) set(pos(e, OFFSET_PARENT), value == null ? 0 : value.id.index);
@@ -487,6 +493,7 @@ class EntitySystem
 			throw '${e.name} already registered to ${mEntitiesByName.get(e.name)}';
 		
 		mEntitiesByName.set(e.name, e);
+		e.mFlags |= E.BIT_IS_GLOBAL;
 		
 		#if verbose
 		L.d('registered entity by name: ${e.name} => $e', "es");

@@ -37,7 +37,7 @@ import de.polygonal.core.es.EntitySystem in Es;
 	BIT_SKIP_DRAW,
 	BIT_STOP_PROPAGATION,
 	BIT_MARK_FREE,
-	BIT_NAME_PUBLISHED,
+	BIT_IS_GLOBAL,
 	BIT_NO_PARENT
 ], true, false))
 @:build(de.polygonal.core.es.EntityMacro.build())
@@ -81,11 +81,6 @@ class Entity
 	**/
 	public var type(default, null):Int;
 	
-	/**
-		A pointer to the next entity in a preorder sequence.
-	**/
-	public var preorder(default, null):Entity;
-	
 	public var phase:Int = -1;
 	
 	/**
@@ -121,6 +116,23 @@ class Entity
 		
 		if (parent != null) parent.remove(this);
 		Es.freeEntityTree(this);
+	}
+	
+	/**
+		A pointer to the next entity in a preorder sequence.
+		
+		<warn>This value should never be changed by the user.</warn>
+	**/
+	public var preorder(get_preorder, set_preorder):Entity;
+	@:noCompletion inline function get_preorder():Entity
+	{
+		assert(mFlags & BIT_MARK_FREE == 0);
+		return Es.getPreorder(this);
+	}
+	@:noCompletion inline function set_preorder(value:Entity)
+	{
+		Es.setPreorder(this, value);
+		return value;
 	}
 	
 	/**
