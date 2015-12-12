@@ -47,7 +47,7 @@ class EntityIterator
 	
 	public static function children(e:Entity):Iterator<Entity>
 	{
-		var walker = e.child;
+		var walker = e.firstChild;
 		return
 		{
 			hasNext: function()
@@ -92,7 +92,7 @@ class EntityIterator
 			}
 		}
 		
-		var walker = e.parent.child;
+		var walker = e.parent.firstChild;
 		return
 		{
 			hasNext: function()

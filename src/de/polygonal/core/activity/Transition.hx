@@ -219,7 +219,7 @@ class Transition extends Entity
 		}
 	}
 	
-	override function onTick(dt:Float)
+	override function onTick(dt:Float, post:Bool)
 	{
 		switch (mPhase)
 		{
@@ -244,7 +244,7 @@ class Transition extends Entity
 		}
 	}
 	
-	override function onDraw(alpha:Float)
+	override function onDraw(alpha:Float, post:Bool)
 	{
 		switch (mPhase)
 		{
@@ -270,7 +270,7 @@ class Transition extends Entity
 		function findChildActivity(x:Entity):Activity
 		{
 			var a = null;
-			var c = x.child;
+			var c = x.firstChild;
 			while (c != null)
 			{
 				if (c.is(Activity))
@@ -285,7 +285,7 @@ class Transition extends Entity
 		
 		var t = e;
 		var c:Activity = null;
-		while (t.child != null) //can be null t
+		while (t.firstChild != null) //can be null t
 		{
 			c = findChildActivity(t);
 			

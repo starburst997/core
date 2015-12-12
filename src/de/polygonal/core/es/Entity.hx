@@ -145,30 +145,14 @@ class Entity
 		
 		<warn>This value should never be changed by the user.</warn>
 	**/
-	public var child(get_child, set_child):Entity;
-	@:noCompletion inline function get_child():Entity
+	public var firstChild(get_firstChild, set_firstChild):Entity;
+	@:noCompletion inline function get_firstChild():Entity
 	{
-		return Es.getChild(this);
+		return Es.getFirstChild(this);
 	}
-	@:noCompletion inline function set_child(value:Entity)
+	@:noCompletion inline function set_firstChild(value:Entity)
 	{
-		Es.setChild(this, value);
-		return value;
-	}
-	
-	/**
-		The next sibling or null if this entity has no sibling.
-		
-		<warn>This value should never be changed by the user.</warn>
-	**/
-	public var sibling(get_sibling, set_sibling):Entity;
-	@:noCompletion inline function get_sibling():Entity
-	{
-		return Es.getSibling(this);
-	}
-	@:noCompletion inline function set_sibling(value:Entity)
-	{
-		Es.setSibling(this, value);
+		Es.setFirstChild(this, value);
 		return value;
 	}
 	
@@ -185,6 +169,22 @@ class Entity
 	@:noCompletion inline function set_lastChild(value:Entity)
 	{
 		Es.setLastChild(this, value);
+		return value;
+	}
+	
+	/**
+		The next sibling or null if this entity has no sibling.
+		
+		<warn>This value should never be changed by the user.</warn>
+	**/
+	public var sibling(get_sibling, set_sibling):Entity;
+	@:noCompletion inline function get_sibling():Entity
+	{
+		return Es.getSibling(this);
+	}
+	@:noCompletion inline function set_sibling(value:Entity)
+	{
+		Es.setSibling(this, value);
 		return value;
 	}
 	
@@ -315,10 +315,10 @@ class Entity
 			p = p.parent;
 		}
 		
-		if (child == null)
+		if (firstChild == null)
 		{
 			//case 1: without children
-			child = x;
+			firstChild = x;
 			x.sibling = null;
 			
 			//fix preorder pointer
@@ -403,10 +403,10 @@ class Entity
 		}
 		
 		//case 1: first child is removed
-		if (child == x)
+		if (firstChild == x)
 		{
 			//update lastChild
-			if (child.sibling == null)
+			if (firstChild.sibling == null)
 				lastChild = null;
 			
 			var i = findLastLeaf(x);
@@ -414,13 +414,13 @@ class Entity
 			preorder = i.preorder;
 			i.preorder = null;
 			
-			child = x.sibling;
+			firstChild = x.sibling;
 			x.sibling = null;
 		}
 		else
 		{
 			//case 2: second to last child is removed
-			var prev = child;
+			var prev = firstChild;
 			while (prev != null) //find predecessor
 			{
 				if (prev.sibling == x) break;
@@ -467,7 +467,7 @@ class Entity
 	{
 		var k = getSize();
 		
-		var c = child, next, p, d;
+		var c = firstChild, next, p, d;
 		while (c != null)
 		{
 			next = c.sibling;
@@ -490,7 +490,7 @@ class Entity
 			c = next;
 		}
 		
-		child = lastChild = null;
+		firstChild = lastChild = null;
 		preorder = sibling;
 		numChildren = 0;
 		
@@ -633,7 +633,7 @@ class Entity
 		if (p == null) return -1;
 		
 		var i = 0;
-		var e = p.child;
+		var e = p.firstChild;
 		while (e != this)
 		{
 			i++;
@@ -649,7 +649,7 @@ class Entity
 	{
 		assert(index >= 0 && index < numChildren, 'index $index out of range');
 		var i = 0;
-		var e = child;
+		var e = firstChild;
 		for (i in 0...index)
 			e = e.sibling;
 		return e;
@@ -660,9 +660,9 @@ class Entity
 	**/
 	public function setFirst()
 	{
-		if (parent == null || parent.child == this) return; //no parent or already first?
+		if (parent == null || parent.firstChild == this) return; //no parent or already first?
 		
-		var c = parent.child;
+		var c = parent.firstChild;
 		
 		while (c != null) //find predecessor to this entity
 		{
@@ -679,10 +679,10 @@ class Entity
 			findLastLeaf(c).preorder = sibling;
 		
 		c.sibling = sibling;
-		sibling = parent.child;
-		findLastLeaf(this).preorder = parent.child;
+		sibling = parent.firstChild;
+		findLastLeaf(this).preorder = parent.firstChild;
 		
-		parent.child = this;
+		parent.firstChild = this;
 		parent.preorder = this;
 	}
 	
@@ -693,11 +693,11 @@ class Entity
 	{
 		if (parent == null || sibling == null) return; //no parent or already last?
 		
-		var c = parent.child, last, tmp;
+		var c = parent.firstChild, last, tmp;
 		
 		if (c == this) //first child?
 		{
-			parent.preorder = parent.child = sibling;
+			parent.preorder = parent.firstChild = sibling;
 		}
 		else
 		{
@@ -728,7 +728,7 @@ class Entity
 		
 		//quick test if sorting is necessary
 		var sorted = true;
-		var c = child;
+		var c = firstChild;
 		var p = c.phase;
 		c = c.sibling;
 		while (c != null)
@@ -745,7 +745,7 @@ class Entity
 		var t = findLastLeaf(lastChild).preorder;
 		
 		//merge sort taken from de.polygonal.ds.Sll
-		var h = child;
+		var h = firstChild;
 		var p, q, e, tail = null;
 		var insize = 1;
 		var nmerges, psize, qsize, i;
@@ -808,12 +808,12 @@ class Entity
 			insize <<= 1;
 		}
 		
-		child = h;
+		firstChild = h;
 		lastChild = tail;
 		
 		//rebuild preorder links
-		preorder = child;
-		var c = child;
+		preorder = firstChild;
+		var c = firstChild;
 		var l = lastChild;
 		while (c != l)
 		{
@@ -909,7 +909,7 @@ class Entity
 					}
 				
 				case ID_CHILD:
-					e = child;
+					e = firstChild;
 					if (e == null)
 					{
 						q.clrMessage();
@@ -924,7 +924,7 @@ class Entity
 					}
 				
 				case ID_DESCENDANT:
-					e = child;
+					e = firstChild;
 					if (e == null)
 					{
 						q.clrMessage();
@@ -998,14 +998,14 @@ class Entity
 			case ID_CHILD:
 				if (clss != null)
 				{
-					n = child;
+					n = firstChild;
 					t = getEntityType(clss);
 					while (n != null)
 					{
 						if (t == n.type) return cast n;
 						n = n.sibling;
 					}
-					n = child;
+					n = firstChild;
 					lut = getInheritLut();
 					while (n != null)
 					{
@@ -1015,7 +1015,7 @@ class Entity
 				}
 				else
 				{
-					n = child;
+					n = firstChild;
 					while (n != null)
 					{
 						if (n.name == name) return cast n;
@@ -1031,14 +1031,14 @@ class Entity
 						sibling;
 					else
 						findLastLeaf(this).preorder;
-					n = child;
+					n = firstChild;
 					t = getEntityType(clss);
 					while (n != last)
 					{
 						if (t == n.type) return cast n;
 						n = n.preorder;
 					}
-					n = child;
+					n = firstChild;
 					lut = getInheritLut();
 					while (n != last)
 					{
@@ -1048,7 +1048,7 @@ class Entity
 				}
 				else
 				{
-					n = child;
+					n = firstChild;
 					var last = sibling;
 					while (n != last)
 					{
@@ -1062,7 +1062,7 @@ class Entity
 				
 				if (clss != null)
 				{
-					n = parent.child;
+					n = parent.firstChild;
 					t = getEntityType(clss);
 					while (n != null)
 					{
@@ -1071,7 +1071,7 @@ class Entity
 								return cast n;
 						n = n.sibling;
 					}
-					n = parent.child;
+					n = parent.firstChild;
 					lut = getInheritLut();
 					while (n != null)
 					{
@@ -1085,7 +1085,7 @@ class Entity
 				}
 				else
 				{
-					n = parent.child;
+					n = parent.firstChild;
 					while (n != null)
 					{
 						if (n.name == name) return cast n;
@@ -1103,20 +1103,16 @@ class Entity
 	
 	@:noCompletion function onFree() {}
 	
-	@:noCompletion function onTick(dt:Float) {}
+	@:noCompletion function onTick(dt:Float, post:Bool) {}
 	
-	@:noCompletion function onPostTick(alpha:Float) {}
-	
-	@:noCompletion function onDraw(alpha:Float) {}
-	
-	@:noCompletion function onPostDraw(alpha:Float) {}
+	@:noCompletion function onDraw(alpha:Float, post:Bool) {}
 	
 	@:noCompletion function onMsg(msgType:Int, sender:Entity) {}
 	
 	@:noCompletion inline function findLastLeaf(e:Entity):Entity
 	{
 		//find bottom-most, right-most entity in this subtree
-		while (e.child != null) e = e.lastChild;
+		while (e.firstChild != null) e = e.lastChild;
 		return e;
 	}
 	

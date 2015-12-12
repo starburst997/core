@@ -52,6 +52,15 @@ class EntitySystem
 	**/
 	inline public static var DEFAULT_MAX_ENTITY_COUNT = 0x8000;
 	
+	inline static var OFFSET_PREORDER = 0;
+	inline static var OFFSET_PARENT = 1;
+	inline static var OFFSET_FIRST_CHILD = 2;
+	inline static var OFFSET_LAST_CHILD = 3;
+	inline static var OFFSET_SIBLING = 4;
+	inline static var OFFSET_SIZE = 5;
+	inline static var OFFSET_DEPTH = 6;
+	inline static var OFFSET_NUM_CHILDREN = 7;
+	
 	//unique id, incremented every time an entity is registered
 	static var mNextInnerId:Int;
 	
@@ -70,9 +79,9 @@ class EntitySystem
 	//indices [4,6]: size (#descendants), tree depth, #children
 	//index 7 is unused
 	#if alchemy
-	static var mTopology:de.polygonal.ds.mem.ShortMemory;
+	static var mTree:de.polygonal.ds.mem.ShortMemory;
 	#else
-	static var mTopology:Vector<Int>;
+	static var mTree:Vector<Int>;
 	#end
 	
 	//name => [entities by name]
@@ -101,10 +110,10 @@ class EntitySystem
 		mFreeList = new Vector<E>(1 + maxEntityCount); //index 0 is reserved for null
 		
 		#if alchemy
-		mTopology = new de.polygonal.ds.mem.ShortMemory((1 + maxEntityCount) << 3, "topology");
+		mTree = new de.polygonal.ds.mem.ShortMemory((1 + maxEntityCount) << 3, "topology");
 		#else
-		mTopology = new Vector<Int>((1 + maxEntityCount) << 3);
-		for (i in 0...mTopology.length) mTopology[i] = 0;
+		mTree = new Vector<Int>((1 + maxEntityCount) << 3);
+		for (i in 0...mTree.length) mTree[i] = 0;
 		#end
 		
 		mEntitiesByName = new StringMap<E>();
@@ -132,11 +141,11 @@ class EntitySystem
 			//topology array
 			var bytesUsed = 0;
 			#if alchemy
-			bytesUsed += mTopology.size * 2;
+			bytesUsed += mTree.size * 2;
 			bytesUsed += mNext.size * 2;
 			bytesUsed += mMsgQue.mQue.size;
 			#else
-			bytesUsed += mTopology.length * 4;
+			bytesUsed += mTree.length * 4;
 			bytesUsed += mNext.length * 4;
 			bytesUsed += mMsgQue.mQue.length * 4;
 			#end
@@ -166,11 +175,11 @@ class EntitySystem
 		mFreeList = null;
 		
 		#if alchemy
-		mTopology.free();
+		mTree.free();
 		mNext.free();
 		#end
 		
-		mTopology = null;
+		mTree = null;
 		mEntitiesByName = null;
 		mNext = null;
 		mNextInnerId = 0;
@@ -332,9 +341,9 @@ class EntitySystem
 		var pos = i << 3;
 		
 		#if alchemy
-		for (i in 0...8) mTopology.set(pos + i, 0);
+		for (i in 0...8) mTree.set(pos + i, 0);
 		#else
-		for (i in 0...8) mTopology[pos + i] = 0;
+		for (i in 0...8) mTree[pos + i] = 0;
 		#end
 		
 		//mark as free
@@ -373,103 +382,51 @@ class EntitySystem
 			freeIterative(e); //inverse levelorder traversal
 	}
 	
-	inline static function getParent(e:E):E
-	{
-		return mFreeList[get(pos(e, 0))];
-	}
+	inline static function getParent(e:E):E return mFreeList[get(pos(e, OFFSET_PARENT))];
+	inline static function setParent(e:E, value:E) set(pos(e, OFFSET_PARENT), value == null ? 0 : value.id.index);
 	
-	inline static function setParent(e:E, parent:E)
-	{
-		set(pos(e, 0), parent == null ? 0 : parent.id.index);
-	}
+	inline static function getFirstChild(e:E):E return mFreeList[get(pos(e, OFFSET_FIRST_CHILD))];
+	inline static function setFirstChild(e:E, value:E) set(pos(e, OFFSET_FIRST_CHILD), value == null ? 0 : value.id.index);
 	
-	inline static function getChild(e:E):E
-	{
-		return mFreeList[get(pos(e, 1))];
-	}
+	inline static function getLastChild(e:E):E return mFreeList[get(pos(e, OFFSET_LAST_CHILD))];
+	inline static function setLastChild(e:E, value:E) set(pos(e, OFFSET_LAST_CHILD), value == null ? 0 : value.id.index);
 	
-	inline static function setChild(e:E, child:E)
-	{
-		set(pos(e, 1), child == null ? 0 : child.id.index);
-	}
+	inline static function getSibling(e:E):E return mFreeList[get(pos(e, OFFSET_SIBLING))];
+	inline static function setSibling(e:E, value:E) set(pos(e, OFFSET_SIBLING), value == null ? 0 : value.id.index);
 	
-	inline static function getSibling(e:E):E
-	{
-		return mFreeList[get(pos(e, 2))];
-	}
+	inline static function getSize(e:E):Int return get(pos(e, OFFSET_SIZE));
+	inline static function setSize(e:E, value:Int) set(pos(e, OFFSET_SIZE), value);
 	
-	inline static function setSibling(e:E, sibling:E)
-	{
-		set(pos(e, 2), sibling == null ? 0 : sibling.id.index);
-	}
+	inline static function getDepth(e:E):Int return get(pos(e, OFFSET_DEPTH));
+	inline static function setDepth(e:E, value:Int) set(pos(e, OFFSET_DEPTH), value);
 	
-	inline static function getLastChild(e:E):E
-	{
-		return mFreeList[get(pos(e, 3))];
-	}
-	
-	inline static function setLastChild(e:E, lastChild:E)
-	{
-		set(pos(e, 3), lastChild == null ? 0 : lastChild.id.index);
-	}
-	
-	inline static function getSize(e:E):Int
-	{
-		return get(pos(e, 4));
-	}
-	
-	inline static function setSize(e:E, value:Int)
-	{
-		set(pos(e, 4), value);
-	}
-	
-	inline static function getDepth(e:E):Int
-	{
-		return get(pos(e, 5));
-	}
-	
-	inline static function setDepth(e:E, value:Int)
-	{
-		set(pos(e, 5), value);
-	}
-	
-	inline static function getNumChildren(e:E):Int
-	{
-		return get(pos(e, 6));
-	}
-	
-	inline static function setNumChildren(e:E, value:Int)
-	{
-		set(pos(e, 6), value);
-	}
+	inline static function getNumChildren(e:E):Int return get(pos(e, OFFSET_NUM_CHILDREN));
+	inline static function setNumChildren(e:E, value:Int) set(pos(e, OFFSET_NUM_CHILDREN), value);
 	
 	inline static function get(i:Int):Int
 	{
 		return
 		#if alchemy
-		mTopology.get(i);
+		mTree.get(i);
 		#else
-		mTopology[i];
+		mTree[i];
 		#end
 	}
 	
 	inline static function set(i:Int, value:Int)
 	{
 		#if alchemy
-		mTopology.set(i, value);
+		mTree.set(i, value);
 		#else
-		mTopology[i] = value;
+		mTree[i] = value;
 		#end
 	}
 	
-	inline static function pos(e:E, shift:Int):Int
-	{
-		return (e.id.index << 3) + shift;
-	}
-	
+	inline static function pos(e:E, shift:Int):Int return (e.id.index << 3) + shift;
+   	
 	static function freeRecursive(e:E)
 	{
-		var n = e.child;
+		var n = e.firstChild;
 		while (n != null)
 		{
 			var sibling = n.sibling;
@@ -501,7 +458,7 @@ class EntitySystem
 		{
 			j = q[i++];
 			a[--k] = j; //add in reverse order
-			c = j.child;
+			c = j.firstChild;
 			while (c != null)
 			{
 				q[s++] = c;

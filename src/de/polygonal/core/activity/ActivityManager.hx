@@ -139,7 +139,7 @@ class ActivityManager extends Entity
 			var e = activity;
 			var children = [];
 			
-			while (e.child != null)
+			while (e.firstChild != null)
 			{
 				e = e.getChildActivity();
 				children.push(e);

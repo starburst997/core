@@ -96,25 +96,33 @@ class MainLoop extends Entity implements IObserver
 	
 	function propagateTick(dt:Float)
 	{
-		var k = bufferEntities(), a = mBufferedEntities, b = mPostFlag, e;
+		var k = bufferEntities();
+		var a = mBufferedEntities;
+		var p = mPostFlag;
+		var e;
 		
 		for (i in 0...k)
 		{
-			var e = a[i];
+			e = a[i];
+			
 			if (e.mFlags & (E.BIT_SKIP_TICK | E.BIT_MARK_FREE | E.BIT_NO_PARENT) == 0)
-				b[i] ? e.onPostTick(dt) : e.onTick(dt);
+				e.onTick(dt, p[i]);
 		}
 	}
 	
 	function propagateDraw(alpha:Float)
 	{
-		var k = bufferEntities(), a = mBufferedEntities, b = mPostFlag, e;
+		var k = bufferEntities();
+		var a = mBufferedEntities;
+		var p = mPostFlag;
+		var e;
 		
 		for (i in 0...k)
 		{
 			e = a[i];
+			
 			if (e.mFlags & (E.BIT_SKIP_DRAW | E.BIT_MARK_FREE | E.BIT_NO_PARENT) == 0)
-				b[i] ? e.onPostDraw(alpha) : e.onDraw(alpha);
+				e.onDraw(alpha, p[i]);
 		}
 	}
 	
@@ -128,7 +136,7 @@ class MainLoop extends Entity implements IObserver
 		
 		var last:E = null;
 		
-		var e = child;
+		var e = firstChild;
 		while (e != null)
 		{
 			if (e.mFlags & E.BIT_SKIP_SUBTREE != 0)
@@ -137,7 +145,7 @@ class MainLoop extends Entity implements IObserver
 				continue;
 			}
 			
-			if (e.child != null)
+			if (e.firstChild != null)
 			{
 				b[j++] = e;
 				last = e.lastChild;

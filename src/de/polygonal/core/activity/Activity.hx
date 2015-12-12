@@ -121,7 +121,7 @@ class Activity extends Entity
 	
 	public function getChildActivity():Activity
 	{
-		var c = child;
+		var c = firstChild;
 		while (c != null)
 		{
 			if (c.is(Activity)) return cast c;
