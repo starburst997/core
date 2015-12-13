@@ -18,6 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
+import de.polygonal.core.es.Entity in E;
 import de.polygonal.core.event.IObservable;
 import de.polygonal.core.event.IObserver;
 import de.polygonal.core.time.Timebase;
@@ -25,12 +26,11 @@ import de.polygonal.core.time.TimebaseEvent;
 import de.polygonal.core.time.Timeline;
 import haxe.ds.Vector;
 
-import de.polygonal.core.es.Entity in E;
+using de.polygonal.core.es.EntitySystem;
 
 /**
 	The top entity responsible for updating the entire entity hierachy
 **/
-@:access(de.polygonal.core.es.EntitySystem)
 class MainLoop extends Entity implements IObserver
 {
 	public var paused = false;
@@ -105,7 +105,7 @@ class MainLoop extends Entity implements IObserver
 		{
 			e = a[i];
 			
-			if (e.mFlags & (E.BIT_SKIP_TICK | E.BIT_MARK_FREE | E.BIT_NO_PARENT) == 0)
+			if (e.mBits & (E.BIT_SKIP_TICK | E.BIT_MARK_FREE | E.BIT_NO_PARENT) == 0)
 				e.onTick(dt, p[i]);
 		}
 	}
@@ -121,7 +121,7 @@ class MainLoop extends Entity implements IObserver
 		{
 			e = a[i];
 			
-			if (e.mFlags & (E.BIT_SKIP_DRAW | E.BIT_MARK_FREE | E.BIT_NO_PARENT) == 0)
+			if (e.mBits & (E.BIT_SKIP_DRAW | E.BIT_MARK_FREE | E.BIT_NO_PARENT) == 0)
 				e.onDraw(alpha, p[i]);
 		}
 	}
@@ -139,7 +139,7 @@ class MainLoop extends Entity implements IObserver
 		var e = firstChild;
 		while (e != null)
 		{
-			if (e.mFlags & E.BIT_SKIP_SUBTREE != 0)
+			if (e.mBits & E.BIT_SKIP_SUBTREE != 0)
 			{
 				e = e.nextSubtree();
 				continue;

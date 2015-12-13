@@ -30,6 +30,8 @@ import de.polygonal.core.es.EntitySystem in ES;
 import flash.Memory in Mem;
 #end
 
+using de.polygonal.core.es.EntitySystem;
+
 /**
 	A messaging system used by the entity system
 **/

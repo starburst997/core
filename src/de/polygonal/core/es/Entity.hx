@@ -24,6 +24,8 @@ import de.polygonal.core.util.Assert.assert;
 import de.polygonal.core.util.ClassUtil;
 import de.polygonal.core.es.EntitySystem in Es;
 
+using de.polygonal.core.es.EntitySystem;
+
 /**
 	Base entity class
 **/
@@ -67,9 +69,9 @@ class Entity
 		#end
 	}
 	
-	inline static function getMsgQue() return EntitySystem.mMsgQue;
+	inline static function getMsgQue() return Es.mMsgQue;
 	
-	inline static function getInheritLut() return EntitySystem.mInheritanceLut;
+	inline static function getInheritLut() return Es.mInheritanceLut;
 	
 	/**
 		Every entity has an unique identifier.
@@ -114,7 +116,7 @@ class Entity
 			name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
 		this.name = name;
 		
-		EntitySystem.register(this, isGlobal);
+		Es.register(this, isGlobal);
 	}
 	
 	/**
@@ -350,7 +352,7 @@ class Entity
 			x.sibling = null;
 			
 			//fix preorder pointer
-			var i = findLastLeaf(x);
+			var i = x.findLastLeaf();
 			i.preorder = preorder;
 			preorder = x;
 		}
@@ -358,8 +360,8 @@ class Entity
 		{
 			//case 2: with children
 			//fix preorder pointers
-			var i = findLastLeaf(lastChild);
-			var j = findLastLeaf(x);
+			var i = lastChild.findLastLeaf();
+			var j = x.findLastLeaf();
 			
 			j.preorder = i.preorder;
 			i.preorder = x;
@@ -437,7 +439,7 @@ class Entity
 			if (firstChild.sibling == null)
 				lastChild = null;
 			
-			var i = findLastLeaf(x);
+			var i = x.findLastLeaf();
 			
 			preorder = i.preorder;
 			i.preorder = null;
@@ -461,8 +463,8 @@ class Entity
 			if (x.sibling == null)
 				lastChild = prev;
 			
-			var i = findLastLeaf(prev);
-			var j = findLastLeaf(x);
+			var i = prev.findLastLeaf();
+			var j = x.findLastLeaf();
 			
 			i.preorder = j.preorder;
 			j.preorder = null;
@@ -500,7 +502,7 @@ class Entity
 		{
 			next = c.sibling;
 			
-			findLastLeaf(c).preorder = null;
+			c.findLastLeaf().preorder = null;
 			
 			d = c.getDepth();
 			p = c.preorder;
@@ -701,14 +703,14 @@ class Entity
 		if (this == parent.lastChild)
 		{
 			parent.lastChild = c;
-			findLastLeaf(c).preorder = findLastLeaf(this).preorder;
+			c.findLastLeaf().preorder = findLastLeaf().preorder;
 		}
 		else
-			findLastLeaf(c).preorder = sibling;
+			c.findLastLeaf().preorder = sibling;
 		
 		c.sibling = sibling;
 		sibling = parent.firstChild;
-		findLastLeaf(this).preorder = parent.firstChild;
+		findLastLeaf().preorder = parent.firstChild;
 		
 		parent.firstChild = this;
 		parent.preorder = this;
@@ -735,14 +737,14 @@ class Entity
 				c = c.sibling;
 			}
 			
-			findLastLeaf(c).preorder = c.sibling = sibling;
+			c.findLastLeaf().preorder = c.sibling = sibling;
 		}
 		
 		last = parent.lastChild;
 		last.sibling = this;
-		tmp = findLastLeaf(last).preorder;
-		findLastLeaf(last).preorder = this;
-		findLastLeaf(this).preorder = tmp;
+		tmp = last.findLastLeaf().preorder;
+		last.findLastLeaf().preorder = this;
+		findLastLeaf().preorder = tmp;
 		sibling = null;
 		parent.lastChild = this;
 	}
@@ -770,7 +772,7 @@ class Entity
 		}
 		if (sorted) return;
 		
-		var t = findLastLeaf(lastChild).preorder;
+		var t = lastChild.findLastLeaf().preorder;
 		
 		//merge sort taken from de.polygonal.ds.Sll
 		var h = firstChild;
@@ -845,10 +847,10 @@ class Entity
 		var l = lastChild;
 		while (c != l)
 		{
-			findLastLeaf(c).preorder = c.sibling;
+			c.findLastLeaf().preorder = c.sibling;
 			c = c.sibling;
 		}
-		findLastLeaf(lastChild).preorder = t;
+		lastChild.findLastLeaf().preorder = t;
 	}
 	
 	/**
@@ -983,7 +985,7 @@ class Entity
 
 	inline function lookup<T:Entity>(clss:Class<T>):T
 	{
-		return EntitySystem.lookup(clss);
+		return Es.lookup(clss);
 	}
 	
 	@:noCompletion function find<T:Entity>(relation:Int, ?clss:Class<T>, ?name:String):T
@@ -1058,7 +1060,7 @@ class Entity
 					if (sibling != null)
 						sibling;
 					else
-						findLastLeaf(this).preorder;
+						findLastLeaf().preorder;
 					n = firstChild;
 					t = getEntityType(clss);
 					while (n != last)
@@ -1136,30 +1138,6 @@ class Entity
 	@:noCompletion function onDraw(alpha:Float, post:Bool) {}
 	
 	@:noCompletion function onMsg(msgType:Int, sender:Entity) {}
-	
-	@:noCompletion inline function findLastLeaf(e:Entity):Entity
-	{
-		//find bottom-most, right-most entity in this subtree
-		while (e.firstChild != null) e = e.lastChild;
-		return e;
-	}
-	
-	@:noCompletion inline function nextSubtree():Entity
-	{
-		return
-		if (sibling != null)
-			sibling;
-		else
-			findLastLeaf(this).preorder;
-	}
-	
-	//total number of descendants
-	@:noCompletion inline function getSize():Int return Es.getSize(this);
-	@:noCompletion inline function setSize(value:Int) Es.setSize(this, value);
-
-	//length of the path from the root node to this node (root is at depth 0)
-	@:noCompletion inline function getDepth():Int return Es.getDepth(this);
-	@:noCompletion inline function setDepth(value:Int) Es.setDepth(this, value);
 	
 	@:noCompletion function __getType() return 0; //overriden by macro
 }

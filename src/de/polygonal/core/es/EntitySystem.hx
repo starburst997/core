@@ -372,41 +372,41 @@ class EntitySystem
 	static function freeEntityTree(e:E)
 	{
 		#if verbose
-		var c = e.getSize() + 1;
+		var c = getSize(e) + 1;
 		if (c > 1)
 			L.d('freeing up $c entities ...', "es");
 		else
 			L.d('freeing up one entity ...', "es");
 		#end
 		
-		if (e.getSize() < 512)
+		if (getSize(e) < 512)
 			freeRecursive(e); //postorder traversal
 		else
 			freeIterative(e); //inverse levelorder traversal
 	}
 	
-	inline static function getPreorder(e:E):E return mFreeList[get(pos(e, OFFSET_PREORDER))];
+	inline public static function getPreorder(e:E):E return mFreeList[get(pos(e, OFFSET_PREORDER))];
 	inline static function setPreorder(e:E, value:E) set(pos(e, OFFSET_PREORDER), value == null ? 0 : value.id.index);
 	
-	inline static function getParent(e:E):E return mFreeList[get(pos(e, OFFSET_PARENT))];
+	inline public static function getParent(e:E):E return mFreeList[get(pos(e, OFFSET_PARENT))];
 	inline static function setParent(e:E, value:E) set(pos(e, OFFSET_PARENT), value == null ? 0 : value.id.index);
 	
-	inline static function getFirstChild(e:E):E return mFreeList[get(pos(e, OFFSET_FIRST_CHILD))];
+	inline public static function getFirstChild(e:E):E return mFreeList[get(pos(e, OFFSET_FIRST_CHILD))];
 	inline static function setFirstChild(e:E, value:E) set(pos(e, OFFSET_FIRST_CHILD), value == null ? 0 : value.id.index);
 	
-	inline static function getLastChild(e:E):E return mFreeList[get(pos(e, OFFSET_LAST_CHILD))];
+	inline public static function getLastChild(e:E):E return mFreeList[get(pos(e, OFFSET_LAST_CHILD))];
 	inline static function setLastChild(e:E, value:E) set(pos(e, OFFSET_LAST_CHILD), value == null ? 0 : value.id.index);
 	
-	inline static function getSibling(e:E):E return mFreeList[get(pos(e, OFFSET_SIBLING))];
+	inline public static function getSibling(e:E):E return mFreeList[get(pos(e, OFFSET_SIBLING))];
 	inline static function setSibling(e:E, value:E) set(pos(e, OFFSET_SIBLING), value == null ? 0 : value.id.index);
 	
-	inline static function getSize(e:E):Int return get(pos(e, OFFSET_SIZE));
+	inline public static function getSize(e:E):Int return get(pos(e, OFFSET_SIZE));
 	inline static function setSize(e:E, value:Int) set(pos(e, OFFSET_SIZE), value);
 	
-	inline static function getDepth(e:E):Int return get(pos(e, OFFSET_DEPTH));
+	inline public static function getDepth(e:E):Int return get(pos(e, OFFSET_DEPTH));
 	inline static function setDepth(e:E, value:Int) set(pos(e, OFFSET_DEPTH), value);
 	
-	inline static function getNumChildren(e:E):Int return get(pos(e, OFFSET_NUM_CHILDREN));
+	inline public static function getNumChildren(e:E):Int return get(pos(e, OFFSET_NUM_CHILDREN));
 	inline static function setNumChildren(e:E, value:Int) set(pos(e, OFFSET_NUM_CHILDREN), value);
 	
 	inline static function get(i:Int):Int
@@ -452,7 +452,7 @@ class EntitySystem
 	
 	static function freeIterative(e:E)
 	{
-		var k = e.getSize() + 1;
+		var k = getSize(e) + 1;
 		var a = new Vector<E>(k);
 		for (i in 0...k) a[i] = null;
 		
@@ -498,5 +498,20 @@ class EntitySystem
 		#if verbose
 		L.d('registered entity by name: ${e.name} => $e', "es");
 		#end
+	}
+	
+	inline public static function findLastLeaf(e:Entity):Entity
+	{
+		//find bottom-most, right-most entity in the subtree e
+		while (e.firstChild != null) e = e.lastChild;
+		
+		return e;
+	}
+	
+	inline public static function nextSubtree(e:Entity):Entity
+	{
+		var t = e.sibling;
+		
+		return t != null ? t : findLastLeaf(e).preorder;
 	}
 }
