@@ -113,12 +113,30 @@ class EntityUtil
 		}
 	}
 	
+	/**
+		Returns true if `other` is a descendant of `e`.
+	**/
 	public static function isDescendantOf(e:Entity, other:Entity):Bool
 	{
 		while (e != null)
 		{
 			if (e.parent == other) return true;
 			e = e.parent;
+		}
+		
+		return false;
+	}
+	
+	/**
+		Returns true if `other` is a child of `e`.
+	**/
+	public static function isChildOf(e:Entity, other:Entity):Bool
+	{
+		var i = e.firstChild
+		while (i != null)
+		{
+			if (i == other) return true;
+			i = i.sibling;
 		}
 		
 		return false;
