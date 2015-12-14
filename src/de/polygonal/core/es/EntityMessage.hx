@@ -25,10 +25,10 @@ import de.polygonal.core.util.Assert.assert;
 	
 	A message object stores the message content.
 **/
-@:build(de.polygonal.core.es.MsgMacro.addMeta())
+@:build(de.polygonal.core.es.EntityMessageMacro.addMeta())
 @:build(de.polygonal.core.macro.IntConsts.build([I, F, B, S, O, USED], true, false))
-@:allow(de.polygonal.core.es.MsgQue)
-class Msg
+@:allow(de.polygonal.core.es.EntityMessageQue)
+class EntityMessage
 {
 	/**
 		Resolves the name of the given message `type`. Useful for debugging purposes.
@@ -36,7 +36,7 @@ class Msg
 	#if debug
 	public static function name(type:Int):String
 	{
-		var meta = haxe.rtti.Meta.getType(Msg);
+		var meta = haxe.rtti.Meta.getType(EntityMessage);
 		if (meta.names.length == 0) return 'unknown type ($type)';
 		var names = meta.names[0];
 		if (type < 0 || type > names.length - 1) return 'unknown type ($type)';
@@ -47,9 +47,9 @@ class Msg
 	/**
 		The total number of message types (application-wide).
 	**/
-	public static function totalMessages():Int
+	public static function countTotalMessages():Int
 	{
-		var meta = haxe.rtti.Meta.getType(Msg);
+		var meta = haxe.rtti.Meta.getType(EntityMessage);
 		return Std.parseInt(meta.count[0]);
 	}
 	
@@ -192,8 +192,8 @@ class Msg
 		if (mBits & B > 0) a.push('b=$mBool');
 		if (mBits & S > 0) a.push('s=$mString');
 		if (mBits & O > 0) a.push('o=$mObject');
-		if (a.length > 0) return '{ Msg a.join(", ") }';
+		if (a.length > 0) return '{ EntityMessage a.join(", ") }';
 		
-		return "{ Msg }";
+		return "{ EntityMessage }";
 	}
 }

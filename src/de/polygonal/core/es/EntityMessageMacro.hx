@@ -31,9 +31,9 @@ import haxe.macro.Expr;
 	Example:
 	
 	<pre>
-	@:build(de.polygonal.core.es.MsgMacro.build([MSG1, MSG2, MSG3]))
+	@:build(de.polygonal.core.es.EntityMessageMacro.build([MSG1, MSG2, MSG3]))
 	class MyMessages {}<br/>
-	@:build(de.polygonal.core.es.MsgMacro.build([MSG1, MSG2]))
+	@:build(de.polygonal.core.es.EntityMessageMacro.build([MSG1, MSG2]))
 	class MyOtherMessages {}
 	</pre>
 	
@@ -54,7 +54,7 @@ import haxe.macro.Expr;
 	}
 	</pre>
 **/
-class MsgMacro
+class EntityMessageMacro
 {
 	#if macro
 	inline public static var FILE = ".de.polygonal.core.es.msg_macro";
@@ -136,7 +136,7 @@ class MsgMacro
 		var p = Context.currentPos();
 		Context.onGenerate(function(_)
 		{
-			switch (Context.getModule("de.polygonal.core.es.Msg")[0])
+			switch (Context.getModule("de.polygonal.core.es.EntityMessage")[0])
 			{
 				case TInst(t, params):
 					if (!FileSystem.exists(FILE)) return;

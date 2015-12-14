@@ -29,7 +29,7 @@ import de.polygonal.core.es.Entity in E;
 	Manages all active entities
 **/
 @:access(de.polygonal.core.es.Entity)
-@:access(de.polygonal.core.es.MsgQue)
+@:access(de.polygonal.core.es.EntityMessageQue)
 class EntitySystem
 {
 	/**
@@ -88,7 +88,7 @@ class EntitySystem
 	static var mEntitiesByName:StringMap<E> = null;
 	
 	//circular message buffer
-	static var mMsgQue:MsgQue;
+	static var mMsgQue:EntityMessageQue;
 	
 	//maps class x to all superclasses of x
 	static var mInheritanceLut:IntIntHashTable;
@@ -133,7 +133,7 @@ class EntitySystem
 		
 		mFree = 1;
 		
-		mMsgQue = new MsgQue(maxMessageCount);
+		mMsgQue = new EntityMessageQue(maxMessageCount);
 		
 		mInheritanceLut = new IntIntHashTable(1024);
 		
@@ -503,7 +503,7 @@ class EntitySystem
 	inline public static function findLastLeaf(e:Entity):Entity
 	{
 		//find bottom-most, right-most entity in the subtree e
-		while (e.firstChild != null) e = e.lastChild;
+		while (e.firstChild != null) e = getLastChild(e);
 		
 		return e;
 	}

@@ -38,7 +38,7 @@ using de.polygonal.core.es.EntitySystem;
 @:access(de.polygonal.core.es.Entity)
 @:access(de.polygonal.core.es.EntityId)
 @:access(de.polygonal.core.es.EntitySystem)
-class MsgQue
+class EntityMessageQue
 {
 	inline static var MSG_SIZE =
 	#if alchemy
@@ -61,9 +61,9 @@ class MsgQue
 	var mSize:Int;
 	var mFront:Int;
 	var mCurrMsgInIndex:Int;
-	var mCurrMsgOut:Msg;
+	var mCurrMsgOut:EntityMessage;
 	var mFreeMsgIndex:Int;
-	var mMessages:Array<Msg>;
+	var mMessages:Array<EntityMessage>;
 	var mSending:Bool = false;
 	
 	public function new(capacity:Int)
@@ -88,23 +88,25 @@ class MsgQue
 		mFront = 0;
 		
 		mFreeMsgIndex = 0;
-		mMessages = new Array<Msg>();
+		mMessages = new Array<EntityMessage>();
 		
 		#if verbose
-		L.d('there are ${Msg.totalMessages()} message types', "es");
+		L.d('there are ${EntityMessage.countTotalMessages()} message types', "es");
 		#end
 	}
 	
-	function getMsgIn():Msg
+	function getMsgIn():EntityMessage
 	{
 		if (mCurrMsgInIndex == -1) return null;
+		
 		return mMessages[mCurrMsgInIndex];
 	}
 	
-	function getMsgOut():Msg
+	function getMsgOut():EntityMessage
 	{
 		mCurrMsgOut = mMessages[mFreeMsgIndex];
-		if (mCurrMsgOut == null) mCurrMsgOut = mMessages[mFreeMsgIndex] = new Msg();
+		if (mCurrMsgOut == null) mCurrMsgOut = mMessages[mFreeMsgIndex] = new EntityMessage();
+		
 		return mCurrMsgOut;
 	}
 	
@@ -148,7 +150,7 @@ class MsgQue
 		if (senderName.length > 30) senderName = StringUtil.ellipsis(senderName, 30, 1, true);
 		if (recipientName.length > 30) recipientName = StringUtil.ellipsis(recipientName, 30, 1, true);
 		
-		var msgName = Msg.name(type);
+		var msgName = EntityMessage.name(type);
 		if (msgName.length > 20) msgName = StringUtil.ellipsis(msgName, 20, 1, true);
 		
 		L.d(Printf.format('enqueue message %30s -> %-30s: %-20s (remaining: $remaining)', [senderName, recipientName, msgName]), "es");
@@ -189,7 +191,7 @@ class MsgQue
 		{
 			if (mCurrMsgOut != null && mCurrMsgOut.mBits > 0)
 			{
-				mCurrMsgOut.mBits |= Msg.USED;
+				mCurrMsgOut.mBits |= EntityMessage.USED;
 				mFreeMsgIndex++; 
 				mCurrMsgOut = null;
 			}
@@ -306,7 +308,7 @@ class MsgQue
 			if (senderId.length > 30) senderId = StringUtil.ellipsis(senderId, 30, 1, true);
 			if (recipientId.length > 30) recipientId = StringUtil.ellipsis(recipientId, 30, 1, true);
 			
-			var msgName = Msg.name(type);
+			var msgName = EntityMessage.name(type);
 			if (msgName.length > 20) msgName = StringUtil.ellipsis(msgName, 20, 1, true);
 			
 			L.d(Printf.format('message %30s -> %-30s: %-20s $data (remaining: $skipCount)', [senderId, recipientId, msgName, skipCount]), "es");

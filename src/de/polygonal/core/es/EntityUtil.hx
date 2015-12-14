@@ -20,12 +20,9 @@ package de.polygonal.core.es;
 
 using de.polygonal.core.es.EntitySystem;
 
-/**
-	Helper class for iterating an entity hierarchy
-**/
-class EntityIterator
+class EntityUtil
 {
-	public static function descendants(e:Entity):Iterator<Entity>
+	public static function getDescendants(e:Entity):Iterator<Entity>
 	{
 		var i = 0;
 		var s = e.getSize();
@@ -46,7 +43,7 @@ class EntityIterator
 		}
 	}
 	
-	public static function children(e:Entity):Iterator<Entity>
+	public static function getChildren(e:Entity):Iterator<Entity>
 	{
 		var walker = e.firstChild;
 		return
@@ -64,7 +61,7 @@ class EntityIterator
 		}
 	}
 	
-	public static function ancestors(e:Entity):Iterator<Entity>
+	public static function getAncestors(e:Entity):Iterator<Entity>
 	{
 		var walker = e.parent;
 		return
@@ -82,7 +79,7 @@ class EntityIterator
 		}
 	}
 	
-	public static function siblings(e:Entity):Iterator<Entity>
+	public static function getSiblings(e:Entity):Iterator<Entity>
 	{
 		if (e.parent == null)
 		{
@@ -114,5 +111,16 @@ class EntityIterator
 				return t;
 			}
 		}
+	}
+	
+	public static function isDescendantOf(e:Entity, other:Entity):Bool
+	{
+		while (e != null)
+		{
+			if (e.parent == other) return true;
+			e = e.parent;
+		}
+		
+		return false;
 	}
 }
