@@ -22,44 +22,31 @@ import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.BucketList;
 import de.polygonal.ds.IntIntHashTable;
-import haxe.ds.IntMap;
+import de.polygonal.ds.Vector;
 
 /**
 	An entity that can take the part of a subject in the observer pattern
 	
 	Observers are updated by sending messages to them.
 **/
-@:access(de.polygonal.core.es.EntitySystem)
-@:access(de.polygonal.core.es.EntityId)
-@:access(de.polygonal.core.es.MsgQue)
 class ObservableEntity extends Entity
 {
 	var mBuckets:BucketList<EntityId>;
 	var mStatus:IntIntHashTable;
-	var mTmpArray:Array<EntityId>;
+	var mTypeCount:Vector<Int>;
+	var mTmpArray1 = new Array<EntityId>();
+	var mTmpArray2 = new Array<Entity>();
 	
-	#if debug
-	var mObservers2:Array<Array<EntityId>>;
-	var mAttachStatus2:AS;
-	#end
-	
-	public function new(name:String = null, isGlobal:Bool = false, bucketSize = 4, shrink = true)
+	public function new(name:String = null, isGlobal:Null<Bool> = false, bucketSize = 4, shrink = true)
 	{
 		super(name, isGlobal);
 		
-		var k = Msg.totalMessages() + 1; //use zero index to store observers attached to all types
+		var k = EntityMessage.countTotalMessages() + 1; //use zero index to store observers attached to all types
 		mBuckets = new BucketList<EntityId>(M.max(k, 2), bucketSize, shrink);
-		
 		mStatus = new IntIntHashTable(1024, k * 100);
 		
-		#if debug
-		mObservers2 = [for (i in 0...k) []];
-		mAttachStatus2 = new AS();
-		#end
-		
-		mTmpArray = [];
-		
-		super(name);
+		mTypeCount = new Vector<Int>(k);
+		for (i in 0...k) mTypeCount[i] = 0;
 	}
 	
 	override public function free()
@@ -69,30 +56,27 @@ class ObservableEntity extends Entity
 		mBuckets.free();
 		mStatus.free();
 		
-		mStatus = null;
 		mBuckets = null;
-		mTmpArray = null;
+		mStatus = null;
+		mTypeCount = null;
+		mTmpArray1 = null;
+		mTmpArray2 = null;
 	}
 	
-	public function clear()
+	public function clearObservers()
 	{
 		mBuckets.clear();
 		mStatus.clear(true);
 		
-		#if debug
-		var k = Msg.totalMessages() + 1;
-		mObservers2 = [for (i in 0...k) []];
-		mAttachStatus2 = new AS();
-		#end
+		for (i in 0...mTypeCount.length) mTypeCount[i] = 0;
 	}
 	
 	public function attach(e:Entity, ?msgTypes:Array<Int>, msgType:Int = -1):Bool
 	{
-		assert(msgType < Msg.totalMessages());
+		assert(msgType < EntityMessage.countTotalMessages());
 		
 		var id = e.id;
-		
-		if (id == null) return false; //entity freed?
+		if (id == null) return false; //invalid entity (freed)
 		
 		assert(id.inner >= 0);
 		
@@ -100,146 +84,64 @@ class ObservableEntity extends Entity
 		{
 			var success = true;
 			for (i in msgTypes)
+			{
+				assert(i != -1);
 				success = success && attach(e, null, i);
+			}
+			
 			return success;
 		}
 		
-		//an entity can be stored in the global list or the local list, but not in both at the same time.
-		var has1 = mStatus.hasKey(id.inner);
-		
-		#if debug
-		var has2 = mAttachStatus2.hasKey(id.inner);
-		assert(has1 == has2);
-		#end
-		
-		if (has1) //entity attached?
+		//an entity can be stored in the global list or the local list, but not in both simultaneously.
+		if (mStatus.hasKey(id.inner)) //is entity attached?
 		{
-			var isUnfiltered = mStatus.hasPair(id.inner, -1);
-			
-			#if debug
-			//var isGlobal2 = mAttachStatus2.get(id) == -1;
-			//assert(isUnfiltered == isGlobal2);
-			#end
-			
-			if (isUnfiltered) //entity stored in global list?
+			if (mStatus.hasPair(id.inner, -1)) //stored in global list?
 			{
-				if (msgType == -1)
-					return false; //no change
-				else
-				{
-					//move from unfiltered to filtered list
-					var success1 = mBuckets.removeAt(0, id);
-					assert(success1);
-					
-					#if debug
-					var success2 = mObservers2[0].remove(id);
-					assert(success1 == success2);
-					#end
-					
-					mBuckets.add(msgType + 1, id);
-					
-					#if debug
-					mObservers2[msgType + 1].push(id);
-					#end
-					
-					var success1 = mStatus.clrPair(id.inner, -1);
-					
-					#if debug
-					var success2 = mAttachStatus2.clrPair(id.inner, -1);
-					assert(success1 == success2);
-					#end
-					
-					var success1 = mStatus.set(id.inner, msgType);
-					
-					#if debug
-					var success2 = mAttachStatus2.set(id.inner, msgType);
-					assert(success1 == success2);
-					#end
-					
-					return true;
-				}
+				if (msgType == -1) return false; //no change
+				
+				//global list -> local list
+				mBuckets.removeAt(0, id);
+				mBuckets.add(msgType + 1, id);
+				
+				mStatus.clrPair(id.inner, -1); 
+				mStatus.set(id.inner, msgType);
+				
+				decCount(-1);
+				incCount(msgType);
+				
+				return true;
 			}
 			else
 			{
-				//attached to filtered list
-				if (msgType == -1) //filtered list -> global list?
+				if (msgType == -1) //local list(s) -> global list?
 				{
 					var success1 = false;
-					
-					//shift from local list(s) -> global list
 					for (i in 1...mBuckets.numBuckets)
 					{
-						var removed = mBuckets.removeAt(i, id);
-						if (removed) success1 = true;
+						if (mBuckets.removeAt(i, id))
+						{
+							success1 = true;
+							decCount(i - 1);
+						}
 					}
+					
+					incCount(-1);
 					
 					while (mStatus.clr(id.inner)) {}
 					
-					assert(success1);
-					
-					#if debug
-					mAttachStatus2.clrAll(id.inner);
-					#end
-					
-					
-					#if debug
-					var success2 = false;
-					for (i in mObservers2)
-					{
-						var removed = i.remove(id);
-						if (removed) success2 = true;
-					}
-					assert(success2);
-					assert(success1 == success2);
-					
-					assert(!mBuckets.exists(0, id));
-					assert(!arrayHas(mObservers2[0], id));
-					
-					#end
-					
 					mBuckets.add(0, id);
-					
-					#if debug
-					mObservers2[0].push(id);
-					#end
-					
-					var success1 = mStatus.set(id.inner, -1);
-					assert(success1);
-					
-					#if debug
-					var success2 = mAttachStatus2.set(id.inner, -1);
-					assert(success1 == success2);
-					#end
+					mStatus.set(id.inner, -1);
 					
 					return true;
 				}
 				else
 				{
-					//must exist
-					var exists1 = mBuckets.exists(msgType + 1, id);
-					#if debug
-					var exists2 = arrayHas(mObservers2[msgType + 1], id);
-					assert(exists1 == exists2);
-					#end
+					if (mBuckets.exists(msgType + 1, id)) return false; //no change
 					
-					if (exists1) //no change
-					{
-						L.e('$e already attached to ' + Msg.name(msgType));
-						return false;
-					}
-					
-					//add to another filtered list
-					
+					//add to another local list
 					mBuckets.add(msgType + 1, id);
-					var success1 = mStatus.set(id.inner, msgType);
-					
-					#if debug
-					mObservers2[msgType + 1].push(id);
-					var success2 = mAttachStatus2.set(id.inner, msgType);
-					assert(success1 == success2);
-					assert(success1 == false);
-					assert(success2 == false);
-					#end
+					mStatus.set(id.inner, msgType);
+					incCount(msgType);
 				}
 			}
 		}
@@ -250,74 +152,43 @@ class ObservableEntity extends Entity
 			assert(!mBuckets.contains(id)); //id must not be contained in bucket list
 			
 			mBuckets.add(msgType + 1, id);
-			var success1 = mStatus.set(id.inner, msgType);
-			assert(success1);
-			
-			#if debug
-			mObservers2[msgType + 1].push(id);
-			var success2 = mAttachStatus2.set(id.inner, msgType);
-			assert(success2);
-			assert(success1 == success2);
-			#end
+			mStatus.set(id.inner, msgType);
+			incCount(msgType);
 		}
 		
 		return true;
 	}
 	
-	public function detach(e:Entity, msgType:Int = -1, ?msgTypes:Array<Int>):Bool
+	public function detach(e:Entity, ?msgTypes:Array<Int>, msgType:Int = -1):Bool
 	{
 		var id = e.id;
-		
-		if (id == null) return false;
+		if (id == null) return false; //invalid entity (freed)
 		
 		assert(id.inner >= 0);
 		
 		if (msgTypes != null)
 		{
 			var success = true;
-			
 			for (i in msgTypes)
 			{
 				assert(i != -1);
+				
 				success = success && detach(e, i);
 			}
+			return success;
 		}
 		
 		//check if e is attached
 		
 		var has1 = mStatus.hasKey(id.inner);
 		
-		#if debug
-		var has2 = mAttachStatus2.hasKey(id.inner);
-		assert(has1 == has2);
-		#end
-		
-		if (!has1) return false;
+		if (!has1) return false; //quit: not attached
 		
 		if (mStatus.hasPair(id.inner, -1)) //stored in global list?
 		{
-			//either in global or local list so it's sufficient to remove from global list only
-			
-			var success1 = mBuckets.removeAt(0, id);
-			assert(success1);
-			
-			#if debug
-			var success2 = mObservers2[0].remove(id);
-			assert(success2);
-			assert(success1 == success2);
-			#end
-			
-			var success1 = mStatus.clr(id.inner);
-			assert(success1);
-			
-			#if debug
-			var success2 = mAttachStatus2.clrPair(id.inner, -1);
-			assert(success2);
-			assert(success1 == success2);
-			
-			assert(!mStatus.hasKey(id.inner));
-			assert(!mAttachStatus2.hasKey(id.inner));
-			#end
+			mBuckets.removeAt(0, id);
+			mStatus.clr(id.inner);
+			decCount(-1);
 			
 			return true;
 		}
@@ -327,223 +198,94 @@ class ObservableEntity extends Entity
 			if (msgType == -1)
 			{
 				//remove from all local lists
-				var removed = false;
-				
 				var t = mStatus.get(id.inner);
 				while (t != IntIntHashTable.KEY_ABSENT)
 				{
-					var success = mStatus.clr(id.inner);
-					assert(success);
+					if (mStatus.clr(id.inner)) decCount(t);
 					
-					var success = mBuckets.removeAt(t + 1, id);
-					if (success) removed = true;
+					mBuckets.removeAt(t + 1, id);
 					
 					t = mStatus.get(id.inner);
 				}
-				assert(removed);
 				
-				#if debug
-				removed = false;
-				for (i in 1...mObservers2.length)
-				{
-					var success = mObservers2[i].remove(id);
-					if (success) removed = true;
-				}
-				assert(removed);
-				#end
-				
-				//TODO already cleared above!
-				//while (mStatus.clr(id.inner)) {}
 				assert(!mStatus.hasKey(id.inner));
-				
-				#if debug
-				mAttachStatus2.clrAll(id.inner);
-				#end
 			}
 			else
 			{
-				var success1 = mBuckets.removeAt(msgType + 1, id);
+				var success = mBuckets.removeAt(msgType + 1, id);
+				if (mStatus.clrPair(id.inner, msgType)) decCount(msgType);
 				
-				var detachOk = success1;
-				
-				#if debug
-				var success2 = mObservers2[msgType + 1].remove(id);
-				assert(success1 == success2);
-				#end
-				
-				var success1 = mStatus.clrPair(id.inner, msgType);
-				
-				#if debug
-				var success2 = mAttachStatus2.clrPair(id.inner, msgType);
-				assert(success1 == success2);
-				#end
-				
-				return detachOk;
+				return success;
 			}
 			
 			return true;
 		}
 	}
 	
-	public function dispatch(msgType:Int, dispatch = false)
+	public function hasObservers(msgType:Int):Bool
 	{
-		var a = mTmpArray;
+		return getCount(msgType) > 0;
+	}
+	
+	@:access(de.polygonal.core.es.EntityMessageQue)
+	@:access(de.polygonal.core.es.EntitySystem)
+	public function dispatch(msgType:Int, dispatch = true)
+	{
+		if (getCount(msgType) == 0) return; //early out: no observers
+		
+		var a = mTmpArray1;
+		var b = mTmpArray2;
 		var q = Entity.getMsgQue();
-		var entities = Es.mFreeList;
-		var id:EntityId;
+		var entities = EntitySystem.mFreeList;
 		
 		var k = 0;
 		k += mBuckets.getBucketData(msgType + 1, a, 0);
 		k += mBuckets.getBucketData(0, a, k);
 		
-		#if debug
-		var list1B = mObservers2[msgType + 1];
-		var list2B = mObservers2[0];
-		var list = list1B.concat(list2B);
-		var t = [];
-		for (i in 0...k)t[i] = a[i];
-		assert(cmpArr(list, t));
-		#end
+		var e:Entity, id:EntityId;
+		var n = k;
+		var j = 0;
+		var i = 0;
 		
-		//remove freed/stalled entities
-		var i = k;
-		while (i-- > 0)
+		inline function removeAll(id:EntityId)
 		{
-			id = a[i];
-			if (id.inner < 0 || id.inner != entities[id.index].id.inner)
+			while (mStatus.clr(id.inner)) {}
+			
+			for (i in 0...mBuckets.numBuckets)
 			{
-				L.e("removed invalid from global");
-				removeAll(id);
-				k--;
+				if (mBuckets.removeAt(i, id))
+					decCount(i - 1);
 			}
 		}
 		
-		//enqueue messages
-		i = k;
-		while (i-- > 0) q.enqueue(this, entities[a[i].index], msgType, --k, 0);
+		//remove invalid/obsolete entities
+		while (i < n)
+		{
+			id = a[i++];
+			
+			e = entities[id.index];
+			
+			if (id.inner & 0x80000000 != 0 || id.inner != e.id.inner)
+			{
+				removeAll(id);
+				k--;
+				continue;
+			}
+			
+			b[j++] = e;
+		}
+		
+		//enqueue
+		n = k;
+		i = 0;
+		while (i < n) q.enqueue(this, b[i++], msgType, --k, 0);
 		
 		if (dispatch) EntitySystem.dispatchMessages();
 	}
 	
-	function removeAll(id:EntityId)
-	{
-		while (mStatus.clr(id.inner)) {}
-		
-		assert(!mStatus.hasKey(id.inner));
-		
-		var removed = false;
-		for (i in 0...mBuckets.numBuckets)
-		{
-			var success = mBuckets.removeAt(i, id);
-			if (success) removed = true;
-		}
-		assert(removed);
-		
-		//for testing
-		#if debug
-		mAttachStatus2.clrAll(id.inner);
-		
-		var removed = false;
-		for (i in 0...mObservers2.length)
-		{
-			var success = mObservers2[i].remove(id);
-			if (success) removed = true;
-		}
-		assert(removed);
-		#end
-	}
+	inline function getCount(msgType:Int):Int return mTypeCount[0] + mTypeCount[msgType + 1];
 	
-	#if debug
-	function cmpArr(a:Array<EntityId>, b:Array<EntityId>)
-	{
-		assert(a.length == b.length);
-		
-		for (i in 0...a.length)
-		{
-			if (a[i] != b[i]) return false;
-		}
-		
-		return true;
-	}
+	inline function incCount(msgType:Int) mTypeCount.set(msgType + 1, mTypeCount.get(msgType + 1) + 1);
 	
-	function arrayHas(a:Array<EntityId>, v:EntityId)
-	{
-		for (i in a)
-		{
-			if (i == v) return true;
-		}
-		return false;
-	}
-	#end
+	inline function decCount(msgType:Int) mTypeCount.set(msgType + 1, mTypeCount.get(msgType + 1) - 1);
 }
-
-#if debug
-class AS
-{
-	var m:IntMap<Array<Int>>;
-	
-	public function new()
-	{
-		m = new IntMap<Array<Int>>();
-	}
-	
-	public function set(inner:Int, msgType:Int):Bool
-	{
-		var first = false;
-		if (m.get(inner) == null)
-		{
-			m.set(inner, []);
-			first = true;
-		}
-		
-		var a = m.get(inner);
-		for (i in a)
-		{
-			if (i == msgType)
-				throw 'dup!';
-		}
-		a.push(msgType);
-		
-		return first;
-	}
-	
-	public function hasKey(inner:Int):Bool
-	{
-		return m.get(inner) != null;
-	}
-	
-	public function hasPair(inner:Int, type:Int):Bool
-	{
-		var a = m.get(inner);
-		if (a == null) return false;
-		
-		for (i in a)
-			if (i == type) return true;
-		return false;
-	}
-	
-	public function clrPair(inner:Int, type:Int):Bool
-	{
-		var a = m.get(inner);
-		if (a == null) return false;
-		
-		var c = 0;
-		for (i in a)
-			if (i == type)
-				c++;
-		//assert(c == 1);
-		
-		var success = a.remove(type);
-		
-		if (a.length == 0)
-			m.set(inner, null);
-			
-		return success;
-	}
-	
-	public function clrAll(inner:Int)
-	{
-		m.set(inner, null);
-	}
-}
-#end
