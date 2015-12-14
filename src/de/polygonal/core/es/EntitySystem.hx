@@ -163,12 +163,14 @@ class EntitySystem
 	**/
 	public static function free()
 	{
+		if (mFreeList == null) return;
+		
 		for (i in 0...mFreeList.length)
 		{
 			if (mFreeList[i] != null)
 			{
-				mFreeList[i].id = null;
 				mFreeList[i].preorder = null;
+				mFreeList[i].id = null;
 			}
 		}
 		
