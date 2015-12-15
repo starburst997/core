@@ -93,7 +93,7 @@ class EntitySystem
 	//maps class x to all superclasses of x
 	static var _inheritanceLut:IntIntHashTable;
 	
-	static var mInheritanceLut:IntIntHashTable;
+	static var _treeChanged:Bool;
 	
 	/**
 		Initializes the entity system.
@@ -138,6 +138,8 @@ class EntitySystem
 		_msgQue = new EntityMessageQue(maxMessageCount);
 		
 		_inheritanceLut = new IntIntHashTable(1024);
+		
+		_treeChanged = true;
 		
 		#if verbose
 			//topology array

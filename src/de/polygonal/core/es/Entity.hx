@@ -124,6 +124,7 @@ class Entity
 		
 		if (parent != null) parent.remove(this);
 		Es.freeEntityTree(this);
+		Es._treeChanged = true;
 	}
 	
 	/**
@@ -295,6 +296,7 @@ class Entity
 	@:noCompletion function set_passable(value:Bool):Bool
 	{
 		value ? mBits &= ~BIT_SKIP_SUBTREE : mBits |= BIT_SKIP_SUBTREE;
+		Es._treeChanged = true;
 		
 		return value;
 	}
@@ -328,6 +330,8 @@ class Entity
 	public function add<T:Entity>(?clss:Class<T>, ?inst:T):T
 	{
 		assert(clss != null || inst != null);
+		
+		Es._treeChanged = true;
 		
 		var x:Entity = inst;
 		if (x == null)
@@ -425,6 +429,8 @@ class Entity
 		assert(x.parent != null);
 		assert(x != this);
 		assert(x.parent == this);
+		
+		Es._treeChanged = true;
 		
 		//update #children
 		numChildren--;
@@ -540,6 +546,8 @@ class Entity
 			n = n.parent;
 		}
 		setSize(0);
+		
+		Es._treeChanged = true;
 	}
 	
 	/**
@@ -960,6 +968,8 @@ class Entity
 		}
 		
 		if (sorted) return;
+		
+		Es._treeChanged = true;
 		
 		var t = lastChild.findLastLeaf().preorder;
 		

@@ -197,13 +197,14 @@ class EntityUtil
 		return false;
 	}
 	
-	
 	/**
 		Successively swaps this entity with its previous siblings until it becomes the first sibling.
 	**/
 	public static function setFirst(e:Entity)
 	{
 		if (e.parent == null || e.parent.firstChild == e) return; //no parent or already first?
+		
+		Es._treeChanged = true;
 		
 		var c = e.parent.firstChild;
 		
@@ -235,6 +236,8 @@ class EntityUtil
 	public static function setLast(e:Entity)
 	{
 		if (e.parent == null || e.sibling == null) return; //no parent or already last?
+		
+		Es._treeChanged = true;
 		
 		var c = e.parent.firstChild, last, tmp;
 		

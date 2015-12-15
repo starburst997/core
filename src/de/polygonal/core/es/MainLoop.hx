@@ -26,11 +26,14 @@ import de.polygonal.core.time.TimebaseEvent;
 import de.polygonal.core.time.Timeline;
 import haxe.ds.Vector;
 
+import de.polygonal.core.es.EntitySystem as Es;
+
 using de.polygonal.core.es.EntitySystem;
 
 /**
 	The top entity responsible for updating the entire entity hierachy
 **/
+@:access(de.polygonal.core.es.EntitySystem)
 class MainLoop extends Entity implements IObserver
 {
 	public var paused = false;
@@ -39,6 +42,7 @@ class MainLoop extends Entity implements IObserver
 	var mPostFlag:Array<Bool> = [];
 	var mTop:Int = 0;
 	var mBufferedEntities:Vector<E>;
+	var mNumBufferedEntities:Int = 0;
 	var mMaxBufferSize:Int = 0;
 	var mElapsedTime:Float = 0;
 	
@@ -90,18 +94,23 @@ class MainLoop extends Entity implements IObserver
 				var list = mBufferedEntities;
 				for (i in 0...mMaxBufferSize) list[i] = null;
 				mMaxBufferSize = 0;
+				mNumBufferedEntities = 0;
+				Es._treeChanged = true;
 			}
 		}
 	}
 	
 	function propagateTick(dt:Float)
 	{
-		var k = bufferEntities();
 		var a = mBufferedEntities;
 		var p = mPostFlag;
 		var e;
 		
-		for (i in 0...k)
+		if (Es._treeChanged)
+			mNumBufferedEntities = bufferEntities();
+		Es._treeChanged = false;
+		
+		for (i in 0...mNumBufferedEntities)
 		{
 			e = a[i];
 			
@@ -112,12 +121,15 @@ class MainLoop extends Entity implements IObserver
 	
 	function propagateDraw(alpha:Float)
 	{
-		var k = bufferEntities();
 		var a = mBufferedEntities;
 		var p = mPostFlag;
 		var e;
 		
-		for (i in 0...k)
+		if (Es._treeChanged)
+			mNumBufferedEntities = bufferEntities();
+		Es._treeChanged = false;
+		
+		for (i in 0...mNumBufferedEntities)
 		{
 			e = a[i];
 			
