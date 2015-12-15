@@ -38,7 +38,7 @@ using de.polygonal.core.es.EntitySystem;
 	BIT_SKIP_TICK,
 	BIT_SKIP_DRAW,
 	BIT_STOP_PROPAGATION,
-	BIT_MARK_FREE,
+	BIT_FREED,
 	BIT_IS_GLOBAL,
 	BIT_NO_PARENT
 ], true, false))
@@ -63,9 +63,9 @@ class Entity
 		#end
 	}
 	
-	inline static function getMsgQue() return Es.mMsgQue;
+	inline static function getMsgQue() return Es._msgQue;
 	
-	inline static function getInheritLut() return Es.mInheritanceLut;
+	inline static function getInheritLut() return Es._inheritanceLut;
 	
 	/**
 		Every entity has an unique identifier.
@@ -79,7 +79,7 @@ class Entity
 	inline function get_type():Int return mBits >>> 16;
 	
 	/**
-		Execution order (smaller value equals higher priority); only effective after calling `sortChildren()`.
+		Execution order (smaller value equals higher priority); only effective after calling `applyPhase()`.
 		
 		Default is 0.
 	**/
@@ -120,7 +120,7 @@ class Entity
 	**/
 	public function free()
 	{
-		if (mBits & BIT_MARK_FREE > 0) return;
+		if (mBits & BIT_FREED > 0) return;
 		
 		if (parent != null) parent.remove(this);
 		Es.freeEntityTree(this);
@@ -134,7 +134,7 @@ class Entity
 	public var preorder(get_preorder, set_preorder):Entity;
 	@:noCompletion inline function get_preorder():Entity
 	{
-		assert(mBits & BIT_MARK_FREE == 0);
+		assert(mBits & BIT_FREED == 0);
 		
 		return Es.getPreorder(this);
 	}
@@ -153,7 +153,7 @@ class Entity
 	public var parent(get_parent, set_parent):Entity;
 	@:noCompletion inline function get_parent():Entity
 	{
-		assert(mBits & BIT_MARK_FREE == 0);
+		assert(mBits & BIT_FREED == 0);
 		
 		return Es.getParent(this);
 	}
@@ -172,7 +172,7 @@ class Entity
 	public var firstChild(get_firstChild, set_firstChild):Entity;
 	@:noCompletion inline function get_firstChild():Entity
 	{
-		assert(mBits & BIT_MARK_FREE == 0);
+		assert(mBits & BIT_FREED == 0);
 		
 		return Es.getFirstChild(this);
 	}
@@ -191,7 +191,7 @@ class Entity
 	public var lastChild(get_lastChild, set_lastChild):Entity;
 	@:noCompletion inline function get_lastChild():Entity
 	{
-		assert(mBits & BIT_MARK_FREE == 0);
+		assert(mBits & BIT_FREED == 0);
 		
 		return Es.getLastChild(this);
 	}
@@ -210,7 +210,7 @@ class Entity
 	public var sibling(get_sibling, set_sibling):Entity;
 	@:noCompletion inline function get_sibling():Entity
 	{
-		assert(mBits & BIT_MARK_FREE == 0);
+		assert(mBits & BIT_FREED == 0);
 		
 		return Es.getSibling(this);
 	}
@@ -227,7 +227,7 @@ class Entity
 	public var numChildren(get_numChildren, set_numChildren):Int;
 	@:noCompletion inline function get_numChildren():Int
 	{
-		assert(mBits & BIT_MARK_FREE == 0);
+		assert(mBits & BIT_FREED == 0);
 		
 		return Es.getNumChildren(this);
 	}
@@ -501,9 +501,11 @@ class Entity
 	**/
 	public function removeChildren()
 	{
-		var k = getSize();
+		var c = firstChild;
 		
-		var c = firstChild, next, p, d;
+		if (c == null) return;
+		
+		var next, p, d, k = getSize();
 		while (c != null)
 		{
 			next = c.sibling;
@@ -936,73 +938,9 @@ class Entity
 	}
 	
 	/**
-		Successively swaps this entity with its previous siblings until it becomes the first sibling.
-	**/
-	public function setFirst()
-	{
-		if (parent == null || parent.firstChild == this) return; //no parent or already first?
-		
-		var c = parent.firstChild;
-		
-		while (c != null) //find predecessor to this entity
-		{
-			if (c.sibling == this) break;
-			c = c.sibling;
-		}
-		
-		if (this == parent.lastChild)
-		{
-			parent.lastChild = c;
-			c.findLastLeaf().preorder = findLastLeaf().preorder;
-		}
-		else
-			c.findLastLeaf().preorder = sibling;
-		
-		c.sibling = sibling;
-		sibling = parent.firstChild;
-		findLastLeaf().preorder = parent.firstChild;
-		
-		parent.firstChild = this;
-		parent.preorder = this;
-	}
-	
-	/**
-		Successively swaps this entity with its next siblings until it becomes the last sibling.
-	**/
-	public function setLast()
-	{
-		if (parent == null || sibling == null) return; //no parent or already last?
-		
-		var c = parent.firstChild, last, tmp;
-		
-		if (c == this) //first child?
-		{
-			parent.preorder = parent.firstChild = sibling;
-		}
-		else
-		{
-			while (c != null) //find predecessor to this entity
-			{
-				if (c.sibling == this) break;
-				c = c.sibling;
-			}
-			
-			c.findLastLeaf().preorder = c.sibling = sibling;
-		}
-		
-		last = parent.lastChild;
-		last.sibling = this;
-		tmp = last.findLastLeaf().preorder;
-		last.findLastLeaf().preorder = this;
-		findLastLeaf().preorder = tmp;
-		sibling = null;
-		parent.lastChild = this;
-	}
-	
-	/**
 		Sort children by phase.
 	**/
-	public function sortChildren()
+	public function applyPhase()
 	{
 		if (numChildren < 1) return;
 		
@@ -1020,6 +958,7 @@ class Entity
 			}
 			c = c.sibling;
 		}
+		
 		if (sorted) return;
 		
 		var t = lastChild.findLastLeaf().preorder;

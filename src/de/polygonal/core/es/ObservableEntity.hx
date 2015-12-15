@@ -236,7 +236,7 @@ class ObservableEntity extends Entity
 		var a = mTmpArray1;
 		var b = mTmpArray2;
 		var q = Entity.getMsgQue();
-		var entities = EntitySystem.mFreeList;
+		var entities = EntitySystem._freeList;
 		
 		var k = 0;
 		k += mBuckets.getBucketData(msgType + 1, a, 0);

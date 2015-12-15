@@ -84,7 +84,7 @@ class MainLoop extends Entity implements IObserver
 			propagateDraw(alpha);
 			
 			//prune scratch list for gc at regular intervals
-			if (mElapsedTime > 3)
+			if (mElapsedTime > 30)
 			{
 				mElapsedTime = 0;
 				var list = mBufferedEntities;
@@ -105,7 +105,7 @@ class MainLoop extends Entity implements IObserver
 		{
 			e = a[i];
 			
-			if (e.mBits & (E.BIT_SKIP_TICK | E.BIT_MARK_FREE | E.BIT_NO_PARENT) == 0)
+			if (e.mBits & (E.BIT_SKIP_TICK | E.BIT_FREED | E.BIT_NO_PARENT) == 0)
 				e.onTick(dt, p[i]);
 		}
 	}
@@ -121,7 +121,7 @@ class MainLoop extends Entity implements IObserver
 		{
 			e = a[i];
 			
-			if (e.mBits & (E.BIT_SKIP_DRAW | E.BIT_MARK_FREE | E.BIT_NO_PARENT) == 0)
+			if (e.mBits & (E.BIT_SKIP_DRAW | E.BIT_FREED | E.BIT_NO_PARENT) == 0)
 				e.onDraw(alpha, p[i]);
 		}
 	}
@@ -150,13 +150,18 @@ class MainLoop extends Entity implements IObserver
 				b[j++] = e;
 				last = e.lastChild;
 			}
+			
 			a[k] = e;
-			c[k++] = false;
+			c[k] = false;
+			
+			k++;
+			
 			if (j > 0 && last == e)
 			{
 				t = b[--j];
 				a[k] = t;
-				c[k++] = true;
+				c[k] = true;
+				k++;
 			}
 			
 			e = e.preorder;
@@ -166,7 +171,8 @@ class MainLoop extends Entity implements IObserver
 		{
 			t = b[--j];
 			a[k] = t;
-			c[k++] = true;
+			c[k] = true;
+			k++;
 		}
 		
 		if (k > mMaxBufferSize) mMaxBufferSize = k;

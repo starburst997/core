@@ -62,35 +62,37 @@ class EntitySystem
 	inline static var OFFSET_NUM_CHILDREN = 7;
 	
 	//unique id, incremented every time an entity is registered
-	static var mNextInnerId:Int;
+	static var _nextInnerId:Int;
 	
 	//all existing entities
-	static var mFreeList:Vector<E>;
+	static var _freeList:Vector<E>;
 	
 	#if alchemy
-	static var mNext:de.polygonal.ds.mem.ShortMemory;
+	static var _next:de.polygonal.ds.mem.ShortMemory;
 	#else
-	static var mNext:Vector<Int>;
+	static var _next:Vector<Int>;
 	#end
 	
-	static var mFree:Int;
+	static var _free:Int;
 	
 	//indices [0,3]: parent, child, sibling, last child (indices into the free list)
 	//indices [4,6]: size (#descendants), tree depth, #children
 	//index 7 is unused
 	#if alchemy
-	static var mTree:de.polygonal.ds.mem.ShortMemory;
+	static var _tree:de.polygonal.ds.mem.ShortMemory;
 	#else
-	static var mTree:Vector<Int>;
+	static var _tree:Vector<Int>;
 	#end
 	
 	//name => [entities by name]
-	static var mEntitiesByName:StringMap<E> = null;
+	static var _entitiesByName:StringMap<E> = null;
 	
 	//circular message buffer
-	static var mMsgQue:EntityMessageQue;
+	static var _msgQue:EntityMessageQue;
 	
 	//maps class x to all superclasses of x
+	static var _inheritanceLut:IntIntHashTable;
+	
 	static var mInheritanceLut:IntIntHashTable;
 	
 	/**
@@ -101,56 +103,56 @@ class EntitySystem
 	**/
 	public static function init(maxEntityCount:Int = DEFAULT_MAX_ENTITY_COUNT, maxMessageCount:Int = DEFAULT_MAX_MESSAGE_COUNT)
 	{
-		if (mFreeList != null) return;
+		if (_freeList != null) return;
 		
-		mNextInnerId = 0;
+		_nextInnerId = 0;
 		
 		assert(maxEntityCount > 0 && maxEntityCount <= MAX_SUPPORTED_ENTITIES);
 		
-		mFreeList = new Vector<E>(1 + maxEntityCount); //index 0 is reserved for null
+		_freeList = new Vector<E>(1 + maxEntityCount); //index 0 is reserved for null
 		
 		#if alchemy
-		mTree = new de.polygonal.ds.mem.ShortMemory((1 + maxEntityCount) << 3, "topology");
+		_tree = new de.polygonal.ds.mem.ShortMemory((1 + maxEntityCount) << 3, "topology");
 		#else
-		mTree = new Vector<Int>((1 + maxEntityCount) << 3);
-		for (i in 0...mTree.length) mTree[i] = 0;
+		_tree = new Vector<Int>((1 + maxEntityCount) << 3);
+		for (i in 0..._tree.length) _tree[i] = 0;
 		#end
 		
-		mEntitiesByName = new StringMap<E>();
+		_entitiesByName = new StringMap<E>();
 		
 		//first element is stored at index=1 (0 is reserved for NULL)
 		#if alchemy
-		mNext = new de.polygonal.ds.mem.ShortMemory(1 + maxEntityCount, "es_freelist_shorts");
+		_next = new de.polygonal.ds.mem.ShortMemory(1 + maxEntityCount, "es_freelist_shorts");
 		for (i in 1...maxEntityCount)
-			mNext.set(i, i + 1);
-		mNext.set(maxEntityCount, -1);
+			_next.set(i, i + 1);
+		_next.set(maxEntityCount, -1);
 		#else
-		mNext = new Vector<Int>(1 + maxEntityCount);
+		_next = new Vector<Int>(1 + maxEntityCount);
 		for (i in 1...maxEntityCount)
-			mNext[i] = (i + 1);
-		mNext[maxEntityCount] = -1;
+			_next[i] = (i + 1);
+		_next[maxEntityCount] = -1;
 		#end
 		
-		mFree = 1;
+		_free = 1;
 		
-		mMsgQue = new EntityMessageQue(maxMessageCount);
+		_msgQue = new EntityMessageQue(maxMessageCount);
 		
-		mInheritanceLut = new IntIntHashTable(1024);
+		_inheritanceLut = new IntIntHashTable(1024);
 		
 		#if verbose
 			//topology array
 			var bytesUsed = 0;
 			#if alchemy
-			bytesUsed += mTree.size * 2;
-			bytesUsed += mNext.size * 2;
-			bytesUsed += mMsgQue.mQue.size;
+			bytesUsed += _tree.size * 2;
+			bytesUsed += _next.size * 2;
+			bytesUsed += _msgQue.mQue.size;
 			#else
-			bytesUsed += mTree.length * 4;
-			bytesUsed += mNext.length * 4;
-			bytesUsed += mMsgQue.mQue.length * 4;
+			bytesUsed += _tree.length * 4;
+			bytesUsed += _next.length * 4;
+			bytesUsed += _msgQue.mQue.length * 4;
 			#end
 			
-			bytesUsed += mFreeList.length * 4;
+			bytesUsed += _freeList.length * 4;
 			
 			L.d('using ${bytesUsed >> 10} KiB for managing $maxEntityCount entities and ${maxMessageCount} messages.', "es");
 		#end
@@ -163,43 +165,43 @@ class EntitySystem
 	**/
 	public static function free()
 	{
-		if (mFreeList == null) return;
+		if (_freeList == null) return;
 		
-		for (i in 0...mFreeList.length)
+		for (i in 0..._freeList.length)
 		{
-			if (mFreeList[i] != null)
+			if (_freeList[i] != null)
 			{
-				mFreeList[i].preorder = null;
-				mFreeList[i].id = null;
+				_freeList[i].preorder = null;
+				_freeList[i].id = null;
 			}
 		}
 		
-		mFreeList = null;
+		_freeList = null;
 		
 		#if alchemy
-		mTree.free();
-		mNext.free();
+		_tree.free();
+		_next.free();
 		#end
 		
-		mTree = null;
-		mEntitiesByName = null;
-		mNext = null;
-		mNextInnerId = 0;
-		mInheritanceLut.free();
-		mInheritanceLut = null;
+		_tree = null;
+		_entitiesByName = null;
+		_next = null;
+		_nextInnerId = 0;
+		_inheritanceLut.free();
+		_inheritanceLut = null;
 	}
 	
 	/**
 		Dispatches all queued messages.
 	**/
-	inline public static function dispatchMessages() mMsgQue.dispatch();
+	inline public static function dispatchMessages() _msgQue.dispatch();
 	
 	/**
 		Returns the entity that matches the given `name` or null if such an entity does not exist.
 	**/
 	inline public static function findByName<T:Entity>(name:String):T
 	{
-		return cast mEntitiesByName.get(name);
+		return cast _entitiesByName.get(name);
 	}
 	
 	/**
@@ -215,7 +217,7 @@ class EntitySystem
 		#else
 		Reflect.field(clss, "ENTITY_NAME");
 		#end
-		return cast mEntitiesByName.get(name);
+		return cast _entitiesByName.get(name);
 	}
 	
 	/**
@@ -225,7 +227,7 @@ class EntitySystem
 	{
 		if (id.index > 0)
 		{
-			var e = mFreeList[id.index];
+			var e = _freeList[id.index];
 			if (e != null)
 				return (e.id.inner == id.inner) ? e : null;
 			else
@@ -235,74 +237,26 @@ class EntitySystem
 			return null;
 	}
 	
-	/**
-		Pretty-prints the entity hierarchy starting at `root`.
-	**/
-	public static function prettyPrint(root:Entity):String
-	{
-		if (root == null) return root.toString();
-		
-		function depth(x:Entity):Int
-		{
-			if (x.parent == null) return 0;
-			var e = x;
-			var c = 0;
-			while (e.parent != null)
-			{
-				c++;
-				e = e.parent;
-			}
-			return c;
-		}	
-		
-		var s = root.name + '\n';
-		
-		var a = [root];
-		
-		var e = root.preorder;
-		while (e != null)
-		{
-			a.push(e);
-			
-			e = e.preorder;
-		}
-		
-		for (e in a)
-		{
-			var d = depth(e);
-			for (i in 0...d)
-			{
-				if (i == d - 1)
-					s += "+--- ";
-				else
-					s += "|    ";
-			}
-			s += "" + e.name + "\n";
-		}
-		
-		return s;
-	}
-	
 	static function register(e:E, isGlobal:Bool)
 	{
-		if (mFreeList == null) init();
+		if (_freeList == null) init();
 		
 		assert(e.id == null, "Entity has already been registered");
 		
-		var i = mFree;
+		var i = _free;
 		
 		assert(i != -1);
 		
 		#if alchemy
-		mFree = mNext.get(i);
+		_free = _next.get(i);
 		#else
-		mFree = mNext[i];
+		_free = _next[i];
 		#end
 		
-		mFreeList[i] = e;
+		_freeList[i] = e;
 		
 		var id = new EntityId();
-		id.inner = mNextInnerId++;
+		id.inner = _nextInnerId++;
 		id.index = i;
 		e.id = id;
 		
@@ -312,7 +266,7 @@ class EntitySystem
 			registerName(e);
 		}
 		
-		var lut = mInheritanceLut;
+		var lut = _inheritanceLut;
 		if (!lut.hasKey(e.type))
 		{
 			var t = e.type;
@@ -321,7 +275,7 @@ class EntitySystem
 			var sc:Class<E> = Reflect.field(Type.getClass(e), "SUPER_CLASS");
 			while (sc != null)
 			{
-				mInheritanceLut.set(t, E.getEntityType(sc));
+				_inheritanceLut.set(t, E.getEntityType(sc));
 				sc = Reflect.field(sc, "SUPER_CLASS");
 			}
 		}
@@ -338,23 +292,23 @@ class EntitySystem
 		var i = e.id.index;
 		
 		//nullify for gc
-		mFreeList[i] = null;
+		_freeList[i] = null;
 		
 		var pos = i << 3;
 		
 		#if alchemy
-		for (i in 0...8) mTree.set(pos + i, 0);
+		for (i in 0...8) _tree.set(pos + i, 0);
 		#else
-		for (i in 0...8) mTree[pos + i] = 0;
+		for (i in 0...8) _tree[pos + i] = 0;
 		#end
 		
 		//mark as free
 		#if alchemy
-		mNext.set(i, mFree);
+		_next.set(i, _free);
 		#else
-		mNext[i] = mFree;
+		_next[i] = _free;
 		#end
-		mFree = i;
+		_free = i;
 		
 		//don't forget to nullify preorder pointer
 		e.preorder = null;
@@ -362,7 +316,7 @@ class EntitySystem
 		//remove from name => entity mapping
 		if (e.mBits & E.BIT_IS_GLOBAL > 0)
 		{
-			mEntitiesByName.remove(e.name);
+			_entitiesByName.remove(e.name);
 			e.mBits &= ~E.BIT_IS_GLOBAL;
 		}
 		
@@ -387,19 +341,19 @@ class EntitySystem
 			freeIterative(e); //inverse levelorder traversal
 	}
 	
-	inline public static function getPreorder(e:E):E return mFreeList[get(pos(e, OFFSET_PREORDER))];
+	inline public static function getPreorder(e:E):E return _freeList[get(pos(e, OFFSET_PREORDER))];
 	inline static function setPreorder(e:E, value:E) set(pos(e, OFFSET_PREORDER), value == null ? 0 : value.id.index);
 	
-	inline public static function getParent(e:E):E return mFreeList[get(pos(e, OFFSET_PARENT))];
+	inline public static function getParent(e:E):E return _freeList[get(pos(e, OFFSET_PARENT))];
 	inline static function setParent(e:E, value:E) set(pos(e, OFFSET_PARENT), value == null ? 0 : value.id.index);
 	
-	inline public static function getFirstChild(e:E):E return mFreeList[get(pos(e, OFFSET_FIRST_CHILD))];
+	inline public static function getFirstChild(e:E):E return _freeList[get(pos(e, OFFSET_FIRST_CHILD))];
 	inline static function setFirstChild(e:E, value:E) set(pos(e, OFFSET_FIRST_CHILD), value == null ? 0 : value.id.index);
 	
-	inline public static function getLastChild(e:E):E return mFreeList[get(pos(e, OFFSET_LAST_CHILD))];
+	inline public static function getLastChild(e:E):E return _freeList[get(pos(e, OFFSET_LAST_CHILD))];
 	inline static function setLastChild(e:E, value:E) set(pos(e, OFFSET_LAST_CHILD), value == null ? 0 : value.id.index);
 	
-	inline public static function getSibling(e:E):E return mFreeList[get(pos(e, OFFSET_SIBLING))];
+	inline public static function getSibling(e:E):E return _freeList[get(pos(e, OFFSET_SIBLING))];
 	inline static function setSibling(e:E, value:E) set(pos(e, OFFSET_SIBLING), value == null ? 0 : value.id.index);
 	
 	inline public static function getSize(e:E):Int return get(pos(e, OFFSET_SIZE));
@@ -415,18 +369,18 @@ class EntitySystem
 	{
 		return
 		#if alchemy
-		mTree.get(i);
+		_tree.get(i);
 		#else
-		mTree[i];
+		_tree[i];
 		#end
 	}
 	
 	inline static function set(i:Int, value:Int)
 	{
 		#if alchemy
-		mTree.set(i, value);
+		_tree.set(i, value);
 		#else
-		mTree[i] = value;
+		_tree[i] = value;
 		#end
 	}
 	
@@ -442,7 +396,7 @@ class EntitySystem
 			n = sibling;
 		}
 		
-		e.mBits |= E.BIT_MARK_FREE;
+		e.mBits |= E.BIT_FREED;
 		
 		#if verbose
 		L.d('free ${e.name}');
@@ -476,7 +430,7 @@ class EntitySystem
 		
 		for (e in a)
 		{
-			e.mBits |= E.BIT_MARK_FREE;
+			e.mBits |= E.BIT_FREED;
 			
 			#if verbose
 			L.d('free ${e.name}');
@@ -491,10 +445,10 @@ class EntitySystem
 	{
 		assert(e.id != null, "Entity is not registered, call EntitySystem.register() before");
 		
-		if (mEntitiesByName.exists(e.name))
-			throw '${e.name} already registered to ${mEntitiesByName.get(e.name)}';
+		if (_entitiesByName.exists(e.name))
+			throw '${e.name} already registered to ${_entitiesByName.get(e.name)}';
 		
-		mEntitiesByName.set(e.name, e);
+		_entitiesByName.set(e.name, e);
 		e.mBits |= E.BIT_IS_GLOBAL;
 		
 		#if verbose

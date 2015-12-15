@@ -130,7 +130,7 @@ class EntityMessageQue
 		var i = (mFront + mSize) % mCapacity;
 		mSize++;
 		
-		if (recipient.mBits & (E.BIT_SKIP_MSG | E.BIT_MARK_FREE) > 0)
+		if (recipient.mBits & (E.BIT_SKIP_MSG | E.BIT_FREED) > 0)
 		{
 			//enqueue message even if recipient doesn't want it;
 			//this is required for properly stopping a message propagation (when an entity calls stop())
@@ -203,7 +203,7 @@ class EntityMessageQue
 		if (mSize == 0 || mSending) return;
 		mSending = true;
 		
-		var a = ES.mFreeList;
+		var a = ES._freeList;
 		
 		var senderIndex:Int;
 		var senderInner:Int;
@@ -287,7 +287,7 @@ class EntityMessageQue
 			mFront = (mFront + 1) % c;
 			mSize--;
 			
-			if (sender == null || recipient == null || (sender.mBits | recipient.mBits) & E.BIT_MARK_FREE > 0)
+			if (sender == null || recipient == null || (sender.mBits | recipient.mBits) & E.BIT_FREED > 0)
 			{
 				#if verbose
 				numSkippedMessages++;
@@ -316,7 +316,7 @@ class EntityMessageQue
 			#end
 			
 			//notify recipient
-			if (recipient.mBits & (E.BIT_SKIP_MSG | E.BIT_MARK_FREE) == 0)
+			if (recipient.mBits & (E.BIT_SKIP_MSG | E.BIT_FREED) == 0)
 			{
 				recipient.onMsg(type, sender);
 				
