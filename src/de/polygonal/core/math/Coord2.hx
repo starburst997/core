@@ -21,26 +21,35 @@ package de.polygonal.core.math;
 /**
 	A point representing a location in (`x`,`y`) coordinate space.
 **/
-class Coord2i
+interface Coord2<T:Float>
 {
-	public var x:Int;
-	public var y:Int;
+	public var x:T;
+	public var y:T;
+}
+
+class Coord2f implements Coord2<Float>
+{
+	public var x:Float;
+	public var y:Float;
 	
-	public function new(x:Int = 0, y:Int = 0)
+	public function new(x:Float = 0, y:Float = 0)
 	{
 		set(x, y);
 	}
 	
-	inline public function of(other:Coord2i)
+	public function of<T:Float>(other:Coord2<T>):Coord2f
 	{
 		x = other.x;
 		y = other.y;
+		
+		return this;
 	}
 	
-	inline public function set(x:Int, y:Int):Coord2i
+	inline public function set(x:Float, y:Float):Coord2f
 	{
 		this.x = x;
 		this.y = y;
+		
 		return this;
 	}
 	
@@ -54,9 +63,61 @@ class Coord2i
 		x = y = 0;
 	}
 	
-	inline public function equals(other:Coord2i):Bool
+	inline public function equals<T:Float>(other:Coord2<T>):Bool
 	{
 		return other.x == x && other.y == y;
+	}
+	
+	public function clone():Coord2f
+	{
+		return new Coord2f(x, y);
+	}
+	
+	public function toString():String
+	{
+		return Printf.format("{ Coord2f %-.4f %-.4f }", [x, y]);
+	}
+}
+
+class Coord2i implements Coord2<Int>
+{
+	public var x:Int;
+	public var y:Int;
+	
+	public function new(x:Int = 0, y:Int = 0)
+	{
+		set(x, y);
+	}
+	
+	inline public function of<T:Float>(other:Coord2<T>):Coord2i
+	{
+		x = Std.int(other.x);
+		y = Std.int(other.y);
+		
+		return this;
+	}
+	
+	inline public function set(x:Int, y:Int):Coord2i
+	{
+		this.x = x;
+		this.y = y;
+		
+		return this;
+	}
+	
+	inline public function isZero():Bool
+	{
+		return x == 0 && y == 0;
+	}
+	
+	inline public function makeZero()
+	{
+		x = y = 0;
+	}
+	
+	inline public function equals<T:Float>(other:Coord2<T>):Bool
+	{
+		return Std.int(other.x) == x && Std.int(other.y) == y;
 	}
 	
 	public function clone():Coord2i
