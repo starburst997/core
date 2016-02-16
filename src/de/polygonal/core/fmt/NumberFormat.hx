@@ -200,44 +200,54 @@ class NumberFormat
 	**/
 	public static function formatCent(x:Int, decimalSeparator = ",", thousandsSeparator = "."):String
 	{
-		var euro = Std.int(x / 100);
-		if (euro == 0)
+		var flip = false;
+		if (x < 0)
 		{
+			x = -x;
+			flip = true;
+		}
+		
+		var s:String;
+		var eur = Std.int(x / 100);
+		if (eur == 0)
+		{
+			s =
 			if (x < 10)
-				return "0" + decimalSeparator + "0" + x;
+				"0" + decimalSeparator + "0" + x;
 			else
-				return "0" + decimalSeparator + x;
+				"0" + decimalSeparator + x;
 		}
 		else
 		{
-			var str:String;
-			var cent = x - euro * 100;
+			var cent = x - eur * 100;
 			if (cent < 10)
-				str = decimalSeparator + "0" + cent;
+				s = decimalSeparator + "0" + cent;
 			else
-				str = decimalSeparator + cent;
-			if (euro >= 1000)
+				s = decimalSeparator + cent;
+			
+			if (eur >= 1000)
 			{
-				var num = euro;
+				var num = eur;
 				var add;
-				while ( num >= 1000)
+				while (num >= 1000)
 				{
-					num = Std.int(euro / 1000);
-					add = euro - num * 1000;
+					num = Std.int(eur / 1000);
+					add = eur - num * 1000;
+					
 					if (add < 10)
-						str = thousandsSeparator + "00" + add + str;
+						s = thousandsSeparator + "00" + add + s;
 					else
 					if (add < 100)
-						str = thousandsSeparator + "0" + add + str;
+						s = thousandsSeparator + "0" + add + s;
 					else
-						str = thousandsSeparator + add + str;
-					euro = num;
+						s = thousandsSeparator + add + s;
+					eur = num;
 				}
-				return str = num + str;
+				s = num + s;
 			}
 			else
-				str =  euro + str;
-			return str;
+				s = eur + s;
 		}
+		return flip ? "-" + s : s;
 	}
 }
