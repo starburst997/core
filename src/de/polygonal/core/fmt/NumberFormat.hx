@@ -38,7 +38,7 @@ class NumberFormat
 	**/
 	public static function toBin(x:Int, byteDelimiter = "", leadingZeros = false):String
 	{
-		var n = Limits.INT_BITS - Bits.nlz(x);
+		var n = 32 - Bits.nlz(x);
 		var s = ((x & 1) > 0) ? "1" : "0";
 		x >>= 1;
 		for (i in 1...n)
@@ -48,7 +48,7 @@ class NumberFormat
 		}
 		
 		if (leadingZeros)
-			for (i in 0...Limits.INT_BITS - n)
+			for (i in 0...32 - n)
 				s = "0" + s;
 		return s;
 	}
