@@ -726,7 +726,7 @@ private class Bind implements IObserver
 			_pool = new DynamicObjectPool<Bind>(Bind, null, null, 1024);
 		
 		#if verbose
-		if (_pool.capacity() == _pool.size())
+		if (_pool.capacity() == _pool.size)
 			L.d("observable bind pool exhausted");
 		#end
 		
@@ -780,7 +780,7 @@ private class Delegate implements IObserver
 		if (_pool == null) _pool = new DynamicObjectPool<Delegate>(Delegate, null, null, 256);
 		
 		#if verbose
-		if (_pool.capacity() == _pool.size())
+		if (_pool.capacity() == _pool.size)
 			L.d("observable delegate pool exhausted");
 		#end
 		
