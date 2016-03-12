@@ -822,7 +822,7 @@ class Entity
 		
 		If `dispatch` is true, the message will leave the message queue immediately.
 	**/
-	public function sendMessageToParents(msgType:Int, dispatch = false)
+	public function sendMessageToParent(msgType:Int, dispatch = false)
 	{
 		var q = getMsgQue();
 		var e = parent;
