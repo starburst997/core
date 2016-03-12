@@ -186,7 +186,6 @@ class NumberFormat
 		if (x < 10000000000) //[1.000.000.000, 9.999.999.999]
 			return s.substr(0, 1) + thousandsSeparator + s.substr(1, 3) + thousandsSeparator + s.substr(4, 3) + thousandsSeparator + s.substr(7);
 		
-		assert(false, 'invalid value ($x)');
 		return null;
 	}
 	
