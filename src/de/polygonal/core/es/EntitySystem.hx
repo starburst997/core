@@ -18,12 +18,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
+import de.polygonal.core.es.Entity in E;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.IntIntHashTable;
+import de.polygonal.ds.NativeArray;
+import de.polygonal.ds.tools.NativeArrayTools;
 import haxe.ds.StringMap;
-import haxe.ds.Vector;
 
-import de.polygonal.core.es.Entity in E;
+using de.polygonal.ds.tools.NativeArrayTools;
 
 /**
 	Manages all active entities
@@ -65,12 +67,12 @@ class EntitySystem
 	static var _nextInnerId:Int;
 	
 	//all existing entities
-	static var _freeList:Vector<E>;
+	static var _freeList:NativeArray<E>;
 	
 	#if alchemy
 	static var _next:de.polygonal.ds.mem.ShortMemory;
 	#else
-	static var _next:Vector<Int>;
+	static var _next:NativeArray<Int>;
 	#end
 	
 	static var _free:Int;
@@ -81,7 +83,7 @@ class EntitySystem
 	#if alchemy
 	static var _tree:de.polygonal.ds.mem.ShortMemory;
 	#else
-	static var _tree:Vector<Int>;
+	static var _tree:NativeArray<Int>;
 	#end
 	
 	//name => [entities by name]
@@ -109,13 +111,13 @@ class EntitySystem
 		
 		assert(maxEntityCount > 0 && maxEntityCount <= MAX_SUPPORTED_ENTITIES);
 		
-		_freeList = new Vector<E>(1 + maxEntityCount); //index 0 is reserved for null
+		_freeList = NativeArrayTools.alloc(1 + maxEntityCount); //index 0 is reserved for null
 		
 		#if alchemy
 		_tree = new de.polygonal.ds.mem.ShortMemory((1 + maxEntityCount) << 3, "topology");
 		#else
-		_tree = new Vector<Int>((1 + maxEntityCount) << 3);
-		for (i in 0..._tree.length) _tree[i] = 0;
+		_tree = NativeArrayTools.alloc((1 + maxEntityCount) << 3);
+		_tree.init(0);
 		#end
 		
 		_entitiesByName = new StringMap<E>();
@@ -123,15 +125,11 @@ class EntitySystem
 		//first element is stored at index=1 (0 is reserved for NULL)
 		#if alchemy
 		_next = new de.polygonal.ds.mem.ShortMemory(1 + maxEntityCount, "es_freelist_shorts");
-		for (i in 1...maxEntityCount)
-			_next.set(i, i + 1);
-		_next.set(maxEntityCount, -1);
 		#else
-		_next = new Vector<Int>(1 + maxEntityCount);
-		for (i in 1...maxEntityCount)
-			_next[i] = (i + 1);
-		_next[maxEntityCount] = -1;
+		_next = NativeArrayTools.alloc(1 + maxEntityCount);
 		#end
+		for (i in 1...maxEntityCount) _next.set(i, i + 1);
+		_next.set(maxEntityCount, -1);
 		
 		_free = 1;
 		
@@ -149,14 +147,16 @@ class EntitySystem
 			bytesUsed += _next.size * 2;
 			bytesUsed += _msgQue.mQue.size;
 			#else
-			bytesUsed += _tree.length * 4;
+			bytesUsed += _tree.size() * 4;
 			bytesUsed += _next.length * 4;
 			bytesUsed += _msgQue.mQue.length * 4;
 			#end
 			
-			bytesUsed += _freeList.length * 4;
+			bytesUsed += _freeList.size() * 4;
 			
+			#if log
 			L.d('using ${bytesUsed >> 10} KiB for managing $maxEntityCount entities and ${maxMessageCount} messages.', "es");
+			#end
 		#end
 	}
 	
@@ -169,15 +169,16 @@ class EntitySystem
 	{
 		if (_freeList == null) return;
 		
-		for (i in 0..._freeList.length)
+		for (i in 0..._freeList.size())
 		{
-			if (_freeList[i] != null)
+			if (_freeList.get(i) != null)
 			{
-				_freeList[i].preorder = null;
-				_freeList[i].id = null;
+				_freeList.get(i).preorder = null;
+				_freeList.get(i).id = null;
 			}
 		}
 		
+		_freeList.nullify();
 		_freeList = null;
 		
 		#if alchemy
@@ -229,7 +230,7 @@ class EntitySystem
 	{
 		if (id.index > 0)
 		{
-			var e = _freeList[id.index];
+			var e = _freeList.get(id.index);
 			if (e != null)
 				return (e.id.inner == id.inner) ? e : null;
 			else
@@ -249,13 +250,9 @@ class EntitySystem
 		
 		assert(i != -1);
 		
-		#if alchemy
 		_free = _next.get(i);
-		#else
-		_free = _next[i];
-		#end
 		
-		_freeList[i] = e;
+		_freeList.set(i, e);
 		
 		var id = new EntityId();
 		id.inner = _nextInnerId++;
@@ -294,22 +291,14 @@ class EntitySystem
 		var i = e.id.index;
 		
 		//nullify for gc
-		_freeList[i] = null;
+		_freeList.set(i, null);
 		
 		var pos = i << 3;
 		
-		#if alchemy
 		for (i in 0...8) _tree.set(pos + i, 0);
-		#else
-		for (i in 0...8) _tree[pos + i] = 0;
-		#end
 		
 		//mark as free
-		#if alchemy
 		_next.set(i, _free);
-		#else
-		_next[i] = _free;
-		#end
 		_free = i;
 		
 		//don't forget to nullify preorder pointer
@@ -343,48 +332,29 @@ class EntitySystem
 			freeIterative(e); //inverse levelorder traversal
 	}
 	
-	inline public static function getPreorder(e:E):E return _freeList[get(pos(e, OFFSET_PREORDER))];
-	inline static function setPreorder(e:E, value:E) set(pos(e, OFFSET_PREORDER), value == null ? 0 : value.id.index);
+	inline public static function getPreorder(e:E):E return _freeList.get(_tree.get(pos(e, OFFSET_PREORDER)));
+	inline static function setPreorder(e:E, value:E) _tree.set(pos(e, OFFSET_PREORDER), value == null ? 0 : value.id.index);
 	
-	inline public static function getParent(e:E):E return _freeList[get(pos(e, OFFSET_PARENT))];
-	inline static function setParent(e:E, value:E) set(pos(e, OFFSET_PARENT), value == null ? 0 : value.id.index);
+	inline public static function getParent(e:E):E return _freeList.get(_tree.get(pos(e, OFFSET_PARENT)));
+	inline static function setParent(e:E, value:E) _tree.set(pos(e, OFFSET_PARENT), value == null ? 0 : value.id.index);
 	
-	inline public static function getFirstChild(e:E):E return _freeList[get(pos(e, OFFSET_FIRST_CHILD))];
-	inline static function setFirstChild(e:E, value:E) set(pos(e, OFFSET_FIRST_CHILD), value == null ? 0 : value.id.index);
+	inline public static function getFirstChild(e:E):E return _freeList.get(_tree.get(pos(e, OFFSET_FIRST_CHILD)));
+	inline static function setFirstChild(e:E, value:E) _tree.set(pos(e, OFFSET_FIRST_CHILD), value == null ? 0 : value.id.index);
 	
-	inline public static function getLastChild(e:E):E return _freeList[get(pos(e, OFFSET_LAST_CHILD))];
-	inline static function setLastChild(e:E, value:E) set(pos(e, OFFSET_LAST_CHILD), value == null ? 0 : value.id.index);
+	inline public static function getLastChild(e:E):E return _freeList.get(_tree.get(pos(e, OFFSET_LAST_CHILD)));
+	inline static function setLastChild(e:E, value:E) _tree.set(pos(e, OFFSET_LAST_CHILD), value == null ? 0 : value.id.index);
 	
-	inline public static function getSibling(e:E):E return _freeList[get(pos(e, OFFSET_SIBLING))];
-	inline static function setSibling(e:E, value:E) set(pos(e, OFFSET_SIBLING), value == null ? 0 : value.id.index);
+	inline public static function getSibling(e:E):E return _freeList.get(_tree.get(pos(e, OFFSET_SIBLING)));
+	inline static function setSibling(e:E, value:E) _tree.set(pos(e, OFFSET_SIBLING), value == null ? 0 : value.id.index);
 	
-	inline public static function getSize(e:E):Int return get(pos(e, OFFSET_SIZE));
-	inline static function setSize(e:E, value:Int) set(pos(e, OFFSET_SIZE), value);
+	inline public static function getSize(e:E):Int return _tree.get(pos(e, OFFSET_SIZE));
+	inline static function setSize(e:E, value:Int) _tree.set(pos(e, OFFSET_SIZE), value);
 	
-	inline public static function getDepth(e:E):Int return get(pos(e, OFFSET_DEPTH));
-	inline static function setDepth(e:E, value:Int) set(pos(e, OFFSET_DEPTH), value);
+	inline public static function getDepth(e:E):Int return _tree.get(pos(e, OFFSET_DEPTH));
+	inline static function setDepth(e:E, value:Int) _tree.set(pos(e, OFFSET_DEPTH), value);
 	
-	inline public static function getNumChildren(e:E):Int return get(pos(e, OFFSET_NUM_CHILDREN));
-	inline static function setNumChildren(e:E, value:Int) set(pos(e, OFFSET_NUM_CHILDREN), value);
-	
-	inline static function get(i:Int):Int
-	{
-		return
-		#if alchemy
-		_tree.get(i);
-		#else
-		_tree[i];
-		#end
-	}
-	
-	inline static function set(i:Int, value:Int)
-	{
-		#if alchemy
-		_tree.set(i, value);
-		#else
-		_tree[i] = value;
-		#end
-	}
+	inline public static function getNumChildren(e:E):Int return _tree.get(pos(e, OFFSET_NUM_CHILDREN));
+	inline static function setNumChildren(e:E, value:Int) _tree.set(pos(e, OFFSET_NUM_CHILDREN), value);
 	
 	inline static function pos(e:E, shift:Int):Int return (e.id.index << 3) + shift;
    	
@@ -411,7 +381,7 @@ class EntitySystem
 	static function freeIterative(e:E)
 	{
 		var k = getSize(e) + 1;
-		var a = new Vector<E>(k);
+		var a = new Array<E>();
 		for (i in 0...k) a[i] = null;
 		
 		var q = [e];

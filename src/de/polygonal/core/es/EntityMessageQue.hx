@@ -90,7 +90,7 @@ class EntityMessageQue
 		mFreeMsgIndex = 0;
 		mMessages = new Array<EntityMessage>();
 		
-		#if verbose
+		#if (verbose && log)
 		L.d('there are ${EntityMessage.countTotalMessages()} message types', "es");
 		#end
 	}

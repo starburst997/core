@@ -24,11 +24,13 @@ import de.polygonal.core.event.IObserver;
 import de.polygonal.core.time.Timebase;
 import de.polygonal.core.time.TimebaseEvent;
 import de.polygonal.core.time.Timeline;
-import haxe.ds.Vector;
-
+import de.polygonal.core.util.Assert.assert;
 import de.polygonal.core.es.EntitySystem as Es;
+import de.polygonal.ds.NativeArray;
+import de.polygonal.ds.tools.NativeArrayTools;
 
 using de.polygonal.core.es.EntitySystem;
+using de.polygonal.ds.tools.NativeArrayTools;
 
 /**
 	The top entity responsible for updating the entire entity hierachy
@@ -36,25 +38,36 @@ using de.polygonal.core.es.EntitySystem;
 @:access(de.polygonal.core.es.EntitySystem)
 class MainLoop extends Entity implements IObserver
 {
-	public var paused = false;
+	public var paused:Bool;
 	
-	var mStack:Array<E> = [];
-	var mPostFlag:Array<Bool> = [];
-	var mTop:Int = 0;
-	var mBufferedEntities:Vector<E>;
-	var mNumBufferedEntities:Int = 0;
-	var mMaxBufferSize:Int = 0;
-	var mElapsedTime:Float = 0;
+	var mBufferedEntities:NativeArray<E>;
+	var mStack:NativeArray<E>;
+	var mPostFlag:NativeArray<Bool>;
+	var mTop:Int;
+	var mNumBufferedEntities:Int;
+	var mMaxBufferSize:Int;
+	var mElapsedTime:Float;
 	
 	public function new()
 	{
+		assert(Es.lookup(MainLoop) == null, "MainLoop instance already created, use EntitySystem.lookup(MainLoop);");
+		
 		super(MainLoop.ENTITY_NAME, true);
+		
+		paused = false;
+		
+		//multiply by two because every entity can be updated twice (pre/post visit)
+		mBufferedEntities = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
+		mStack = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
+		mPostFlag = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
+		mTop = 0;
+		mNumBufferedEntities = 0;
+		mMaxBufferSize = 0;
+		mElapsedTime = 0;
 		
 		Timebase.init();
 		Timebase.attach(this);
 		Timeline.init();
-		
-		mBufferedEntities = new Vector<E>(EntitySystem.MAX_SUPPORTED_ENTITIES);
 	}
 	
 	override function onFree()
@@ -81,7 +94,7 @@ class MainLoop extends Entity implements IObserver
 			mElapsedTime += dt;
 		}
 		else
-		if (type == TimebaseEvent.RENDER)
+		if (type == TimebaseEvent.DRAW)
 		{
 			//draw all entities
 			var alpha:Float = userData;
@@ -91,8 +104,7 @@ class MainLoop extends Entity implements IObserver
 			if (mElapsedTime > 30)
 			{
 				mElapsedTime = 0;
-				var list = mBufferedEntities;
-				for (i in 0...mMaxBufferSize) list[i] = null;
+				mBufferedEntities.nullify(mMaxBufferSize);
 				mMaxBufferSize = 0;
 				mNumBufferedEntities = 0;
 				Es._treeChanged = true;
@@ -102,9 +114,7 @@ class MainLoop extends Entity implements IObserver
 	
 	function propagateTick(dt:Float)
 	{
-		var a = mBufferedEntities;
-		var p = mPostFlag;
-		var e;
+		var a = mBufferedEntities, p = mPostFlag, e;
 		
 		if (Es._treeChanged)
 			mNumBufferedEntities = bufferEntities();
@@ -112,10 +122,17 @@ class MainLoop extends Entity implements IObserver
 		
 		for (i in 0...mNumBufferedEntities)
 		{
-			e = a[i];
-			
+			e = a.get(i);
 			if (e.mBits & (E.BIT_SKIP_TICK | E.BIT_FREED | E.BIT_NO_PARENT) == 0)
-				e.onTick(dt, p[i]);
+			{
+				if (p.get(i)) //post-subtree update?
+				{
+					if (e.mBits & E.BIT_SKIP_POST_TICK == 0)
+						e.onTick(dt, true);
+				}
+				else
+					e.onTick(dt, false);
+			}
 		}
 	}
 	
@@ -131,24 +148,28 @@ class MainLoop extends Entity implements IObserver
 		
 		for (i in 0...mNumBufferedEntities)
 		{
-			e = a[i];
-			
+			e = a.get(i);
 			if (e.mBits & (E.BIT_SKIP_DRAW | E.BIT_FREED | E.BIT_NO_PARENT) == 0)
-				e.onDraw(alpha, p[i]);
+			{
+				if (p.get(i)) //post-subtree update?
+				{
+					if (e.mBits & E.BIT_SKIP_POST_DRAW == 0)
+						e.onDraw(alpha, true);
+				}
+				else
+					e.onDraw(alpha, false);
+			}
 		}
 	}
 	
 	function bufferEntities():Int
 	{
 		var a = mBufferedEntities;
-		var b = mStack;
-		var c = mPostFlag;
+		var p = mPostFlag;
+		var s = mStack;
 		
 		var k = 0, j = 0, t;
-		
-		var last:E = null;
-		
-		var e = firstChild;
+		var e = firstChild, last = null;
 		while (e != null)
 		{
 			if (e.mBits & E.BIT_SKIP_SUBTREE != 0)
@@ -159,20 +180,19 @@ class MainLoop extends Entity implements IObserver
 			
 			if (e.firstChild != null)
 			{
-				b[j++] = e;
+				s.set(j++, e);
 				last = e.lastChild;
 			}
 			
-			a[k] = e;
-			c[k] = false;
-			
+			a.set(k, e);
+			p.set(k, false);
 			k++;
 			
 			if (j > 0 && last == e)
 			{
-				t = b[--j];
-				a[k] = t;
-				c[k] = true;
+				t = s.get(--j);
+				a.set(k, t);
+				p.set(k, true);
 				k++;
 			}
 			
@@ -181,9 +201,9 @@ class MainLoop extends Entity implements IObserver
 		
 		while (j > 0)
 		{
-			t = b[--j];
-			a[k] = t;
-			c[k] = true;
+			t = s.get(--j);
+			a.set(k, t);
+			p.set(k, true);
 			k++;
 		}
 		

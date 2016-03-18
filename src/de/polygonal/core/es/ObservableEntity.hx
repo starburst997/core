@@ -21,8 +21,9 @@ package de.polygonal.core.es;
 import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.BucketList;
+import de.polygonal.ds.NativeArray;
 import de.polygonal.ds.IntIntHashTable;
-import de.polygonal.ds.Vector;
+import de.polygonal.ds.tools.NativeArrayTools;
 
 /**
 	An entity that can take the part of a subject in the observer pattern
@@ -33,7 +34,7 @@ class ObservableEntity extends Entity
 {
 	var mBuckets:BucketList<EntityId>;
 	var mStatus:IntIntHashTable;
-	var mTypeCount:Vector<Int>;
+	var mTypeCount:NativeArray<Int>;
 	var mTmpArray1 = new Array<EntityId>();
 	var mTmpArray2 = new Array<Entity>();
 	
@@ -45,7 +46,7 @@ class ObservableEntity extends Entity
 		mBuckets = new BucketList<EntityId>(M.max(k, 2), bucketSize, shrink);
 		mStatus = new IntIntHashTable(1024, k * 100);
 		
-		mTypeCount = new Vector<Int>(k);
+		mTypeCount = NativeArrayTools.alloc(k);
 		for (i in 0...k) mTypeCount[i] = 0;
 	}
 	
@@ -68,7 +69,7 @@ class ObservableEntity extends Entity
 		mBuckets.clear();
 		mStatus.clear(true);
 		
-		for (i in 0...mTypeCount.length) mTypeCount[i] = 0;
+		for (i in 0...NativeArrayTools.size(mTypeCount)) mTypeCount[i] = 0;
 	}
 	
 	public function attach(e:Entity, ?msgTypes:Array<Int>, msgType:Int = -1):Bool
@@ -127,7 +128,7 @@ class ObservableEntity extends Entity
 					
 					incCount(-1);
 					
-					while (mStatus.clr(id.inner)) {}
+					while (mStatus.unset(id.inner)) {}
 					
 					mBuckets.add(0, id);
 					mStatus.set(id.inner, -1);
@@ -187,7 +188,7 @@ class ObservableEntity extends Entity
 		if (mStatus.hasPair(id.inner, -1)) //stored in global list?
 		{
 			mBuckets.removeAt(0, id);
-			mStatus.clr(id.inner);
+			mStatus.unset(id.inner);
 			decCount(-1);
 			
 			return true;
@@ -201,7 +202,7 @@ class ObservableEntity extends Entity
 				var t = mStatus.get(id.inner);
 				while (t != IntIntHashTable.KEY_ABSENT)
 				{
-					if (mStatus.clr(id.inner)) decCount(t);
+					if (mStatus.unset(id.inner)) decCount(t);
 					
 					mBuckets.removeAt(t + 1, id);
 					
@@ -249,7 +250,7 @@ class ObservableEntity extends Entity
 		
 		inline function removeAll(id:EntityId)
 		{
-			while (mStatus.clr(id.inner)) {}
+			while (mStatus.unset(id.inner)) {}
 			
 			for (i in 0...mBuckets.numBuckets)
 			{
@@ -283,7 +284,7 @@ class ObservableEntity extends Entity
 		if (dispatch) EntitySystem.dispatchMessages();
 	}
 	
-	inline function getCount(msgType:Int):Int return mTypeCount[0] + mTypeCount[msgType + 1];
+	inline function getCount(msgType:Int):Int return mTypeCount.get(0) + mTypeCount.get(msgType + 1);
 	
 	inline function incCount(msgType:Int) mTypeCount.set(msgType + 1, mTypeCount.get(msgType + 1) + 1);
 	

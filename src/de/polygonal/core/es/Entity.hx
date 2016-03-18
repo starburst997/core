@@ -23,6 +23,7 @@ import de.polygonal.core.es.EntityMessageQue;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.core.util.ClassUtil;
 import de.polygonal.core.es.EntitySystem in Es;
+import de.polygonal.ds.Bits;
 
 using de.polygonal.core.es.EntitySystem;
 
@@ -36,7 +37,9 @@ using de.polygonal.core.es.EntitySystem;
 	BIT_SKIP_SUBTREE,
 	BIT_SKIP_MSG,
 	BIT_SKIP_TICK,
+	BIT_SKIP_POST_TICK,
 	BIT_SKIP_DRAW,
+	BIT_SKIP_POST_DRAW,
 	BIT_STOP_PROPAGATION,
 	BIT_FREED,
 	BIT_IS_GLOBAL,
@@ -48,6 +51,10 @@ using de.polygonal.core.es.EntitySystem;
 @:keepSub
 class Entity
 {
+	inline static var FLAG_BITS = 10;
+	inline static var PHASE_BITS = 6;
+	inline static var TYPE_BITS = 16;
+	
 	inline static function getEntityType<T:Entity>(clss:Class<T>):Int
 	{
 		#if flash
@@ -75,21 +82,20 @@ class Entity
 	/**
 		Every subclass of the Entity class can be identified by an unique integer value.
 	**/
-	public var type(get_type, never):Int;
-	inline function get_type():Int return mBits >>> 16;
+	public var type(get, never):Int;
+	inline function get_type():Int return mBits >>> (FLAG_BITS + PHASE_BITS);
 	
 	/**
-		Execution order (smaller value equals higher priority); only effective after calling `applyPhase()`.
-		
+		Execution order in the range [0, 15] (smaller value equals higher priority); only effective after calling `applyPhase()`.
 		Default is 0.
 	**/
-	public var phase(get_phase, set_phase):Int;
-	inline function get_phase():Int return mBits >>> 8 & 0xFF;
+	public var phase(get, set):Int;
+	inline function get_phase():Int return (mBits >>> FLAG_BITS) & Bits.mask(PHASE_BITS);
 	inline function set_phase(value:Int):Int
 	{
-		assert(value >= 0 && value <= 0xFF, "invalid phase");
-		mBits |= (value & 0xFF) << 8;
+		assert(value >= 0 && value < (2 << (PHASE_BITS - 1)));
 		
+		mBits |= value << FLAG_BITS;
 		return value;
 	}
 	
@@ -104,11 +110,18 @@ class Entity
 	
 	public function new(?name:String, isGlobal:Bool = false)
 	{
-		mBits = (__getType() << 16) | BIT_NO_PARENT;
+		assert(__getType() < (2 << (TYPE_BITS - 1)));
+		
+		mBits = (__getType() << (FLAG_BITS + PHASE_BITS)) | BIT_NO_PARENT | BIT_SKIP_POST_TICK | BIT_SKIP_POST_DRAW;
 		
 		if (isGlobal && name == null)
 			name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
 		this.name = name;
+		
+		#if debug
+		if (this.name == null)
+			this.name = ClassUtil.getClassName(this);
+		#end
 		
 		Es.register(this, isGlobal);
 	}
@@ -132,7 +145,7 @@ class Entity
 		
 		<warn>This value should never be changed by the user.</warn>
 	**/
-	public var preorder(get_preorder, set_preorder):Entity;
+	public var preorder(get, set):Entity;
 	@:noCompletion inline function get_preorder():Entity
 	{
 		assert(mBits & BIT_FREED == 0);
@@ -142,7 +155,6 @@ class Entity
 	@:noCompletion inline function set_preorder(value:Entity)
 	{
 		Es.setPreorder(this, value);
-		
 		return value;
 	}
 	
@@ -151,7 +163,7 @@ class Entity
 		
 		<warn>This value should never be changed by the user.</warn>
 	**/
-	public var parent(get_parent, set_parent):Entity;
+	public var parent(get, set):Entity;
 	@:noCompletion inline function get_parent():Entity
 	{
 		assert(mBits & BIT_FREED == 0);
@@ -161,7 +173,6 @@ class Entity
 	@:noCompletion inline function set_parent(value:Entity)
 	{
 		Es.setParent(this, value);
-		
 		return value;
 	}
 	
@@ -170,7 +181,7 @@ class Entity
 		
 		<warn>This value should never be changed by the user.</warn>
 	**/
-	public var firstChild(get_firstChild, set_firstChild):Entity;
+	public var firstChild(get, set):Entity;
 	@:noCompletion inline function get_firstChild():Entity
 	{
 		assert(mBits & BIT_FREED == 0);
@@ -180,7 +191,6 @@ class Entity
 	@:noCompletion inline function set_firstChild(value:Entity)
 	{
 		Es.setFirstChild(this, value);
-		
 		return value;
 	}
 	
@@ -189,7 +199,7 @@ class Entity
 		
 		<warn>This value should never be changed by the user.</warn>
 	**/
-	public var lastChild(get_lastChild, set_lastChild):Entity;
+	public var lastChild(get, set):Entity;
 	@:noCompletion inline function get_lastChild():Entity
 	{
 		assert(mBits & BIT_FREED == 0);
@@ -199,7 +209,6 @@ class Entity
 	@:noCompletion inline function set_lastChild(value:Entity)
 	{
 		Es.setLastChild(this, value);
-		
 		return value;
 	}
 	
@@ -208,7 +217,7 @@ class Entity
 		
 		<warn>This value should never be changed by the user.</warn>
 	**/
-	public var sibling(get_sibling, set_sibling):Entity;
+	public var sibling(get, set):Entity;
 	@:noCompletion inline function get_sibling():Entity
 	{
 		assert(mBits & BIT_FREED == 0);
@@ -218,14 +227,13 @@ class Entity
 	@:noCompletion inline function set_sibling(value:Entity)
 	{
 		Es.setSibling(this, value);
-		
 		return value;
 	}
 	
 	/**
 		The total number of child entities.
 	**/
-	public var numChildren(get_numChildren, set_numChildren):Int;
+	public var numChildren(get, set):Int;
 	@:noCompletion inline function get_numChildren():Int
 	{
 		assert(mBits & BIT_FREED == 0);
@@ -235,26 +243,35 @@ class Entity
 	@:noCompletion inline function set_numChildren(value:Int):Int
 	{
 		Es.setNumChildren(this, value);
-		
 		return value;
 	}
 	
 	/**
-		If true, ``MainLoop`` updates this entity at regular intervals by invoking the ``onTick()`` method.
+		If true, ``MainLoop`` updates this entity at regular intervals by invoking the ``onTick(dt, false)`` method.
 	**/
-	public var tickable(get_tickable, set_tickable):Bool;
+	public var tickable(get, set):Bool;
 	@:noCompletion inline function get_tickable():Bool return mBits & BIT_SKIP_TICK == 0;
 	@:noCompletion function set_tickable(value:Bool):Bool
 	{
 		value ? mBits &= ~BIT_SKIP_TICK : mBits |= BIT_SKIP_TICK;
-		
+		return value;
+	}
+	
+	/**
+		If true, ``MainLoop`` updates this entity at regular intervals by invoking the ``onTick(dt, true)`` method.
+	**/
+	public var postTickable(get, set):Bool;
+	inline function get_postTickable():Bool return mBits & BIT_SKIP_POST_TICK == 0;
+	function set_postTickable(value:Bool):Bool
+	{
+		value ? mBits &= ~BIT_SKIP_POST_TICK : mBits |= BIT_SKIP_POST_TICK;
 		return value;
 	}
 	
 	/**
 		If true, ``MainLoop`` renderes this entity at regular intervals by invoking the ``onDraw()`` method.
 	**/
-	public var drawable(get_drawable, set_drawable):Bool;
+	public var drawable(get, set):Bool;
 	@:noCompletion inline function get_drawable():Bool
 	{
 		return mBits & BIT_SKIP_DRAW == 0;
@@ -262,7 +279,14 @@ class Entity
 	@:noCompletion function set_drawable(value:Bool):Bool
 	{
 		value ? mBits &= ~BIT_SKIP_DRAW : mBits |= BIT_SKIP_DRAW;
-		
+		return value;
+	}
+	
+	public var postDrawable(get, set):Bool;
+	inline function get_postDrawable():Bool return mBits & BIT_SKIP_POST_DRAW == 0;
+	function set_postDrawable(value:Bool):Bool
+	{
+		value ? mBits &= ~BIT_SKIP_POST_DRAW : mBits |= BIT_SKIP_POST_DRAW;
 		return value;
 	}
 	
@@ -271,7 +295,7 @@ class Entity
 		
 		Default is true.
 	**/
-	public var notifiable(get_notifiable, set_notifiable):Bool;
+	public var notifiable(get, set):Bool;
 	@:noCompletion inline function get_notifiable():Bool
 	{
 		return mBits & BIT_SKIP_MSG == 0;
@@ -279,7 +303,6 @@ class Entity
 	@:noCompletion function set_notifiable(value:Bool):Bool
 	{
 		value ? mBits &= ~BIT_SKIP_MSG : mBits |= BIT_SKIP_MSG;
-		
 		return value;
 	}
 	
@@ -288,7 +311,7 @@ class Entity
 		
 		Default is true.
 	**/
-	public var passable(get_passable, set_passable):Bool;
+	public var passable(get, set):Bool;
 	@:noCompletion inline function get_passable():Bool
 	{
 		return mBits & BIT_SKIP_SUBTREE == 0;
@@ -297,7 +320,6 @@ class Entity
 	{
 		value ? mBits &= ~BIT_SKIP_SUBTREE : mBits |= BIT_SKIP_SUBTREE;
 		Es._treeChanged = true;
-		
 		return value;
 	}
 	
@@ -306,7 +328,7 @@ class Entity
 		
 		<warn>Only valid inside ``onMsg()``.</warn>
 	**/
-	public var incomingMessage(get_incomingMessage, never):EntityMessage;
+	public var incomingMessage(get, never):EntityMessage;
 	@:noCompletion function get_incomingMessage():EntityMessage
 	{
 		return getMsgQue().getMsgIn();
@@ -315,7 +337,7 @@ class Entity
 	/**
 		A message that will be sent when calling ``EntitySystem::dispatchMessages()``.
 	**/
-	public var outgoingMessage(get_outgoingMessage, never):EntityMessage;
+	public var outgoingMessage(get, never):EntityMessage;
 	@:noCompletion function get_outgoingMessage():EntityMessage
 	{
 		return getMsgQue().getMsgOut();
@@ -394,7 +416,6 @@ class Entity
 		
 		x.mBits &= ~BIT_NO_PARENT;
 		x.onAdd();
-		
 		return cast x;
 	}
 	
@@ -601,7 +622,6 @@ class Entity
 				n = n.sibling;
 			}
 		}
-		
 		return null;
 	}
 	
@@ -670,7 +690,6 @@ class Entity
 				n = n.sibling;
 			}
 		}
-		
 		return null;
 	}
 	
@@ -727,7 +746,6 @@ class Entity
 				n = n.parent;
 			}
 		}
-		
 		return null;
 	}
 	
@@ -793,7 +811,6 @@ class Entity
 				n = n.preorder;
 			}
 		}
-		
 		return null;
 	}
 	
@@ -928,7 +945,6 @@ class Entity
 			i++;
 			e = e.sibling;
 		}
-		
 		return i;
 	}
 	
@@ -941,7 +957,6 @@ class Entity
 		var i = 0;
 		var e = firstChild;
 		for (i in 0...index) e = e.sibling;
-		
 		return e;
 	}
 	
@@ -1087,7 +1102,6 @@ class Entity
 	public function toString():String
 	{
 		if (name == null) name = '[${ClassUtil.getClassName(this)}]';
-		
 		return '{ Entity $name }';
 	}
 	
