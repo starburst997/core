@@ -23,12 +23,12 @@ import de.polygonal.core.es.EntitySystem as Es;
 using de.polygonal.core.es.EntitySystem;
 
 @:access(de.polygonal.core.es.EntitySystem)
-class EntityUtil
+class EntityTools
 {
 	/**
 		Pretty-prints the entity hierarchy starting at `root`.
 	**/
-	public static function prettyPrint(root:Entity):String
+	public static function print(root:Entity):String
 	{
 		if (root == null) return root.toString();
 		
