@@ -30,6 +30,6 @@ class EntityId
 	
 	public function new() {}
 	
-	inline public function equals(other:EntityId):Bool
+	public inline function equals(other:EntityId):Bool
 		return index == other.index && inner == other.inner;
 }

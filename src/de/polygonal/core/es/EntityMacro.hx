@@ -21,8 +21,6 @@ package de.polygonal.core.es;
 #if macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import sys.FileSystem;
-import sys.io.File;
 #end
 
 /**
@@ -31,7 +29,7 @@ import sys.io.File;
 class EntityMacro
 {
 	#if macro
-	inline public static var FILE = ".de.polygonal.core.es.entity_macro";
+	static var ids = [];
 	#end
 	
 	macro public static function build():Array<Field>
@@ -44,17 +42,15 @@ class EntityMacro
 		
 		var name = moduleName;
 		name = name.substr(name.lastIndexOf(".") + 1); //make unqualified
-		if (moduleName.indexOf(className) == -1)
-			name += '_$className'; //moduleName_className
+		if (moduleName.indexOf(className) == -1) name += '_$className'; //moduleName_className
 		
-		var next = 0;
-		if (FileSystem.exists(FILE))
-		{
-			next = Std.parseInt(File.getContent(FILE)) + 1;
-			File.saveContent(FILE, Std.string(next));
-		}
-		else
-			File.saveContent(FILE, "0");
+		var next =
+		#if debug
+		-1; //generate at runtime, see Entity constructor
+		#else
+		ids.length == 0 ? 0 : (ids[ids.length - 1] + 1);
+		ids.push(next);
+		#end
 		
 		function field(pkg:String)
 		{
@@ -109,9 +105,9 @@ class EntityMacro
 			pos: p
 		});
 		
+		#if !debug //generate at runtime
 		if (name == "Entity") return fields; //don't modify Entity constructor
-		
-		if (next > 0xffff) Context.fatalError("type value out of bounds", Context.currentPos());
+		if (next > 0xffff) Context.fatalError("type value out of bounds", p);
 		
 		fields.push(
 		{
@@ -129,6 +125,7 @@ class EntityMacro
 			}),
 			pos: p
 		});
+		#end
 		
 		return fields;
 	}

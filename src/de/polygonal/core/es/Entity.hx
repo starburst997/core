@@ -30,6 +30,8 @@ using de.polygonal.core.es.EntitySystem;
 /**
 	Base entity class
 **/
+@:keep
+@:keepSub
 @:access(de.polygonal.core.es.EntitySystem)
 @:access(de.polygonal.core.es.EntityMessageQue)
 @:build(de.polygonal.core.macro.IntConsts.build(
@@ -47,8 +49,6 @@ using de.polygonal.core.es.EntitySystem;
 ], true, false))
 @:build(de.polygonal.core.es.EntityMacro.build())
 @:autoBuild(de.polygonal.core.es.EntityMacro.build())
-@:keep
-@:keepSub
 class Entity
 {
 	inline static var FLAG_BITS = 10;
@@ -69,6 +69,11 @@ class Entity
 		return Reflect.field(clss, "ENTITY_TYPE");
 		#end
 	}
+	
+	#if debug
+	static var _classNameLut = new haxe.ds.StringMap<Int>();
+	static var _nextEntityId = 0;
+	#end
 	
 	inline static function getMsgQue() return Es._msgQue;
 	
@@ -110,18 +115,41 @@ class Entity
 	
 	public function new(?name:String, isGlobal:Bool = false)
 	{
+		#if debug
+		//assign at runtime; prevent problems with compiler caching macros
+		var stack = [];
+		var cl:Class<Dynamic> = Type.getClass(this);
+		while (cl != null)
+		{
+			stack.push(cl);
+			cl = Type.getSuperClass(cl);
+		}
+		while (stack.length > 0)
+		{
+			cl = stack.pop();
+			var entityName = Reflect.field(cl, "ENTITY_NAME");
+			if (!_classNameLut.exists(entityName))
+			{
+				var entityId = _nextEntityId++;
+				_classNameLut.set(entityName, entityId);
+				
+				trace("assign " + entityId + " to " + entityName);
+				Reflect.setField(cl, "ENTITY_TYPE", entityId);
+			}
+		}
+		#end
+		
 		assert(__getType() < (2 << (TYPE_BITS - 1)));
 		
 		mBits = (__getType() << (FLAG_BITS + PHASE_BITS)) | BIT_NO_PARENT | BIT_SKIP_POST_TICK | BIT_SKIP_POST_DRAW;
 		
-		if (isGlobal && name == null)
-			name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
-		this.name = name;
+		if (isGlobal && name == null) name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
 		
 		#if debug
-		if (this.name == null)
-			this.name = ClassUtil.getClassName(this);
+		if (name == null) name = "DEBUG_" + ClassUtil.getClassName(this);
 		#end
+		
+		this.name = name;
 		
 		Es.register(this, isGlobal);
 	}
@@ -1070,7 +1098,7 @@ class Entity
 	/**
 		Convenience method for casting this Entity to the type `clss`.
 	**/
-	inline public function as<T:Entity>(clss:Class<T>):T
+	public inline function as<T:Entity>(clss:Class<T>):T
 	{
 		#if flash
 		return untyped __as__(this, clss);
@@ -1082,7 +1110,7 @@ class Entity
 	/**
 		Convenience method for Std.is(this, `clss`);
 	**/
-	inline public function is<T:Entity>(clss:Class<T>):Bool
+	public inline function is<T:Entity>(clss:Class<T>):Bool
 	{
 		#if flash
 		return untyped __is__(this, clss);
@@ -1119,5 +1147,12 @@ class Entity
 	
 	@:noCompletion function onMsg(msgType:Int, sender:Entity) {}
 	
-	@:noCompletion function __getType() return 0; //overriden by macro
+	@:noCompletion function __getType()
+	{
+		#if debug
+		return Reflect.field(Type.getClass(this), "ENTITY_TYPE");
+		#else
+		return 0; //overriden by macro
+		#end
+	}
 }
