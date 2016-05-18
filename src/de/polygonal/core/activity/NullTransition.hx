@@ -21,7 +21,6 @@ package de.polygonal.core.activity;
 import de.polygonal.core.activity.Activity;
 import de.polygonal.core.activity.Transition.TransitionType;
 import de.polygonal.core.activity.TransitionListener;
-import meta.Scene;
 
 @:access(meta.Scene)
 class NullTransition implements TransitionListener

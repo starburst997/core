@@ -224,10 +224,10 @@ class StringUtil
 		{
 			c = x.charCodeAt(i);
 			n +=
-			if (c <= 0x7f) 1;
-			else if (c <= 0x7ff) 2;
-			else if (c <= 0xffff) 3;
-			else if (c <= 0x10ffff) 4;
+			if (c <= 0x7F) 1;
+			else if (c <= 0x7FF) 2;
+			else if (c <= 0xFFFF) 3;
+			else if (c <= 0x10FFFF) 4;
 			else
 				throw 'Invalid Unicode character : 0x${StringTools.hex(c)}';
 		}

@@ -37,33 +37,31 @@ class Coord2f implements Coord2<Float>
 		set(x, y);
 	}
 	
-	public function of<T:Float>(other:Coord2<T>):Coord2f
+	public inline function of<T:Float>(other:Coord2<T>):Coord2f
 	{
 		x = other.x;
 		y = other.y;
-		
 		return this;
 	}
 	
-	inline public function set(x:Float, y:Float):Coord2f
+	public inline function set(x:Float, y:Float):Coord2f
 	{
 		this.x = x;
 		this.y = y;
-		
 		return this;
 	}
 	
-	inline public function isZero():Bool
+	public inline function isZero():Bool
 	{
 		return x == 0 && y == 0;
 	}
 	
-	inline public function makeZero()
+	public inline function makeZero()
 	{
 		x = y = 0;
 	}
 	
-	inline public function equals<T:Float>(other:Coord2<T>):Bool
+	public inline function equals<T:Float>(other:Coord2<T>):Bool
 	{
 		return other.x == x && other.y == y;
 	}
@@ -89,7 +87,7 @@ class Coord2i implements Coord2<Int>
 		set(x, y);
 	}
 	
-	inline public function of<T:Float>(other:Coord2<T>):Coord2i
+	public inline function of<T:Float>(other:Coord2<T>):Coord2i
 	{
 		x = Std.int(other.x);
 		y = Std.int(other.y);
@@ -97,7 +95,7 @@ class Coord2i implements Coord2<Int>
 		return this;
 	}
 	
-	inline public function set(x:Int, y:Int):Coord2i
+	public inline function set(x:Int, y:Int):Coord2i
 	{
 		this.x = x;
 		this.y = y;
@@ -105,17 +103,17 @@ class Coord2i implements Coord2<Int>
 		return this;
 	}
 	
-	inline public function isZero():Bool
+	public inline function isZero():Bool
 	{
 		return x == 0 && y == 0;
 	}
 	
-	inline public function makeZero()
+	public inline function makeZero()
 	{
 		x = y = 0;
 	}
 	
-	inline public function equals<T:Float>(other:Coord2<T>):Bool
+	public inline function equals<T:Float>(other:Coord2<T>):Bool
 	{
 		return Std.int(other.x) == x && Std.int(other.y) == y;
 	}

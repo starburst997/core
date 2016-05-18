@@ -31,7 +31,7 @@ class Timebase
 	/**
 		Converts `seconds` seconds to ticks.
 	**/
-	inline public static function secondsToTicks(seconds:Float):Int
+	public inline static function secondsToTicks(seconds:Float):Int
 	{
 		return M.round(seconds / tickRate);
 	}
@@ -39,7 +39,7 @@ class Timebase
 	/**
 		Converts `ticks` to seconds.
 	**/
-	inline public static function ticksToSeconds(ticks:Int):Float
+	public inline static function ticksToSeconds(ticks:Int):Float
 	{
 		return ticks * tickRate;
 	}
@@ -103,13 +103,13 @@ class Timebase
 	public static var observable(default, null):Observable = null;
 	public static function attach(o:IObserver, mask:Int = 0)
 	{
-		assert(mInitialized, "call Timebase.init() first");
+		assert(_initialized, "call Timebase.init() first");
 		observable.attach(o, mask);
 	}
 	
 	public static function detach(o:IObserver, mask:Int = 0)
 	{
-		assert(mInitialized, "call Timebase.init() first");
+		assert(_initialized, "call Timebase.init() first");
 		observable.detach(o, mask);
 	}
 	
@@ -123,17 +123,23 @@ class Timebase
 	static var mFpsTime:Float = 0;
 	static var mPast:Float;
 	
-	static var mInitialized:Bool;
+	static var _initialized:Bool;
 	
 	static var mTime:Time;
 	
 	//TODO auto-init
 	public static function init()
 	{
-		if (mInitialized) return;
-		mInitialized = true;
+		if (_initialized) return;
+		_initialized = true;
 		
 		observable = new Observable(100);
+	}
+	
+	public static function resetElapsedTime()
+	{
+		elapsedTime = 0;
+		elapsedGameTime = 0;
 	}
 	
 	public static function setTimeSource(time:Time)
@@ -150,8 +156,8 @@ class Timebase
 	**/
 	public static function free()
 	{
-		if (!mInitialized) return;
-		mInitialized = false;
+		if (!_initialized) return;
+		_initialized = false;
 		
 		observable.free();
 		observable = null;
@@ -176,7 +182,7 @@ class Timebase
 	**/
 	public static function pause()
 	{
-		assert(mInitialized, "call Timebase.init() first");
+		assert(_initialized, "call Timebase.init() first");
 		if (!mPaused)
 		{
 			mPaused = true;
@@ -191,7 +197,7 @@ class Timebase
 	**/
 	public static function resume()
 	{
-		assert(mInitialized, "call Timebase.init() first");
+		assert(_initialized, "call Timebase.init() first");
 		if (mPaused)
 		{
 			mPaused = false;
@@ -217,7 +223,7 @@ class Timebase
 	**/
 	public static function freeze(seconds:Float)
 	{
-		assert(mInitialized, "call Timebase.init() first");
+		assert(_initialized, "call Timebase.init() first");
 		mFreezeDelay = seconds;
 		mAccumulator = 0;
 		observable.notify(TimebaseEvent.FREEZE_BEGIN);
@@ -226,22 +232,28 @@ class Timebase
 	/**
 		Performs a manual update step.
 	**/
-	public static function step()
+	public static function step(dt:Float = 0, draw:Bool = true)
 	{
-		assert(mInitialized, "call Timebase.init() first");
-		timeDelta = tickRate;
+		assert(_initialized, "call Timebase.init() first");
+		
+		if (dt == 0) dt = tickRate;
+		
+		timeDelta = dt;
 		elapsedTime += timeDelta;
 		
 		assert(timeScale > 0);
 		
-		gameTimeDelta = tickRate * timeScale;
+		gameTimeDelta = dt * timeScale;
 		elapsedGameTime += gameTimeDelta;
 		
-		observable.notify(TimebaseEvent.TICK, tickRate);
+		observable.notify(TimebaseEvent.TICK, dt);
 		numTickCalls++;
 		
-		observable.notify(TimebaseEvent.RENDER, 1);
-		numDrawCalls++;
+		if (draw)
+		{
+			observable.notify(TimebaseEvent.DRAW, 1);
+			numDrawCalls++;
+		}
 	}
 	
 	static function update()
@@ -251,7 +263,7 @@ class Timebase
 		assert(timeScale > 0);
 		
 		var now = mTime.now();
-		var dt = (now - mPast);
+		var dt = now - mPast;
 		mPast = now;
 		
 		timeDelta = dt;
@@ -270,7 +282,7 @@ class Timebase
 		{
 			mFreezeDelay -= timeDelta;
 			observable.notify(TimebaseEvent.TICK, 0.);
-			observable.notify(TimebaseEvent.RENDER, 1.);
+			observable.notify(TimebaseEvent.DRAW, 1.);
 			numTickCalls++;
 			numDrawCalls++;
 			
@@ -294,8 +306,9 @@ class Timebase
 			while (mAccumulator >= tickRate)
 			{
 				mAccumulator -= tickRate;
+				gameTimeDelta = tickRate * timeScale;
 				elapsedGameTime += gameTimeDelta;
-				observable.notify(TimebaseEvent.TICK, tickRate);
+				observable.notify(TimebaseEvent.TICK, gameTimeDelta);
 				numTickCalls++;
 				if (mPaused) break;
 			}
@@ -303,7 +316,7 @@ class Timebase
 			if (mPaused) return;
 			
 			var alpha = mAccumulator / tickRate;
-			observable.notify(TimebaseEvent.RENDER, alpha);
+			observable.notify(TimebaseEvent.DRAW, alpha);
 			numDrawCalls++;
 		}
 		else
@@ -313,7 +326,7 @@ class Timebase
 			elapsedGameTime += gameTimeDelta;
 			observable.notify(TimebaseEvent.TICK, gameTimeDelta);
 			numTickCalls++;
-			observable.notify(TimebaseEvent.RENDER, 1.);
+			observable.notify(TimebaseEvent.DRAW, 1.);
 			numDrawCalls++;
 		}
 	}

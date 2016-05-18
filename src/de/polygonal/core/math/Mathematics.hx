@@ -31,7 +31,7 @@ class Mathematics
 	#if !flash
 	public static var NaN = Math.NaN;
 	#else
-	inline public static var NaN = 0. / 0.;
+	public inline static var NaN = 0. / 0.;
 	#end
 	
 	/**
@@ -40,7 +40,7 @@ class Mathematics
 	#if !flash
 	public static var POSITIVE_INFINITY = Math.POSITIVE_INFINITY;
 	#else
-	inline public static var POSITIVE_INFINITY = 1. / 0.;
+	public inline static var POSITIVE_INFINITY = 1. / 0.;
 	#end
 	
 	/**
@@ -49,69 +49,69 @@ class Mathematics
 	#if !flash
 	public static var NEGATIVE_INFINITY = Math.NEGATIVE_INFINITY;
 	#else
-	inline public static var NEGATIVE_INFINITY = -1. / 0.;
+	public inline static var NEGATIVE_INFINITY = -1. / 0.;
 	#end
 	
 	/**
 		Values below `ZERO_TOLERANCE` are treated as zero.
 	**/
-	inline public static var ZERO_TOLERANCE = 1e-08;
+	public inline static var ZERO_TOLERANCE = 1e-08;
 	
 	/**
 		Multiply a value by this constant to convert from radians to degrees (180 / PI).
 	**/
-	inline public static var RAD_DEG = 57.29577951308232;
+	public inline static var RAD_DEG = 57.29577951308232;
 	
 	/**
 		Multiply a value by this constant to convert from degrees to radians (PI / 180).
 	**/
-	inline public static var DEG_RAD = 0.017453292519943295;
+	public inline static var DEG_RAD = 0.017453292519943295;
 	
 	/**
 		The natural logarithm of 2.
 	**/
-	inline public static var LN2 = 0.6931471805599453;
+	public inline static var LN2 = 0.6931471805599453;
 	
 	/**
 		The natural logarithm of 10.
 	**/
-	inline public static var LN10 = 2.302585092994046;
+	public inline static var LN10 = 2.302585092994046;
 	
 	/**
 		PI / 2.
 	**/
-	inline public static var PI_OVER_2 = 1.5707963267948966;
+	public inline static var PI_OVER_2 = 1.5707963267948966;
 	
 	/**
 		PI / 4.
 	**/
-	inline public static var PI_OVER_4 = 0.7853981633974483;
+	public inline static var PI_OVER_4 = 0.7853981633974483;
 	
 	/**
 		PI.
 	**/
-	inline public static var PI = 3.141592653589793;
+	public inline static var PI = 3.141592653589793;
 	
 	/**
 		2 * PI.
 	**/
-	inline public static var PI2 = 6.283185307179586;
+	public inline static var PI2 = 6.283185307179586;
 	
 	/**
 		Default system epsilon.
 	**/
-	inline public static var EPS = 1e-6;
+	public inline static var EPS = 1e-6;
 	
 	/**
 		The square root of 2.
 	**/
-	inline public static var SQRT2 = 1.414213562373095;
+	public inline static var SQRT2 = 1.414213562373095;
 	
 	#if flash10
 	/**
 		Returns the 32-bit integer representation of a IEEE 754 single precision floating point.
 	**/
-	inline public static function floatToInt(x:Float):Int
+	public inline static function floatToInt(x:Float):Int
 	{
 		flash.Memory.setFloat(0, x);
 		return flash.Memory.getI32(0);
@@ -120,7 +120,7 @@ class Mathematics
 	/**
 		Returns the IEEE 754 single precision floating point representation of a 32-bit integer.
 	**/
-	inline public static function intToFloat(x:Int):Float
+	public inline static function intToFloat(x:Int):Float
 	{
 		flash.Memory.setI32(0, x);
 		return flash.Memory.getFloat(0);
@@ -130,7 +130,7 @@ class Mathematics
 	/**
 		Converts `deg` to radians.
 	**/
-	inline public static function toRad(deg:Float):Float
+	public inline static function toRad(deg:Float):Float
 	{
 		return deg * DEG_RAD;
 	}
@@ -138,7 +138,7 @@ class Mathematics
 	/**
 		Converts `rad` to degrees.
 	**/
-	inline public static function toDeg(rad:Float):Float
+	public inline static function toDeg(rad:Float):Float
 	{
 		return rad * RAD_DEG;
 	}
@@ -146,7 +146,7 @@ class Mathematics
 	/**
 		Returns min(`x`,`y`).
 	**/
-	inline public static function min(x:Int, y:Int):Int
+	public inline static function min(x:Int, y:Int):Int
 	{
 		return x < y ? x : y;
 	}
@@ -154,7 +154,7 @@ class Mathematics
 	/**
 		Returns max(`x`,`y`).
 	**/
-	inline public static function max(x:Int, y:Int):Int
+	public inline static function max(x:Int, y:Int):Int
 	{
 		return x > y ? x : y;
 	}
@@ -162,7 +162,7 @@ class Mathematics
 	/**
 		Returns the absolute value of `x`.
 	**/
-	inline public static function abs(x:Int):Int
+	public inline static function abs(x:Int):Int
 	{
 		return x < 0 ? -x : x;
 	}
@@ -170,7 +170,7 @@ class Mathematics
 	/**
 		Returns the sign of `x` (sgn(0) = 0).
 	**/
-	inline public static function sgn(x:Int):Int
+	public inline static function sgn(x:Int):Int
 	{
 		return (x > 0) ? 1 : (x < 0 ? -1 : 0);
 	}
@@ -178,7 +178,7 @@ class Mathematics
 	/**
 		Clamps `x` to the interval [`min`,`max`].
 	**/
-	inline public static function clamp(x:Int, min:Int, max:Int):Int
+	public inline static function clamp(x:Int, min:Int, max:Int):Int
 	{
 		return (x < min) ? min : (x > max) ? max : x;
 	}
@@ -186,7 +186,7 @@ class Mathematics
 	/**
 		Clamps `x` to the interval [-`i`,`i`].
 	**/
-	inline public static function clampSym(x:Int, i:Int):Int
+	public inline static function clampSym(x:Int, i:Int):Int
 	{
 		return (x < -i) ? -i : (x > i) ? i : x;
 	}
@@ -194,7 +194,7 @@ class Mathematics
 	/**
 		Normalize `x` to [0,`y`).
 	**/
-	inline public static function wrap(x:Float, y:Float)
+	public inline static function wrap(x:Float, y:Float)
 	{
 		x = x % y;
 		if (x < 0) x += y;
@@ -204,7 +204,7 @@ class Mathematics
 	/**
 		Normalize `x` to [-`y`,`y`).
 	**/
-	inline public static function wrapSym(x:Float, y:Float)
+	public inline static function wrapSym(x:Float, y:Float)
 	{
 		if (y < 0) y = -y;
 		x = (x + y) % (2 * y);
@@ -215,7 +215,7 @@ class Mathematics
 	/**
 		Fast version of Math.min(`x`,`y`).
 	**/
-	inline public static function fmin(x:Float, y:Float):Float
+	public inline static function fmin(x:Float, y:Float):Float
 	{
 		return x < y ? x : y;
 	}
@@ -223,7 +223,7 @@ class Mathematics
 	/**
 		Returns max(`x`,`y`).
 	**/
-	inline public static function fmax(x:Float, y:Float):Float
+	public inline static function fmax(x:Float, y:Float):Float
 	{
 		return x > y ? x : y;
 	}
@@ -231,7 +231,7 @@ class Mathematics
 	/**
 		Fast version of Math.abs(`x`).
 	**/
-	inline public static function fabs(x:Float):Float
+	public inline static function fabs(x:Float):Float
 	{
 		return x < 0 ? -x : x;
 	}
@@ -239,7 +239,7 @@ class Mathematics
 	/**
 		Extracts the sign of `x` (fsgn(0) = 0).
 	**/
-	inline public static function fsgn(x:Float):Int
+	public inline static function fsgn(x:Float):Int
 	{
 		return (x > 0.) ? 1 : (x < 0. ? -1 : 0);
 	}
@@ -247,7 +247,7 @@ class Mathematics
 	/**
 		Clamps `x` to the interval [`min`,`max`].
 	**/
-	inline public static function fclamp(x:Float, min:Float, max:Float):Float
+	public inline static function fclamp(x:Float, min:Float, max:Float):Float
 	{
 		return (x < min) ? min : (x > max) ? max : x;
 	}
@@ -255,7 +255,7 @@ class Mathematics
 	/**
 		Clamps `x` to the interval [-`i`,`i`].
 	**/
-	inline public static function fclampSym(x:Float, i:Float):Float
+	public inline static function fclampSym(x:Float, i:Float):Float
 	{
 		return (x < -i) ? -i : (x > i) ? i : x;
 	}
@@ -263,7 +263,7 @@ class Mathematics
 	/**
 		Returns true if the signs of `x` and `y` are equal.
 	**/
-	inline public static function eqSgn(x:Int, y:Int):Bool
+	public inline static function eqSgn(x:Int, y:Int):Bool
 	{
 		return (x ^ y) >= 0;
 	}
@@ -271,7 +271,7 @@ class Mathematics
 	/**
 		Returns true if `x` is even.
 	**/
-	inline public static function isEven(x:Int):Bool
+	public inline static function isEven(x:Int):Bool
 	{
 		return (x & 1) == 0;
 	}
@@ -279,7 +279,7 @@ class Mathematics
 	/**
 		Returns true if `x` is a power of two.
 	**/
-	inline public static function isPow2(x:Int):Bool
+	public inline static function isPow2(x:Int):Bool
 	{
 		return x > 0 && (x & (x - 1)) == 0;
 	}
@@ -287,7 +287,7 @@ class Mathematics
 	/**
 		Linear interpolation over interval [`a`,`b`] with `t` = [0,1].
 	**/
-	inline public static function lerp(a:Float, b:Float, t:Float):Float
+	public inline static function lerp(a:Float, b:Float, t:Float):Float
 	{
 		return a + (b - a) * t;
 	}
@@ -295,7 +295,7 @@ class Mathematics
 	/**
 		Spherically interpolates between two angles.
 	**/
-	inline public static function slerp(a:Float, b:Float, t:Float)
+	public inline static function slerp(a:Float, b:Float, t:Float)
 	{
 		var m = Math;
 		var c1 = m.sin(a * .5);
@@ -345,7 +345,7 @@ class Mathematics
 		- `x` must be in the range [0,2^30].
 		- returns `x` if `x` is already a power of 2.
 	**/
-	inline public static function nextPow2(x:Int):Int
+	public inline static function nextPow2(x:Int):Int
 	{
 		var t = x - 1;
 		t |= (t >> 1);
@@ -359,7 +359,7 @@ class Mathematics
 	/**
 		Fast integer exponentiation for base `a` and exponent `n`.
 	**/
-	inline public static function exp(a:Int, n:Int):Int
+	public inline static function exp(a:Int, n:Int):Int
 	{
 		var t = 1;
 		var r = 0;
@@ -381,7 +381,7 @@ class Mathematics
 	/**
 		Returns the base-10 logarithm of `x`.
 	**/
-	inline public static function log10(x:Float):Float
+	public inline static function log10(x:Float):Float
 	{
 		return Math.log(x) * 0.4342944819032517;
 	}
@@ -389,7 +389,7 @@ class Mathematics
 	/**
 		Rounds `x` to the iterval `y`.
 	**/
-	inline public static function roundTo(x:Float, y:Float):Float
+	public inline static function roundTo(x:Float, y:Float):Float
 	{
 		#if js
 		return Math.round(x / y) * y;
@@ -413,7 +413,7 @@ class Mathematics
 		
 		Half-way cases are rounded away from zero.
 	**/
-	inline public static function round(x:Float):Int
+	public inline static function round(x:Float):Int
 	{
 		return Std.int(x + (0x4000 + .5)) - 0x4000;
 	}
@@ -421,7 +421,7 @@ class Mathematics
 	/**
 		Fast version of Math.ceil(`x`).
 	**/
-	inline public static function ceil(x:Float):Int
+	public inline static function ceil(x:Float):Int
 	{
 		var f:Int =
 		#if cpp
@@ -447,7 +447,7 @@ class Mathematics
 	/**
 		Fast version of Math.floor(`x`).
 	**/
-	inline public static function floor(x:Float):Int
+	public inline static function floor(x:Float):Int
 	{
 		var f:Int =
 		#if cpp
@@ -462,7 +462,7 @@ class Mathematics
 	/**
 		Computes the "quake-style" fast inverse square root of `x`.
 	**/
-	inline public static function invSqrt(x:Float):Float
+	public inline static function invSqrt(x:Float):Float
 	{
 		#if flash10
 		var xt = x;
@@ -479,7 +479,7 @@ class Mathematics
 	/**
 		Compares `x` and `y` using an absolute tolerance of `eps`.
 	**/
-	inline public static function cmpAbs(x:Float, y:Float, eps:Float):Bool
+	public inline static function cmpAbs(x:Float, y:Float, eps:Float):Bool
 	{
 		var d = x - y;
 		return d > 0 ? d < eps : -d < eps;
@@ -488,7 +488,7 @@ class Mathematics
 	/**
 		Compares `x` to zero using an absolute tolerance of `eps`.
 	**/
-	inline public static function cmpZero(x:Float, eps:Float):Bool
+	public inline static function cmpZero(x:Float, eps:Float):Bool
 	{
 		return x > 0 ? x < eps : -x < eps;
 	}
@@ -496,7 +496,7 @@ class Mathematics
 	/**
 		Snaps `x` to the grid `y`.
 	**/
-	inline public static function snap(x:Float, y:Float):Float
+	public inline static function snap(x:Float, y:Float):Float
 	{
 		return (floor((x + y * .5) / y));
 	}
@@ -504,7 +504,7 @@ class Mathematics
 	/**
 		Returns true if `min` <= `x` <= `max`.
 	**/
-	inline public static function inRange(x:Float, min:Float, max:Float):Bool
+	public inline static function inRange(x:Float, min:Float, max:Float):Bool
 	{
 		return x >= min && x <= max;
 	}
@@ -512,7 +512,7 @@ class Mathematics
 	/**
 		Computes the greatest common divisor of `x` and `y`.
 	**/
-	inline public static function gcd(x:Int, y:Int):Int
+	public inline static function gcd(x:Int, y:Int):Int
 	{
 		var d = 0;
 		var r = 0;
@@ -536,9 +536,17 @@ class Mathematics
 	}
 	
 	/**
+		Counts the number of digits in `x`, e.g. 1237.34 has 4 digits.
+	**/
+	public inline static function numDigits(x:Float)
+	{
+		return Std.int((x == 0) ? 1 : M.log10(x) + 1);
+	}
+	
+	/**
 		Removes excess floating point decimal precision from `x`.
 	**/
-	inline public static function maxPrecision(x:Float, precision:Int):Float
+	public inline static function maxPrecision(x:Float, precision:Int):Float
 	{
 		return roundTo(x, Math.pow(10, -precision));
 	}

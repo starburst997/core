@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.util;
 
-class ClassUtil
+class ClassTools
 {
 	/**
 		Returns the qualified class name of `x`.

@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
-import haxe.ds.Vector;
+import de.polygonal.ds.ArrayedQueue;
 
 /**
 	The arithmetic mean of a set of numbers.
@@ -28,22 +28,17 @@ class Mean
 	/**
 		The total amount of numbers; calling `add()` increases `size` by one.
 	**/
-	public var size(default, null):Int;
+	public var size(get, never):Int;
+	function get_size():Int return mQue.size;
 	
-	/**
-		The maximum allowed amount of numbers.
-	**/
-	public var capacity(default, null):Int;
-	
-	var mNext:Int;
 	var mValue:Float;
-	var mSet:Vector<Float>;
+	var mQue:ArrayedQueue<Float>;
 	var mChanged:Bool;
 	
-	public function new(capacity:Int)
+	public function new(capacity:Int, initialValue:Float = 0)
 	{
-		mSet = new Vector<Float>(this.capacity = capacity);
-		for (i in 0...capacity) mSet[i] = 0;
+		mQue = new ArrayedQueue<Float>(capacity);
+		for (i in 0...capacity) mQue.unsafeEnqueue(initialValue);
 		clear();
 	}
 	
@@ -60,10 +55,8 @@ class Mean
 	/**
 		Removes all numbers from the set.
 	**/
-	inline public function clear()
+	public inline function clear()
 	{
-		size = 0;
-		mNext = 0;
 		mValue = 0;
 		mChanged = true;
 	}
@@ -73,11 +66,11 @@ class Mean
 		
 		If `size` equals `capacity`, the oldest numbers is overwritten by `value`.
 	**/
-	inline public function add(value:Float)
+	public function add(value:Float)
 	{
-		mSet.set(mNext, value);
-		mNext = (mNext + 1) % capacity;
-		size = size < capacity ? size + 1: size;
+		var q = mQue;
+		if (q.size == q.capacity) q.dequeue();
+		q.unsafeEnqueue(value);
 		mChanged = true;
 	}
 	
@@ -85,10 +78,9 @@ class Mean
 	{
 		mChanged = false;
 		mValue = 0;
-		if (size > 0)
-		{
-			for (i in 0...size) mValue += mSet.get(i);
-			mValue /= size;
-		}
+		var q = mQue;
+		if (q.isEmpty()) return;
+		for (i in 0...q.size) mValue += q.get(i);
+		mValue /= size;
 	}
 }

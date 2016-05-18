@@ -37,7 +37,7 @@ class TrigApprox
 		Computes a low-precision sine approximation from an angle `x` measured in radians.
 		The input angle has to be in the range [-PI,PI].
 	**/
-	inline public static function lqSin(x:Float):Float
+	public inline static function lqSin(x:Float):Float
 	{
 		assert(x >= -Math.PI && x <= Math.PI);
 		
@@ -51,7 +51,7 @@ class TrigApprox
 		Computes a low-precision cosine approximation from an angle `x` measured in radians.
 		The input angle has to be in the range [-PI,PI].
 	**/
-	inline public static function lqCos(x:Float):Float
+	public inline static function lqCos(x:Float):Float
 	{
 		assert(x >= -Math.PI && x <= Math.PI);
 		
@@ -67,7 +67,7 @@ class TrigApprox
 		Computes a high-precision sine approximation from an angle `x` measured in radians.
 		The input angle has to be in the range [-PI,PI].
 	**/
-	inline public static function hqSin(x:Float):Float
+	public inline static function hqSin(x:Float):Float
 	{
 		assert(x >= -Math.PI && x <= Math.PI);
 		
@@ -93,7 +93,7 @@ class TrigApprox
 		Computes a high-precision cosine approximation from an angle `x` in radians.
 		The input angle has to be in the range [-PI,PI].
 	**/
-	inline public static function hqCos(x:Float):Float
+	public inline static function hqCos(x:Float):Float
 	{
 		assert(x >= -Math.PI && x <= Math.PI, Printf.format("x out of range (%.3f)", [x]));
 		
@@ -120,7 +120,7 @@ class TrigApprox
 	/**
 		Fast arctan2 approximation.
 	**/
-	inline public static function arctan2(y:Float, x:Float):Float
+	public inline static function arctan2(y:Float, x:Float):Float
 	{
 		assert(!(M.cmpZero(x, 1e-6) && M.cmpZero(y, 1e-6)));
 		
@@ -150,7 +150,7 @@ class TrigApprox
 	inline static var INV_PIHALF = 0.6366197723675814;
 	inline static var CONST_A = 1.5703125; //201 / 128
 	
-	inline public static function sinCos(a:Float, output:Coord2f)
+	public inline static function sinCos(a:Float, output:Coord2f)
 	{
 		if (a < 0.)
 		{

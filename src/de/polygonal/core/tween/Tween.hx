@@ -167,17 +167,17 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	/**
 		The tween progress in the interval `[0, 1]`.
 	**/
-	inline public function getProgress():Float
+	public inline function getProgress():Float
 	{
 		return ChangeRange.map(_b, _min, _max, 0, 1);
 	}
 	
-	inline public function getKey():String
+	public inline function getKey():String
 	{
 		return _key;
 	}
 	
-	inline public function getEase():Interpolation<Float>
+	public inline function getEase():Interpolation<Float>
 	{
 		return _ease;
 	}

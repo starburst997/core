@@ -22,13 +22,59 @@ class Intent
 {
 	public var caller(default, null):Activity;
 	
-	public var extras(default, null):Dynamic;
+	public var extras(default, null):Extras;
 	
 	public var isChild:Bool;
 	
 	public function new(caller:Activity, extras:Dynamic)
 	{
 		this.caller = caller;
-		this.extras = extras == null ? {} : extras;
+		this.extras = new Extras(extras);
+	}
+}
+
+private class Extras
+{
+	public var map(default, null):Dynamic;
+	
+	public var get:ExtrasGet;
+	public var has:ExtrasHas;
+	
+	public function new(data:Dynamic)
+	{
+		map = data;
+		get = new ExtrasGet(map);
+		has = new ExtrasHas(map);
+	}
+}
+
+private class ExtrasGet implements Dynamic<Dynamic>
+{
+	var mMap:Dynamic;
+	
+	public function new(map:Dynamic)
+	{
+		if (map == null) map = {};
+		mMap = map;
+	}
+	
+	public function resolve(key:String):Dynamic
+	{
+		if (Reflect.hasField(mMap, key))
+			return Reflect.field(mMap, key);
+		throw 'Extras object is missing field $key';
+	}
+}
+
+private class ExtrasHas implements Dynamic<Bool>
+{
+	var mMap:Dynamic;
+	
+	public function new(map:Dynamic) mMap = map;
+	
+	public function resolve(key:String):Bool
+	{
+		if (mMap == null) return false;
+		return Reflect.hasField(mMap, key);
 	}
 }

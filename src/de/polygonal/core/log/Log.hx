@@ -19,9 +19,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.log;
 
 import de.polygonal.core.event.Observable;
+import de.polygonal.core.fmt.NumberFormat;
 import de.polygonal.core.util.Assert.assert;
 
-using de.polygonal.ds.Bits;
+using de.polygonal.ds.tools.Bits;
 
 /**
 	A lightweight log
@@ -163,7 +164,7 @@ class Log
 	{
 		#if log
 		#if debug
-		assert((x & LogLevel.ALL) > 0, "(x & LogLevel.ALL) > 0");
+		assert((x & LogLevel.ALL) > 0);
 		#end
 		
 		mLevel = x;
@@ -178,7 +179,7 @@ class Log
 		while (x > LogLevel.DEBUG)
 		{
 			x >>= 1;
-			mMask = mMask.clrBits(x);
+			mMask = mMask & ~x;
 		}
 		#end
 	}
@@ -192,7 +193,8 @@ class Log
 	{
 		#if log
 		if (mObservable.size() > 0)
-			if (mMask.hasBits(LogLevel.DEBUG)) output(LogLevel.DEBUG, msg, tag, posInfos);
+			if (mMask & LogLevel.DEBUG > 0)
+				output(LogLevel.DEBUG, msg, tag, posInfos);
 		#end
 	}
 	
@@ -205,7 +207,8 @@ class Log
 	{
 		#if log
 		if (mObservable.size() > 0)
-			if (mMask.hasBits(LogLevel.DEBUG)) output(LogLevel.DEBUG, msg, tag, posInfos);
+			if (mMask & LogLevel.DEBUG > 0)
+				output(LogLevel.DEBUG, msg, tag, posInfos);
 		#end
 	}
 	
@@ -218,7 +221,8 @@ class Log
 	{
 		#if log
 		if (mObservable.size() > 0)
-			if (mMask.hasBits(LogLevel.INFO)) output(LogLevel.INFO, msg, tag, posInfos);
+			if (mMask & LogLevel.INFO > 0)
+				output(LogLevel.INFO, msg, tag, posInfos);
 		#end
 	}
 	
@@ -231,7 +235,8 @@ class Log
 	{
 		#if log
 		if (mObservable.size() > 0)
-			if (mMask.hasBits(LogLevel.INFO)) output(LogLevel.INFO, msg, tag, posInfos);
+			if (mMask & LogLevel.INFO > 0)
+				output(LogLevel.INFO, msg, tag, posInfos);
 		#end
 	}
 	
@@ -244,7 +249,8 @@ class Log
 	{
 		#if log
 		if (mObservable.size() > 0)
-			if (mMask.hasBits(LogLevel.WARN)) output(LogLevel.WARN, msg, tag, posInfos);
+			if (mMask & LogLevel.WARN > 0)
+				output(LogLevel.WARN, msg, tag, posInfos);
 		#end
 	}
 	
@@ -257,7 +263,8 @@ class Log
 	{
 		#if log
 		if (mObservable.size() > 0)
-			if (mMask.hasBits(LogLevel.WARN)) output(LogLevel.WARN, msg, tag, posInfos);
+			if (mMask & LogLevel.WARN > 0)
+				output(LogLevel.WARN, msg, tag, posInfos);
 		#end
 	}
 	
@@ -270,7 +277,8 @@ class Log
 	{
 		#if log
 		if (mObservable.size() > 0)
-			if (mMask.hasBits(LogLevel.ERROR)) output(LogLevel.ERROR, msg, tag, posInfos);
+			if (mMask & LogLevel.ERROR > 0)
+				output(LogLevel.ERROR, msg, tag, posInfos);
 		#end
 	}
 	
@@ -283,10 +291,11 @@ class Log
 	{
 		#if log
 		if (mObservable.size() > 0)
-			if (mMask.hasBits(LogLevel.ERROR)) output(LogLevel.ERROR, msg, tag, posInfos);
+			if (mMask & LogLevel.ERROR < 0)
+				output(LogLevel.ERROR, msg, tag, posInfos);
 		#end
 	}
-
+	
 	function output(level:Int, msg:String, tag:String, ?posInfos:haxe.PosInfos)
 	{
 		if (inclTag != null)
@@ -300,7 +309,6 @@ class Log
 		mCounter++; if (mCounter == 1000) mCounter = 0;
 		
 		if (msg == null) msg = "null";
-		
 		mMessage.id = mCounter;
 		mMessage.msg = msg;
 		mMessage.tag = tag;

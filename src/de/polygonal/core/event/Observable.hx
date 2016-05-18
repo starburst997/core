@@ -21,7 +21,7 @@ package de.polygonal.core.event;
 import de.polygonal.core.event.Observable;
 import de.polygonal.core.fmt.StringUtil;
 import de.polygonal.ds.ArrayedStack;
-import de.polygonal.ds.Bits;
+import de.polygonal.ds.tools.Bits;
 import de.polygonal.ds.HashableItem;
 import de.polygonal.ds.ListSet;
 import de.polygonal.ds.pooling.DynamicObjectPool;
@@ -353,7 +353,7 @@ class Observable extends HashableItem implements IObservable
 			var groupId = mask >>> ObserverMacro.NUM_EVENT_BITS;
 			
 			//update bits only
-			if (n.mask[groupId] == Bits.ALL)
+			if (n.mask[groupId] == -1)
 			{
 				if (mask != 0)
 					n.mask[groupId] = mask & ObserverMacro.EVENT_MASK; //set given mask
@@ -363,7 +363,7 @@ class Observable extends HashableItem implements IObservable
 				if (mask != 0)
 					n.mask[groupId] |= (mask & ObserverMacro.EVENT_MASK); //merge existing mask with new mask
 				else
-					n.mask[groupId] = Bits.ALL; //allow all
+					n.mask[groupId] = -1; //allow all
 			}
 			return;
 			//}
@@ -392,7 +392,7 @@ class Observable extends HashableItem implements IObservable
 		
 		n.observer = o; //store observer
 		
-		if (mask == 0 || mask == Bits.ALL)
+		if (mask == 0 || mask == -1)
 		{
 			//prevent mask lookup if we listen to all updates
 			n.all = true;
@@ -400,7 +400,7 @@ class Observable extends HashableItem implements IObservable
 		else
 		{
 			var groupId = mask >>> ObserverMacro.NUM_EVENT_BITS;
-			n.mask[groupId] |= (mask == 0) ? Bits.ALL : (mask & ObserverMacro.EVENT_MASK);
+			n.mask[groupId] |= (mask == 0) ? -1 : (mask & ObserverMacro.EVENT_MASK);
 			n.groupBits |= 1 << groupId;
 		}
 		

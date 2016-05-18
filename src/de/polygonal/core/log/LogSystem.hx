@@ -18,7 +18,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.log;
 
-import de.polygonal.ds.Da;
 import haxe.ds.StringMap;
 import de.polygonal.core.util.Assert.assert;
 
@@ -36,19 +35,17 @@ class LogSystem
 {
 	public static var log:Log = null;
 	
-	static var mConfig:LogSystemConfig;
-	
-	static var mLogList:Da<Log> = null;
-	static var mLogLookup:StringMap<Log> = null;
-	
-	static var mInitialized = false;
+	static var _config:LogSystemConfig;
+	static var _logList:Array<Log> = null;
+	static var _logLookup:StringMap<Log> = null;
+	static var _initialized = false;
 	
 	public static function init(config:LogSystemConfig)
 	{
 		if (log != null) return;
 		
-		mConfig = config;
-		mInitialized = true;
+		_config = config;
+		_initialized = true;
 		
 		log = createLog("global", false);
 		
@@ -71,7 +68,6 @@ class LogSystem
 						x = x + "," + posInfos.customParams.join(",");
 				}
 				
-				//TODO cpp crashing
 				log.debug(x, posInfos);
 				
 				if (keepDefaultTrace) defaultTrace(x, posInfos);
@@ -90,27 +86,27 @@ class LogSystem
 	**/
 	public static function createLog(name:String, addDefaultHandler = false):Log
 	{
-		assert(mInitialized, "Call LogSystem.init() first.");
+		assert(_initialized, "Call LogSystem.init() first.");
 		
-		if (mLogLookup == null)
+		if (_logLookup == null)
 		{
-			mLogLookup = new StringMap<Log>();
-			mLogList = new Da<Log>();
+			_logLookup = new StringMap<Log>();
+			_logList = new Array<Log>();
 		}
 		
-		if (mLogLookup.exists(name))
-			return mLogLookup.get(name);
+		if (_logLookup.exists(name))
+			return _logLookup.get(name);
 		
 		var log = new Log(name);
 		
-		mLogLookup.set(name, log);
+		_logLookup.set(name, log);
 		
-		if (addDefaultHandler && mConfig != null)
+		if (addDefaultHandler && _config != null)
 		{
-			for (i in mConfig.globalHandler)
+			for (i in _config.globalHandler)
 				log.addHandler(cast i);
 		}
-		mLogList.pushBack(log);
+		_logList.push(log);
 		return log;
 	}
 	
@@ -119,15 +115,15 @@ class LogSystem
 	**/
 	public static function removeLog(log:Log)
 	{
-		var keys = mLogLookup.keys();
+		var keys = _logLookup.keys();
 		for (i in keys)
 		{
-			if (mLogLookup.exists(i))
+			if (_logLookup.exists(i))
 			{
 				if (log.name == i)
 				{
-					mLogLookup.remove(i);
-					mLogList.remove(log);
+					_logLookup.remove(i);
+					_logList.remove(log);
 					break;
 				}
 			}

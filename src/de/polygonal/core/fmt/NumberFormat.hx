@@ -20,7 +20,7 @@ package de.polygonal.core.fmt;
 
 import de.polygonal.core.math.Limits;
 import de.polygonal.core.math.Mathematics.M;
-import de.polygonal.ds.Bits;
+import de.polygonal.ds.tools.Bits;
 import de.polygonal.core.util.Assert.assert;
 
 /**
@@ -248,5 +248,13 @@ class NumberFormat
 				s = eur + s;
 		}
 		return flip ? "-" + s : s;
+	}
+	
+	public static function leadingZeros(x:Int, n:Int):String
+	{
+		var s = Std.string(x);
+		var t = "";
+		for (i in 0...n - s.length) t += "0";
+		return t + s;
 	}
 }

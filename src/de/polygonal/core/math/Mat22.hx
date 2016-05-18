@@ -30,7 +30,7 @@ class Mat22
 	/**
 		@return `c` = `a`*`b`.
 	**/
-	inline public static function matrixProduct(a:Mat22, b:Mat22, c:Mat22):Mat22
+	public inline static function matrixProduct(a:Mat22, b:Mat22, c:Mat22):Mat22
 	{
 		var b11 = b.m11; var b12 = b.m12;
 		var b21 = b.m21; var b22 = b.m22;
@@ -76,7 +76,7 @@ class Mat22
 	/**
 		Returns the column at index `i`
 	**/
-	inline public function getCol(i:Int, output:Vec2):Vec2
+	public inline function getCol(i:Int, output:Vec2):Vec2
 	{
 		assert(i >= 0 && i < 2, "i >= 0 && i < 2");
 		
@@ -97,20 +97,20 @@ class Mat22
 	/**
 		Assigns the values of `other` to this.
 	**/
-	inline public function set(other:Mat22):Mat22
+	public inline function set(other:Mat22):Mat22
 	{
 		m11 = other.m11; m12 = other.m12;
 		m21 = other.m21; m22 = other.m22;
 		return this;
 	}
 	
-	inline public function setCol1(x:Float, y:Float)
+	public inline function setCol1(x:Float, y:Float)
 	{
 		m11 = x;
 		m21 = y;
 	}
 	
-	inline public function setCol2(x:Float, y:Float)
+	public inline function setCol2(x:Float, y:Float)
 	{
 		m12 = x;
 		m22 = y;
@@ -119,7 +119,7 @@ class Mat22
 	/**
 		Assign two columns.
 	**/
-	inline public function setCols(u:Vec2, v:Vec2):Mat22
+	public inline function setCols(u:Vec2, v:Vec2):Mat22
 	{
 		m11 = u.x; m12 = v.x;
 		m21 = u.y; m22 = v.y;
@@ -129,7 +129,7 @@ class Mat22
 	/**
 		Set to identity matrix.
 	**/
-	inline public function setIdentity():Mat22
+	public inline function setIdentity():Mat22
 	{
 		m11 = 1; m12 = 0;
 		m21 = 0; m22 = 1;
@@ -139,7 +139,7 @@ class Mat22
 	/**
 		Zero out all matrix elements.
 	**/
-	inline public function setZero():Mat22
+	public inline function setZero():Mat22
 	{
 		m11 = 0; m12 = 0;
 		m21 = 0; m22 = 0;
@@ -151,7 +151,7 @@ class Mat22
 		The angle is computed as atan2(sin(alpha), cos(alpha)) = atan2(>m21>, >m11>).
 		*The matrix must be a rotation matrix*.
 	**/
-	inline public function getAngle():Float
+	public inline function getAngle():Float
 	{
 		return Math.atan2(m21, m11);
 	}
@@ -159,7 +159,7 @@ class Mat22
 	/**
 		Set as rotation matrix, rotating by `angle` radians.
 	**/
-	inline public function setAngle(angle:Float)
+	public inline function setAngle(angle:Float)
 	{
 		var c = Math.cos(angle);
 		var s = Math.sin(angle);
@@ -170,7 +170,7 @@ class Mat22
 	/**
 		Set as rotation matrix, rotating by approximate `angle` radians.
 	**/
-	inline public function setApproxAngle(angle:Float)
+	public inline function setApproxAngle(angle:Float)
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -181,7 +181,7 @@ class Mat22
 	/**
 		Multiplies all matrix elements by the scalar `x`.
 	**/
-	inline public function timesScalar(x:Float)
+	public inline function timesScalar(x:Float)
 	{
 		m11 *= x; m12 *= x;
 		m21 *= x; m22 *= x;
@@ -190,7 +190,7 @@ class Mat22
 	/**
 		Matrix - column vector multiplication (M*V): `rhs`' = this * `rhs`.
 	**/
-	inline public function timesVector(rhs:Vec2):Vec2
+	public inline function timesVector(rhs:Vec2):Vec2
 	{
 		var x = rhs.x;
 		var y = rhs.y;
@@ -202,7 +202,7 @@ class Mat22
 	/**
 		Multiply vector x,y with first row
 	**/
-	inline public function mulx(x:Float, y:Float):Float
+	public inline function mulx(x:Float, y:Float):Float
 	{
 		return x * m11 + y * m12;
 	}
@@ -210,7 +210,7 @@ class Mat22
 	/**
 		Multiply vector x,y with second row
 	**/
-	inline public function muly(x:Float, y:Float):Float
+	public inline function muly(x:Float, y:Float):Float
 	{
 		return x * m21 + y * m22;
 	}
@@ -219,7 +219,7 @@ class Mat22
 		Same as `timesVector()`, but without modifying `rhs`.
 		@param output stores the result.
 	**/
-	inline public function timesVectorConst(rhs:Vec2, output:Vec2):Vec2
+	public inline function timesVectorConst(rhs:Vec2, output:Vec2):Vec2
 	{
 		var x = rhs.x;
 		var y = rhs.y;
@@ -231,7 +231,7 @@ class Mat22
 	/**
 		Matrix - row vector multiplication (M^t*V): `lhs`' = `lhs`*this.
 	**/
-	inline public function vectorTimes(lhs:Vec2):Vec2
+	public inline function vectorTimes(lhs:Vec2):Vec2
 	{
 		var x = lhs.x;
 		var y = lhs.y;
@@ -243,7 +243,7 @@ class Mat22
 	/**
 		Computes the matrix transpose and returns this matrix.
 	**/
-	inline public function transpose():Mat22
+	public inline function transpose():Mat22
 	{
 		var tmp = m21; m21 = m12; m12 = tmp;
 		return this;
@@ -253,7 +253,7 @@ class Mat22
 		Same as `transpose()`, but without modifying this matrix.
 		@param output stores the result.
 	**/
-	inline public function transposeConst(output:Mat22):Mat22
+	public inline function transposeConst(output:Mat22):Mat22
 	{
 		output.m11 = m11; output.m12 = m21;
 		output.m21 = m12; output.m22 = m22;
@@ -263,7 +263,7 @@ class Mat22
 	/**
 		R = M*D
 	**/
-	inline public function timesDiagonal(rhs:Vec2):Mat22
+	public inline function timesDiagonal(rhs:Vec2):Mat22
 	{
 		//|m11 m12| |x 0|
 		//|m21 m22| |0 y|
@@ -277,7 +277,7 @@ class Mat22
 	/**
 		R = M*DStores the result in `output`.
 	**/
-	inline public function timesDiagonalConst(rhs:Vec2, output:Mat22):Mat22
+	public inline function timesDiagonalConst(rhs:Vec2, output:Mat22):Mat22
 	{
 		//|m11 m12| |x 0|
 		//|m21 m22| |0 y|
@@ -291,7 +291,7 @@ class Mat22
 	/**
 		R = D*M
 	**/
-	inline public function diagonalTimes(lhs:Vec2):Mat22
+	public inline function diagonalTimes(lhs:Vec2):Mat22
 	{
 		//|x 0| |m11 m12|
 		//|0 y| |m21 m22|
@@ -305,7 +305,7 @@ class Mat22
 	/**
 		Post-concatenates `lhs`: this = `lhs`*this.
 	**/
-	inline public function cat(lhs:Mat22):Mat22
+	public inline function cat(lhs:Mat22):Mat22
 	{
 		var c11 = m11; var c12 = m12;
 		var c21 = m21; var c22 = m22;
@@ -324,7 +324,7 @@ class Mat22
 	/**
 		Pre-concatenates `rhs`: this = this*`rhs`.
 	**/
-	inline public function precat(rhs:Mat22):Mat22
+	public inline function precat(rhs:Mat22):Mat22
 	{
 		var c11 = rhs.m11; var c12 = rhs.m12;
 		var c21 = rhs.m21; var c22 = rhs.m22;
@@ -407,7 +407,7 @@ class Mat22
 	/**
 		Divides all matrix elements by the scalar `x`.
 	**/
-	inline public function div(x:Float)
+	public inline function div(x:Float)
 	{
 		if (M.cmpZero(x, M.ZERO_TOLERANCE))
 		{

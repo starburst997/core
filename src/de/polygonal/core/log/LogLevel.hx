@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.log;
 
-import de.polygonal.ds.Bits;
+import de.polygonal.ds.tools.Bits;
 
 /**
 	A set of standard logging levels that can be used to filter logging output.
@@ -27,45 +27,33 @@ class LogLevel
 {
 	/**
 		A message level providing tracing information.
-		
-		Value 0x01.
 	**/
-	inline public static var DEBUG = Bits.BIT_01;
+	public inline static var DEBUG = 0x01;
 	
 	/**
 		A message level for informational messages.
-		
-		Value 0x02.
 	**/
-	inline public static var INFO = Bits.BIT_02;
+	public inline static var INFO = 0x02;
 	
 	/**
 		A message level indicating a potential problem.
-		
-		Value 0x04.
 	**/
-	inline public static var WARN = Bits.BIT_03;
+	public inline static var WARN = 0x04;
 	
 	/**
 		A message level indicating a serious failure.
-		
-		Value 0x08.
 	**/
-	inline public static var ERROR = Bits.BIT_04;
+	public inline static var ERROR = 0x08;
 	
 	/**
 		A special level that can be used to turn off logging.
-		
-		Value 0x10.
 	**/
-	inline public static var OFF = Bits.BIT_05;
+	public inline static var OFF = 0x10;
 	
 	/**
 		A bitfield of all log levels.
-		
-		Value b11111.
 	**/
-	inline public static var ALL = LogLevel.DEBUG | LogLevel.INFO | LogLevel.WARN | LogLevel.ERROR | LogLevel.OFF;
+	public inline static var ALL = DEBUG | INFO | WARN | ERROR | OFF;
 
 	/**
 		Returns the human-readable name of a log level.

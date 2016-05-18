@@ -19,14 +19,17 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.math;
 
 import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.util.Assert.assert;
 
 /**
 	Maps a value from a source range [`srcMin`,`srcMax`] to a destination range [`dstMin`,`dstMax`].
 **/
 class ChangeRange implements Interpolation<Float>
 {
-	inline public static function map(x:Float, srcMin:Float, srcMax:Float, dstMin:Float, dstMax:Float):Float
+	public inline static function map(x:Float, srcMin:Float, srcMax:Float, dstMin:Float, dstMax:Float):Float
 	{
+		assert(!M.cmpZero(srcMax - srcMin, M.EPS));
+		
 		return M.lerp(dstMin, dstMax, (x - srcMin) / (srcMax - srcMin));
 	}
 	

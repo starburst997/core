@@ -67,7 +67,7 @@ class Rng
 	/**
 		Returns an integral number in the interval [`min`,`max`].
 	**/
-	inline public function randRange(min:Int, max:Int):Int
+	public inline function randRange(min:Int, max:Int):Int
 	{
 		var l = min - .4999;
 		var h = max + .4999;
@@ -77,7 +77,7 @@ class Rng
 	/**
 		Returns a real number in the interval [`min`,`max`).
 	**/
-	inline public function randFloatRange(min:Float, max:Float):Float
+	public inline function randFloatRange(min:Float, max:Float):Float
 	{
 		return min + (max - min) * randFloat();
 	}
@@ -85,7 +85,7 @@ class Rng
 	/**
 		Returns an integral number in the interval [-`range`,`range`].
 	**/
-	inline public function randSymmetric(range:Int):Float
+	public inline function randSymmetric(range:Int):Float
 	{
 		return randRange(-range, range);
 	}
@@ -93,7 +93,7 @@ class Rng
 	/**
 		Returns a real number in the interval [-`range`,`range`).
 	**/
-	inline public function randFloatSymmetric(range:Float):Float
+	public inline function randFloatSymmetric(range:Float):Float
 	{
 		return randFloatRange(-range, range);
 	}

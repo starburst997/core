@@ -121,7 +121,7 @@ class Mat44
 		- (m13,m23,m33) is always (0,0,1)
 		- `a` and `output` can refer to the same object in memory.
 	**/
-	inline public static function affineMatrixProduct2d(a:Mat44, b:Mat44, output:Mat44):Mat44
+	public inline static function affineMatrixProduct2d(a:Mat44, b:Mat44, output:Mat44):Mat44
 	{
 		assert(a.m41 == 0 && a.m42 == 0 && a.m43 == 0 && a.m44 == 1);
 		assert(b.m41 == 0 && b.m42 == 0 && b.m43 == 0 && b.m44 == 1);
@@ -153,7 +153,7 @@ class Mat44
 		
 		- `m` and `output` can refer to the same object in memory.
 	**/
-	inline public static function catMatrixAndScale(m:Mat44, s:Mat44, output:Mat44):Mat44
+	public inline static function catMatrixAndScale(m:Mat44, s:Mat44, output:Mat44):Mat44
 	{
 		var t;
 		t = s.m11;
@@ -184,7 +184,7 @@ class Mat44
 		
 		- `m` and `output` can refer to the same object in memory.
 	**/
-	inline public static function catScaleAndMatrix(s:Mat44, m:Mat44, output:Mat44):Mat44
+	public inline static function catScaleAndMatrix(s:Mat44, m:Mat44, output:Mat44):Mat44
 	{
 		var t;
 		t = s.m11;
@@ -286,7 +286,7 @@ class Mat44
 	/**
 		Copies the values of `other` to this.
 	**/
-	inline public function of(other:Mat44):Mat44
+	public inline function of(other:Mat44):Mat44
 	{
 		m11 = other.m11; m12 = other.m12; m13 = other.m13; m14 = other.m14;
 		m21 = other.m21; m22 = other.m22; m23 = other.m23; m24 = other.m24;
@@ -582,7 +582,7 @@ class Mat44
 	/**
 		Matrix multiplication: this = `lhs` · this.
 	**/
-	inline public function cat(lhs:Mat44):Mat44
+	public inline function cat(lhs:Mat44):Mat44
 	{
 		var c11 = m11; var c12 = m12; var c13 = m13; var c14 = m14;
 		var c21 = m21; var c22 = m22; var c23 = m23; var c24 = m24;
@@ -627,7 +627,7 @@ class Mat44
 	/**
 		Matrix multiplication: this = this · `rhs`.
 	**/
-	inline public function precat(rhs:Mat44):Mat44
+	public inline function precat(rhs:Mat44):Mat44
 	{
 		var c11 = rhs.m11; var c12 = rhs.m12; var c13 = rhs.m13; var c14 = rhs.m14;
 		var c21 = rhs.m21; var c22 = rhs.m22; var c23 = rhs.m23; var c24 = rhs.m24;
@@ -672,7 +672,7 @@ class Mat44
 	/**
 		__SM__, where __S__ is a scaling matrix, scaling by `x`, `y`, `z`.
 	**/
-	inline public function catScale(x:Float, y:Float, z:Float)
+	public inline function catScale(x:Float, y:Float, z:Float)
 	{
 		/*
 		|x 0 0 0| |m11 m12 m13 tx|
@@ -698,7 +698,7 @@ class Mat44
 	/**
 		__MS__, where __S__ is a scaling matrix, scaling by `x`, `y`, `z`.
 	**/
-	inline public function precatScale(x:Float, y:Float, z:Float)
+	public inline function precatScale(x:Float, y:Float, z:Float)
 	{
 		/*
 		|m11 m12 m13 tx| |x 0 0 0|
@@ -722,7 +722,7 @@ class Mat44
 	/**
 		__TM__, where __T__ is a translation matrix, translating by `x`, `y`, `z`.
 	**/
-	inline public function catTranslate(tx:Float, ty:Float, tz:Float):Mat44
+	public inline function catTranslate(tx:Float, ty:Float, tz:Float):Mat44
 	{
 		/*
 		|1 0 0 tx| |m11 m12 m13 m14|
@@ -739,7 +739,7 @@ class Mat44
 	/**
 		__MT__, where __T__ is a translation matrix, translating by `x`, `y`, `z`.
 	**/
-	inline public function precatTranslate(tx:Float, ty:Float, tz:Float):Mat44
+	public inline function precatTranslate(tx:Float, ty:Float, tz:Float):Mat44
 	{
 		/*
 		|m11 m12 m13 m14| |1 0 0 tx|
@@ -799,7 +799,7 @@ class Mat44
 	/**
 		Matrix - column vector multiplication: `rhs` = this · `rhs`.
 	**/
-	inline public function timesVector(rhs:Vec3):Vec3
+	public inline function timesVector(rhs:Vec3):Vec3
 	{
 		var x = rhs.x;
 		var y = rhs.y;
@@ -815,7 +815,7 @@ class Mat44
 	/**
 		Matrix - column vector multiplication: `output` = this · `rhs`.
 	**/
-	inline public function timesVectorConst(rhs:Vec3, output:Vec3):Vec3
+	public inline function timesVectorConst(rhs:Vec3, output:Vec3):Vec3
 	{
 		var x = rhs.x;
 		var y = rhs.y;
@@ -831,21 +831,21 @@ class Mat44
 	/**
 		Matrix - column vector multiplication: `output` = this · `rhs`.
 		
-		The method treats this matrix as an __affine transformation matrix__ and `rhs` as an __2d vector__.
+		The method treats this matrix as a 2d __affine transformation matrix__ and `rhs` as a __2d vector__.
 	**/
-	inline public function timesVectorAffine2d(rhs:Vec3):Vec3
+	public inline function timesVectorAffine2d(rhs:Vec3):Vec3
 	{
 		var x = rhs.x;
 		var y = rhs.y;
-		rhs.x = m11 * x + m12 * y;
-		rhs.y = m21 * x + m22 * y;
+		rhs.x = m11 * x + m12 * y + m14;
+		rhs.y = m21 * x + m22 * y + m24;
 		return rhs;
 	}
 	
 	/**
 		Transposes this matrix.
 	**/
-	inline public function transpose():Mat44
+	public inline function transpose():Mat44
 	{
 		var t;
 		t = m21; m21 = m12; m12 = t;

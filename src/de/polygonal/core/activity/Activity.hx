@@ -20,7 +20,7 @@ package de.polygonal.core.activity;
 
 import de.polygonal.core.es.Entity;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.core.util.ClassUtil;
+import de.polygonal.core.util.ClassTools;
 
 enum ActivityState
 {
@@ -52,25 +52,25 @@ class Activity extends Entity
 	**/
 	public var state(default, null):ActivityState;
 	
+	var mIntent:Intent;
+	
+	function new() 
+	{
+		super(ClassTools.getUnqualifiedClassName(this));
+		state = ActivityState.None;
+		mIntent = new Intent(null, null);
+	}
+	
 	/**
 		True if this activity covers the entire screen and thus is able to hide all activities below it.
 		
 		Default is true.
 	**/
-	public function isFullSize():Bool return true;
+	function isFullSize():Bool return true;
 	
-	public function isPersistent():Bool return true;
+	function isPersistent():Bool return true;
 	
-	public function isDecisionMaking():Bool return false;
-	
-	var mIntent:Intent;
-	
-	function new() 
-	{
-		super(ClassUtil.getUnqualifiedClassName(this));
-		state = ActivityState.None;
-		mIntent = new Intent(null, {});
-	}
+	function isDecisionMaking():Bool return false;
 	
 	/**
 		Spawns a new activity embedded inside this activity.
@@ -114,12 +114,18 @@ class Activity extends Entity
 	/**
 		Returns true if this activity is a root activity.
 	**/
-	public function isRootActivity():Bool
+	function isRootActivity():Bool
 	{
 		return parent != null && !parent.is(Activity);
 	}
 	
-	public function getChildActivity():Activity
+	function getParentActivity():Activity
+	{
+		if (parent != null) return parent.as(Activity);
+		return null;
+	}
+	
+	function getChildActivity():Activity
 	{
 		var c = firstChild;
 		while (c != null)
@@ -134,7 +140,7 @@ class Activity extends Entity
 	/**
 		The intent of the calling activity.
 	**/
-	public function getIntent():Intent
+	function getIntent():Intent
 	{
 		return mIntent;
 	}
@@ -148,7 +154,7 @@ class Activity extends Entity
 	function onCreate()
 	{
 		assert(state == ActivityState.None);
-
+		
 		changeState(ActivityState.Created);
 	}
 	
@@ -235,10 +241,11 @@ class Activity extends Entity
 		{
 			changeState(ActivityState.Destroyed);
 			onDestroy();
+			mIntent = null;
 		}
 	}
 	
-	override public function toString():String
+	public function toString():String
 	{
 		return '{Activity $name; state=$state fullSize=${isFullSize()}}';
 	}

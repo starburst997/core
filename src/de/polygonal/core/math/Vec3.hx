@@ -29,7 +29,7 @@ class Vec3 extends Coord3f
 	/**
 		`output` = `a` + `b`.
 	**/
-	inline public static function add(a:Vec3, b:Vec3, output:Vec3):Vec3
+	public inline static function add(a:Vec3, b:Vec3, output:Vec3):Vec3
 	{
 		output.x = a.x + b.x;
 		output.y = a.y + b.y;
@@ -40,7 +40,7 @@ class Vec3 extends Coord3f
 	/**
 		`output` = `a` - `b`.
 	**/
-	inline public static function sub(a:Vec3, b:Vec3, output:Vec3):Vec3
+	public inline static function sub(a:Vec3, b:Vec3, output:Vec3):Vec3
 	{
 		output.x = a.x - b.x;
 		output.y = a.y - b.y;
@@ -51,7 +51,7 @@ class Vec3 extends Coord3f
 	/**
 		`output` = `a` · `b`.
 	**/
-	inline public static function dot(a:Vec3, b:Vec3, output:Vec3):Float
+	public inline static function dot(a:Vec3, b:Vec3, output:Vec3):Float
 	{
 		return a.x * b.x + a.y * b.y + a.z * b.z;
 	}
@@ -59,7 +59,7 @@ class Vec3 extends Coord3f
 	/**
 		`output` = `a` × `b`.
 	**/
-	inline public static function cross(a:Vec3, b:Vec3, output:Vec3):Vec3
+	public inline static function cross(a:Vec3, b:Vec3, output:Vec3):Vec3
 	{
 		output.x = a.y * b.z - a.z * b.y;
 		output.y = a.z * b.x - a.x * b.z;
@@ -78,7 +78,7 @@ class Vec3 extends Coord3f
 		w = 1;
 	}
 	
-	inline public function flip()
+	public inline function flip()
 	{
 		x = -x;
 		y = -y;
@@ -117,7 +117,7 @@ class Vec3 extends Coord3f
 	/**
 		Scales this vector by `value`.
 	**/
-	inline public function scale(value:Float)
+	public inline function scale(value:Float)
 	{
 		x *= value;
 		y *= value;
@@ -127,7 +127,7 @@ class Vec3 extends Coord3f
 	/**
 		Clamps this vector to `max` length.
 	**/
-	inline public function clamp(max:Float)
+	public inline function clamp(max:Float)
 	{
 		var l = lengthSq();
 		if (l > max * max)

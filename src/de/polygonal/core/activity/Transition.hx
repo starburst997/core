@@ -21,7 +21,7 @@ package de.polygonal.core.activity;
 import de.polygonal.core.es.Entity;
 import de.polygonal.core.time.Delay;
 import de.polygonal.core.time.Interval;
-import de.polygonal.core.util.ClassUtil;
+import de.polygonal.core.util.ClassTools;
 import haxe.ds.StringMap;
 
 @:enum
@@ -40,7 +40,7 @@ class Transition extends Entity
 {
 	var mA:Activity;
 	var mB:Activity;
-	var mInterval:Interval = new Interval(1);
+	var mInterval = new Interval(1);
 	var mListener:TransitionListener = null;
 	var mType:TransitionType;
 	var mTransitionLookup = new StringMap<TransitionListener>();
@@ -53,13 +53,13 @@ class Transition extends Entity
 	
 	public function register(from:Class<Activity>, to:Class<Activity>, effect:TransitionListener)
 	{
-		var a = from == null ? "*" : ClassUtil.getClassName(from);
-		var b = to == null ? "*" : ClassUtil.getClassName(to);
+		var a = from == null ? "*" : ClassTools.getClassName(from);
+		var b = to == null ? "*" : ClassTools.getClassName(to);
 		mTransitionLookup.set('$a-$b', effect);
 	}
 	
 	/**
-		Push `b` over `a`.
+		Push `b` on top of `a`.
 	**/
 	public function push(a:Activity, b:Activity)
 	{
@@ -67,7 +67,7 @@ class Transition extends Entity
 	}
 	
 	/**
-		Pop `b` off `a`.
+		Pop `a` off `b`.
 		
 		- `b` can be null in case `a` has no parent activity.
 	**/
@@ -92,11 +92,13 @@ class Transition extends Entity
 		{
 			case Change, Push:
 				if (b.isDecisionMaking())
-					mListener = new NullTransition();
+				{
+					mListener = null;
+				}
 			
 			case Pop:
 				if (a.isDecisionMaking())
-					mListener = new NullTransition();
+					mListener = null;
 		}
 		
 		if (mListener == null) mListener = new NullTransition();
@@ -106,8 +108,8 @@ class Transition extends Entity
 	
 	function resolveEffect(a:Activity, b:Activity):TransitionListener
 	{
-		var nameA = a == null ? "null" : ClassUtil.getClassName(a);
-		var nameB = ClassUtil.getClassName(b);
+		var nameA = a == null ? "null" : ClassTools.getClassName(a);
+		var nameB = ClassTools.getClassName(b);
 		
 		var l:TransitionListener;
 		
@@ -288,15 +290,11 @@ class Transition extends Entity
 		while (t.firstChild != null) //can be null t
 		{
 			c = findChildActivity(t);
-			
-			trace('child activity of $t IS $c');
-			
 			if (c == null)
 			{
 				c = t;
 				break;
 			}
-			
 			t = c;
 		}
 		

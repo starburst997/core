@@ -61,7 +61,7 @@ class Median
 	/**
 		Removes all numbers from the set.
 	**/
-	inline public function clear()
+	public inline function clear()
 	{
 		size = 0;
 		mNext = 0;
@@ -74,7 +74,7 @@ class Median
 		
 		If `size` equals `capacity`, the oldest numbers is overwritten by `value`.
 	**/
-	inline public function add(value:Float)
+	public inline function add(value:Float)
 	{
 		mSet.set(mNext, value);
 		mNext = (mNext + 1) % capacity;

@@ -32,31 +32,31 @@ class Coord3i
 		set(x, y, z);
 	}
 	
-	inline public function of(other:Coord3i)
+	public inline function of(other:Coord3i)
 	{
 		x = other.x;
 		y = other.y;
 		z = other.z;
 	}
 	
-	inline public function set(x:Int, y:Int, z:Int)
+	public inline function set(x:Int, y:Int, z:Int)
 	{
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
 	
-	inline public function isZero():Bool
+	public inline function isZero():Bool
 	{
 		return untyped x == 0 && y == 0;
 	}
 	
-	inline public function makeZero()
+	public inline function makeZero()
 	{
 		x = y = z = 0;
 	}
 	
-	inline public function equals(other:Coord3i):Bool
+	public inline function equals(other:Coord3i):Bool
 	{
 		return other.x == x && other.y == y;
 	}

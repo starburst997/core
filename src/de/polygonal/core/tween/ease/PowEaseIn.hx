@@ -27,10 +27,10 @@ import de.polygonal.core.math.Interpolation;
 **/
 class PowEaseIn implements Interpolation<Float>
 {
-	inline public static var DEGREE_QUADRATIC = 2;
-	inline public static var DEGREE_CUBIC     = 3;
-	inline public static var DEGREE_QUARTIC   = 4;
-	inline public static var DEGREE_QUINTIC   = 5;
+	public inline static var DEGREE_QUADRATIC = 2;
+	public inline static var DEGREE_CUBIC     = 3;
+	public inline static var DEGREE_QUARTIC   = 4;
+	public inline static var DEGREE_QUINTIC   = 5;
 	
 	public var degree:Int;
 	

@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
-import de.polygonal.core.math.Coord2f;
+import de.polygonal.core.math.Coord2.Coord2f;
 import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.math.random.Random;
 
@@ -30,7 +30,7 @@ class Vec2 extends Coord2f
 	/**
 		Returns the angle between segments formed by the vector `a` and `b`.
 	**/
-	inline public static function angle(a:Vec2, b:Vec2):Float
+	public inline static function angle(a:Vec2, b:Vec2):Float
 	{
 		return Math.atan2(perpDot(a, b), dot(a, b));
 	}
@@ -38,10 +38,23 @@ class Vec2 extends Coord2f
 	/**
 		Computes the unit length vector `out` = (`b`-`a`)/||`b`-`a`|| and returns the length of `b`-`a`.
 	**/
-	inline public static function dir(a:Vec2, b:Vec2, out:Vec2):Float
+	public inline static function dir(a:Vec2, b:Vec2, out:Vec2):Float
 	{
 		var dx = b.x - a.x;
 		var dy = b.y - a.y;
+		var l = Math.sqrt(dx * dx + dy * dy);
+		out.x = dx / l;
+		out.y = dy / l;
+		return l;
+	}
+	
+	/**
+		Computes the unit length vector `out` = (`b`-`a`)/||`b`-`a`|| and returns the length of `b`-`a`, where a = (`ax`,`ay`) and b = (`bx`,`by`).
+	**/
+	public inline static function dirf(ax:Float, ay:Float, bx:Float, by:Float, out:Vec2):Float
+	{
+		var dx = bx - ax;
+		var dy = by - ay;
 		var l = Math.sqrt(dx * dx + dy * dy);
 		out.x = dx / l;
 		out.y = dy / l;
@@ -53,14 +66,14 @@ class Vec2 extends Coord2f
 		
 		Also known as inner product or scalar product.
 	**/
-	inline public static function dot(a:Vec2, b:Vec2):Float return dotf(a.x, a.y, b.x, b.y);
+	public inline static function dot(a:Vec2, b:Vec2):Float return dotf(a.x, a.y, b.x, b.y);
 	
 	/**
 		Computes the dot product (`ax`,`ay`) · (`bx`,`by`).
 		
 		Also known as inner product or scalar product.
 	**/
-	inline public static function dotf(ax:Float, ay:Float, bx:Float, by:Float) return ax * bx + ay * by;
+	public inline static function dotf(ax:Float, ay:Float, bx:Float, by:Float) return ax * bx + ay * by;
 	
 	/**
 		Tests if `c` is left, on or right of an infinite line through `a` and `b`.
@@ -71,7 +84,7 @@ class Vec2 extends Coord2f
 		 - = 0 for `c` on the line
 		 - &lt; 0 for `c` right of the line
 	**/
-	inline public static function isLeft(a:Vec2, b:Vec2, c:Vec2):Float
+	public inline static function isLeft(a:Vec2, b:Vec2, c:Vec2):Float
 	{
 		return (b.y - a.x) * (c.y - a.y) - (c.y - a.x) * (b.y - a.y);
 	}
@@ -79,7 +92,7 @@ class Vec2 extends Coord2f
 	/**
 		Returns `out` = min(`a`,`b`).
 	**/
-	inline public static function min(a:Vec2, b:Vec2, out:Vec2)
+	public inline static function min(a:Vec2, b:Vec2, out:Vec2)
 	{
 		out.x = M.fmin(a.x, b.x);
 		out.y = M.fmin(a.y, b.y);
@@ -88,7 +101,7 @@ class Vec2 extends Coord2f
 	/**
 		Returns `out` = max(`a`,`b`).
 	**/
-	inline public static function max(a:Vec2, b:Vec2, out:Vec2)
+	public inline static function max(a:Vec2, b:Vec2, out:Vec2)
 	{
 		out.x = M.fmax(a.x, b.x);
 		out.y = M.fmax(a.y, b.y);
@@ -97,7 +110,7 @@ class Vec2 extends Coord2f
 	/**
 		Returns the midpoint `out` = (`a`+`b`)/2.
 	**/
-	inline public static function midpoint(a:Vec2, b:Vec2, out:Vec2):Vec2
+	public inline static function midpoint(a:Vec2, b:Vec2, out:Vec2):Vec2
 	{
 		out.x = a.x + (b.x - a.x) / 2;
 		out.y = a.y + (b.y - a.y) / 2;
@@ -123,7 +136,7 @@ class Vec2 extends Coord2f
 		(given by (`a`+`b`)/2) and is perpendicular to the vector `b`-`a`.
 		Equation: p(t) = 1/2 (`a`+`b`) + perp(`b`-`a`)`t`
 	**/
-	inline public static function perpBisecor(a:Vec2, b:Vec2, t:Float, out:Vec2)
+	public inline static function perpBisecor(a:Vec2, b:Vec2, t:Float, out:Vec2)
 	{
 		var ax = a.x;
 		var ay = a.y;
@@ -141,17 +154,17 @@ class Vec2 extends Coord2f
 		Also known as exterior product or outer product.
 		This is the determinant of the matrix with first row `a` and second row `b`.
 	**/
-	inline public static function perpDot(a:Vec2, b:Vec2):Float return perpDotf(a.x, a.y, b.x, b.y);
+	public inline static function perpDot(a:Vec2, b:Vec2):Float return perpDotf(a.x, a.y, b.x, b.y);
 	
 	/**
 		Computes the perp-dot product perp((`ax`,`ay`))(`bx`,`by`), where perp() is defined to rotate a vector 90° counterclockwise (CCW).
 	**/
-	inline public static function perpDotf(ax:Float, ay:Float, bx:Float, by:Float):Float return ax * by - ay * bx;
+	public inline static function perpDotf(ax:Float, ay:Float, bx:Float, by:Float):Float return ax * by - ay * bx;
 	
 	/**
 		Creates a random vector with x in the range [`minX`,`maxX`] and y in the range [`minY`,`maxY`].
 	**/
-	inline public static function random(minX:Float, maxX:Float, minY:Float, maxY:Float):Vec2
+	public inline static function random(minX:Float, maxX:Float, minY:Float, maxY:Float):Vec2
 	{
 		return new Vec2(Random.frandRange(minX, maxX), Random.frandRange(minY, maxY));
 	}
@@ -159,7 +172,7 @@ class Vec2 extends Coord2f
 	/**
 		Vector reflection. Returns `out` = `v`-(2dot(`v`,`n`))`n`.
 	**/
-	inline public static function reflect(v:Vec2, n:Vec2, out:Vec2):Vec2
+	public inline static function reflect(v:Vec2, n:Vec2, out:Vec2):Vec2
 	{
 		var t = v.x * n.x + v.y * n.y;
 		out.x = v.x - (2 * t) * n.x;
@@ -168,9 +181,20 @@ class Vec2 extends Coord2f
 	}
 	
 	/**
+		Vector reflection. Returns `out` = `v`-(2dot(`v`,`n`))`n`.
+	**/
+	public inline static function reflectf(vx:Float, vy:Float, nx:Float, ny:Float, out:Vec2):Vec2
+	{
+		var t = vx * nx + vy * ny;
+		out.x = vx - (2 * t) * nx;
+		out.y = vy - (2 * t) * ny;
+		return out;
+	}
+	
+	/**
 		Computes the signed triangle area formed by the points `a`, `b` and `c`.
 	**/
-	inline public static function signedTriArea(a:Vec2, b:Vec2, c:Vec2):Float
+	public inline static function signedTriArea(a:Vec2, b:Vec2, c:Vec2):Float
 	{
 		return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x);
 	}
@@ -180,16 +204,17 @@ class Vec2 extends Coord2f
 		super(x, y);
 	}
 	
-	inline public function flip()
+	public inline function flip():Vec2
 	{
 		x = -x;
 		y = -y;
+		return this;
 	}
 	
 	/**
 		The vector length.
 	**/
-	inline public function length():Float
+	public inline function length():Float
 	{
 		return Math.sqrt(lengthSq());
 	}
@@ -197,7 +222,7 @@ class Vec2 extends Coord2f
 	/**
 		The squared vector length.
 	**/
-	inline public function lengthSq():Float
+	public inline function lengthSq():Float
 	{
 		return x * x + y * y;
 	}
@@ -205,7 +230,7 @@ class Vec2 extends Coord2f
 	/**
 		Right-handed perp operator (z-axis pointing out of the screen); returns (`y`,-`x`).
 	**/
-	inline public function perpR()
+	public inline function perpR()
 	{
 		var t = y; y = -x; x = t;
 	}
@@ -213,7 +238,7 @@ class Vec2 extends Coord2f
 	/**
 		Left-handed perp operator (z-axis pointing into the screen); returns (-`y`,`x`).
 	**/
-	inline public function perpL()
+	public inline function perpL()
 	{
 		var t = y; y = x; x = -t;
 	}
@@ -221,7 +246,7 @@ class Vec2 extends Coord2f
 	/**
 		Converts this vector to unit length and returns the original vector length.
 	**/
-	inline public function normalize():Float
+	public inline function normalize():Float
 	{
 		var l = length();
 		l = l < M.EPS ? 0 : 1 / l;
@@ -233,7 +258,7 @@ class Vec2 extends Coord2f
 	/**
 		Scales this vector by `value`.
 	**/
-	inline public function scale(value:Float)
+	public inline function scale(value:Float)
 	{
 		x *= value;
 		y *= value;
@@ -242,7 +267,7 @@ class Vec2 extends Coord2f
 	/**
 		Clamps this vector to `max` length.
 	**/
-	inline public function clamp(max:Float)
+	public inline function clamp(max:Float)
 	{
 		var l = lengthSq();
 		if (l > max * max)

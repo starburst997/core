@@ -26,37 +26,37 @@ class Limits
 	/**
 		Min value, signed byte.
 	**/
-	inline public static var INT8_MIN = -0x80;
+	public inline static var INT8_MIN = -0x80;
 	
 	/**
 		Max value, signed byte.
 	**/
-	inline public static var INT8_MAX = 0x7F;
+	public inline static var INT8_MAX = 0x7F;
 	
 	/**
 		Max value, unsigned byte.
 	**/
-	inline public static var UINT8_MAX = 0xFF;
+	public inline static var UINT8_MAX = 0xFF;
 	
 	/**
 		Min value, signed short.
 	**/
-	inline public static var INT16_MIN = -0x8000;
+	public inline static var INT16_MIN = -0x8000;
 	
 	/**
 		Max value, signed short.
 	**/
-	inline public static var INT16_MAX = 0x7FFF;
+	public inline static var INT16_MAX = 0x7FFF;
 	
 	/**
 		Max value, unsigned short.
 	**/
-	inline public static var UINT16_MAX = 0xFFFF;
+	public inline static var UINT16_MAX = 0xFFFF;
 	
 	/**
 		Min value, signed integer.
 	**/
-	inline public static var INT32_MIN =
+	public inline static var INT32_MIN =
 	#if cpp
 	//warning: this decimal constant is unsigned only in ISO C90
 	-0x7FFFFFFF;
@@ -67,35 +67,30 @@ class Limits
 	/**
 		Max value, signed integer.
 	**/
-	inline public static var INT32_MAX = 0x7FFFFFFF;
+	public inline static var INT32_MAX = 0x7FFFFFFF;
 	
 	/**
 		Max value, unsigned integer.
 	**/
-	inline public static var UINT32_MAX = 0xFFFFFFFF;
-	
-	/**
-		Number of bits using for representing integers.
-	**/
-	inline public static var INT_BITS =	32;
+	public inline static var UINT32_MAX = 0xFFFFFFFF;
 	
 	/**
 		The largest representable number (single-precision IEEE-754).
 	**/
-	inline public static var FLOAT_MAX = 3.4028234663852886e+38;
+	public inline static var FLOAT_MAX = 3.4028234663852886e+38;
 	
 	/**
 		The smallest representable number (single-precision IEEE-754).
 	**/
-	inline public static var FLOAT_MIN = -3.4028234663852886e+38;
+	public inline static var FLOAT_MIN = -3.4028234663852886e+38;
 	
 	/**
 		The largest representable number (double-precision IEEE-754).
 	**/
-	inline public static var DOUBLE_MAX = 1.7976931348623157e+308;
+	public inline static var DOUBLE_MAX = 1.7976931348623157e+308;
 	
 	/**
 		The smallest representable number (double-precision IEEE-754).
 	**/
-	inline public static var DOUBLE_MIN = -1.7976931348623157e+308;
+	public inline static var DOUBLE_MIN = -1.7976931348623157e+308;
 }

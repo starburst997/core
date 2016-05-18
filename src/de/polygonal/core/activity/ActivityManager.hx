@@ -23,7 +23,6 @@ import de.polygonal.core.es.Entity;
 import de.polygonal.core.es.EntitySystem;
 import de.polygonal.core.time.Delay;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.ds.Da;
 
 /**
 	Manages a stack of Activity objects.
@@ -36,7 +35,7 @@ import de.polygonal.ds.Da;
 @:access(de.polygonal.core.activity.Activity)
 class ActivityManager extends Entity
 {
-	var mActivityInstances = new Da<Activity>();
+	var mActivityInstances = new Array<Activity>();
 	
 	var mTop:Activity;
 	var mRoot:Activity;
@@ -54,13 +53,13 @@ class ActivityManager extends Entity
 		defineTransitionEffect(null, activity, effect);
 	}
 	
-	inline public function getRootActivity():Activity return mRoot;
+	public inline function getRootActivity():Activity return mRoot;
 	
-	inline public function getTopActivity():Activity return mTop;
+	public inline function getTopActivity():Activity return mTop;
 	
 	function new()
 	{
-		super(true);
+		super(ActivityManager.ENTITY_NAME, true);
 		
 		transition = add(Transition);
 		
@@ -169,7 +168,7 @@ class ActivityManager extends Entity
 		{
 			newActivity = Type.createInstance(cl, []);
 			if (newActivity.isPersistent())
-				mActivityInstances.pushBack(newActivity);
+				mActivityInstances.push(newActivity);
 			instanceCreated = true;
 		}
 		
@@ -290,7 +289,7 @@ class ActivityManager extends Entity
 					{
 						p = cast p.parent;
 						
-						p.mIntent = new Intent(null, {});
+						p.mIntent = new Intent(null, null);
 						
 						p.onRestart();
 						p.onStart();

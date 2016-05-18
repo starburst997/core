@@ -26,7 +26,7 @@ import de.polygonal.core.log.LogMessage;
 import de.polygonal.core.util.Assert.assert;
 import haxe.ds.StringMap;
 
-using de.polygonal.ds.Bits;
+using de.polygonal.ds.tools.Bits;
 
 /**
  * A log handler receives log messages from a log and exports them to various output devices.
@@ -37,10 +37,10 @@ using de.polygonal.ds.Bits;
 ], true, true))
 class LogHandler implements IObserver
 {
-	inline public static var FORMAT_RAW         = 0;
-	inline public static var FORMAT_BRIEF       = TICK | LEVEL | NAME | TAG;
-	inline public static var FORMAT_BRIEF_INFOS = TICK | LEVEL | NAME | TAG | LINE | CLASS | CLASS_SHORT | METHOD;
-	inline public static var FORMAT_FULL        = DATE | TIME | TICK | LEVEL | NAME | TAG | LINE | CLASS | CLASS_SHORT | METHOD;
+	public inline static var FORMAT_RAW         = 0;
+	public inline static var FORMAT_BRIEF       = TICK | LEVEL | NAME | TAG;
+	public inline static var FORMAT_BRIEF_INFOS = TICK | LEVEL | NAME | TAG | LINE | CLASS | CLASS_SHORT | METHOD;
+	public inline static var FORMAT_FULL        = DATE | TIME | TICK | LEVEL | NAME | TAG | LINE | CLASS | CLASS_SHORT | METHOD;
 	
 	public static var DEFAULT_FORMAT = FORMAT_BRIEF_INFOS;
 	
@@ -134,7 +134,7 @@ class LogHandler implements IObserver
 		while (x > LogLevel.DEBUG)
 		{
 			x >>= 1;
-			mMask = mMask.clrBits(x);
+			mMask = mMask & ~x;
 		}
 	}
 	
@@ -178,8 +178,7 @@ class LogHandler implements IObserver
 		if (type == LogEvent.LOG_MESSAGE)
 		{
 			mMessage = cast userData;
-			
-			if (mMask.hasBits(mMessage.outputLevel))
+			if (mMask & mMessage.outputLevel > 0)
 			{
 				var tmp = mBits;
 				if (mTagFormat != null && mTagFormat.exists(mMessage.tag))
@@ -197,18 +196,20 @@ class LogHandler implements IObserver
 		var args:Array<String> = [];
 		var vals:Array<Dynamic> = [];
 		
+		inline function has(mask:Int) return mBits & mask > 0;
+		
 		var fmt, val;
 		
 		//date & time
 		fmt = "%s";
 		val = "";
-		if (hasBits(DATE | TIME))
+		if (has(DATE | TIME))
 		{
 			var date = Date.now().toString();
-			if (mBits.getBits(DATE | TIME) == DATE | TIME)
+			if (mBits & (DATE | TIME) == DATE | TIME)
 				val = date.substr(5); //mm-dd hh:mm:ss
 			else
-			if (hasBits(TIME))
+			if (has(TIME))
 				val = date.substr(11); //hh:mm:ss
 			else
 				val = date.substr(5, 5); //mm-dd
@@ -217,11 +218,11 @@ class LogHandler implements IObserver
 		vals.push(val);
 		
 		//tick
-		if (hasBits(TICK))
+		if (has(TICK))
 		{
 			fmt = "%03d";
 			val = "";
-			if (hasBits(DATE | TIME)) fmt = " " + fmt;
+			if (has(DATE | TIME)) fmt = " " + fmt;
 			args.push(fmt);
 			vals.push(de.polygonal.core.time.Timebase.numTickCalls % 1000);
 		}
@@ -229,10 +230,10 @@ class LogHandler implements IObserver
 		//level
 		fmt = "%s";
 		val = "";
-		if (hasBits(LEVEL))
+		if (has(LEVEL))
 		{
 			val = LogLevel.getShortName(mMessage.outputLevel);
-			if (hasBits(DATE | TIME | TICK)) fmt = " %s";
+			if (has(DATE | TIME | TICK)) fmt = " %s";
 		}
 		args.push(fmt);
 		vals.push(val);
@@ -240,9 +241,9 @@ class LogHandler implements IObserver
 		//log name
 		fmt = "%s";
 		val = "";
-		if (hasBits(NAME))
+		if (has(NAME))
 		{
-			if (hasBits(LEVEL)) fmt = "/%s";
+			if (has(LEVEL)) fmt = "/%s";
 			val = mMessage.log.name;
 		}
 		args.push(fmt);
@@ -251,7 +252,7 @@ class LogHandler implements IObserver
 		//message tag
 		fmt = "%s";
 		val = "";
-		if (hasBits(TAG))
+		if (has(TAG))
 		{
 			if (mMessage.tag != null)
 			{
@@ -263,43 +264,46 @@ class LogHandler implements IObserver
 		vals.push(val);
 		
 		//position infos
-		fmt = "%s";
-		if (hasBits(CLASS | METHOD | LINE))
+		if (mMessage.posInfos != null)
 		{
-			fmt = "(";
-			
-			if (hasBits(CLASS))
+			fmt = "%s";
+			if (has(CLASS | METHOD | LINE))
 			{
-				var className = mMessage.posInfos.className;
-				if (hasBits(CLASS_SHORT))
-					className = className.substr(className.lastIndexOf(".") + 1);
-				if (className.length > 30)
-					className = StringUtil.ellipsis(className, 30, 0);
+				fmt = "(";
 				
-				fmt += "%s";
-				vals.push(className);
-			}
-			
-			if (hasBits(METHOD))
-			{
-				var methodName = mMessage.posInfos.methodName;
-				if (methodName.length > 30) methodName = StringUtil.ellipsis(methodName, 30, 0);
+				if (has(CLASS))
+				{
+					var className = mMessage.posInfos.className;
+					if (has(CLASS_SHORT))
+						className = className.substr(className.lastIndexOf(".") + 1);
+					if (className.length > 30)
+						className = StringUtil.ellipsis(className, 30, 0);
+					
+					fmt += "%s";
+					vals.push(className);
+				}
 				
-				fmt += hasBits(CLASS) ? ".%s" : "%s";
-				vals.push(methodName);
+				if (has(METHOD))
+				{
+					var methodName = mMessage.posInfos.methodName;
+					if (methodName.length > 30) methodName = StringUtil.ellipsis(methodName, 30, 0);
+					
+					fmt += has(CLASS) ? ".%s" : "%s";
+					vals.push(methodName);
+				}
+				
+				if (has(LINE))
+				{
+					fmt += has(CLASS | METHOD) ? " %04d" : "%04d";
+					vals.push(mMessage.posInfos.lineNumber);
+				}
+				
+				fmt += ")";
 			}
-			
-			if (hasBits(LINE))
-			{
-				fmt += hasBits(CLASS | METHOD) ? " %04d" : "%04d";
-				vals.push(mMessage.posInfos.lineNumber);
-			}
-			
-			fmt += ")";
+			else
+				vals.push("");
+			args.push(fmt);
 		}
-		else
-			vals.push("");
-		args.push(fmt);
 		
 		//message
 		fmt = mBits == 0 ? "%s" : ": %s";
@@ -308,15 +312,15 @@ class LogHandler implements IObserver
 		if (Std.is(s, String) && s.indexOf("\n") != -1)
 		{
 			var pre = "";
-			if (hasBits(LEVEL))
+			if (has(LEVEL))
 				pre = LogLevel.getShortName(mMessage.outputLevel);
-			if (hasBits(NAME))
+			if (has(NAME))
 			{
-				if (hasBits(LEVEL))
+				if (has(LEVEL))
 					pre += "/";
 				pre += mMessage.log.name;
 			}
-			if (hasBits(TAG))
+			if (has(TAG))
 				if (mMessage.tag != null)
 					pre += "/" + mMessage.tag;
 			
@@ -342,6 +346,4 @@ class LogHandler implements IObserver
 	{
 		mBits = DEFAULT_FORMAT;
 	}
-	
-	inline function hasBits(mask:Int) return mBits.hasBits(mask);
 }

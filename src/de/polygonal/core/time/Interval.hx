@@ -63,13 +63,13 @@ class Interval
 		this.duration = duration;
 	}
 	
-	inline public function reset()
+	public inline function reset()
 	{
 		mMin = 0;
 		mMax = duration;
 	}
 	
-	inline public function advance(dt:Float):Float
+	public inline function advance(dt:Float):Float
 	{
 		if (!hold) mMin += dt;
 		return alpha;

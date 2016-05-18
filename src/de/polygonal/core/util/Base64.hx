@@ -38,7 +38,7 @@ class Base64
 		Disabling this behavior violates strict Base64 specification, but makes the encoding faster.
 		@param maxLineLength the maximum line length of the output. Default is 76.
 	**/
-	inline public static function encode(source:BytesData, breakLines = false, maxLineLength = 76):String
+	public inline static function encode(source:BytesData, breakLines = false, maxLineLength = 76):String
 	{
 		return encodeBytes(Bytes.ofData(source), breakLines, maxLineLength);
 	}
@@ -50,7 +50,7 @@ class Base64
 		Disabling this behavior violates strict Base64 specification, but makes the encoding faster.
 		@param maxLineLength the maximum line length of the output. Default is 76.
 	**/
-	inline public static function encodeString(source:String, breakLines = false, maxLineLength = 76):String
+	public inline static function encodeString(source:String, breakLines = false, maxLineLength = 76):String
 	{
 		return encodeBytes(Bytes.ofString(source), breakLines, maxLineLength);
 	}
@@ -61,7 +61,7 @@ class Base64
 		@param breakLines if true, removes all newline (\n) characters from `source` before decoding it.
 		Use this flag if the source was encoded with `breakLines` = true. Default is false.
 	**/
-	inline public static function decode(source:String, breakLines = false):BytesData
+	public inline static function decode(source:String, breakLines = false):BytesData
 	{
 		return decodeBytes(source, breakLines).getData();
 	}
@@ -72,7 +72,7 @@ class Base64
 		@param breakLines if true, removes all newline (\n) characters from `source` before decoding it.
 		Use this flag if the source was encoded with `breakLines` = true. Default is false.
 	**/
-	inline public static function decodeString(source:String, breakLines = false):String
+	public inline static function decodeString(source:String, breakLines = false):String
 	{
 		var bytes = decodeBytes(source, breakLines);
 		return bytes.getString(0, bytes.length);

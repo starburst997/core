@@ -47,14 +47,33 @@ class Recti
 	/**
 		The x coordinate of the bottom-right corner of the rectangle.
 	**/
-	public var r(get_r, never):Float;
-	inline function get_r():Float return x + w;
+	public var r(get_r, set_r):Int;
+	inline function get_r():Int
+	{
+		return x + w;
+	}
+	inline function set_r(value:Int):Int
+	{
+		if (value < x) value = x;
+		w = value - x;
+		
+		return value;
+	}
 	
 	/**
 		The y coordinate of the bottom-right corner of the rectangle.
 	**/
-	public var b(get_b, never):Float;
-	inline function get_b():Float return y + h;
+	public var b(get_b, set_b):Int;
+	inline function get_b():Int
+	{
+		return y + h;
+	}
+	inline function set_b(value:Int):Int
+	{
+		if (value < h) value = h;
+		h = value - y;
+		return value;
+	}
 	
 	public function new(x:Int = 0, y:Int = 0, w:Int = 0, h:Int = 0)
 	{
@@ -64,7 +83,7 @@ class Recti
 		this.h = h;
 	}
 	
-	inline public function of(other:Recti)
+	public inline function of(other:Recti)
 	{
 		x = other.x;
 		y = other.y;
@@ -72,7 +91,7 @@ class Recti
 		h = other.h;
 	}
 	
-	inline public function equals(other:Recti):Bool
+	public inline function equals(other:Recti):Bool
 	{
 		return x == other.x && y == other.y && w == other.w && h == other.h;
 	}

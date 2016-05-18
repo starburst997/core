@@ -23,7 +23,7 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 
 #if !macro
-using de.polygonal.ds.Bits;
+using de.polygonal.ds.tools.Bits;
 #end
 
 class ObserverMacro
@@ -32,28 +32,28 @@ class ObserverMacro
 		The number bits reserved for storing group ids.
 		E.g. using 5 bits, a total of 32 group ids (0..31, 2^5-1) and 27 event ids (32 - 5) can be encoded in a 32-bit integer.
 	**/
-	inline public static var NUM_GROUP_BITS = 5;
+	public inline static var NUM_GROUP_BITS = 5;
 	
 	#if !macro
 	/**
 		The number of bits used for encoding the update type (group & event).
 	**/
-	inline public static var NUM_BITS = 32;
+	public inline static var NUM_BITS = 32;
 	
 	/**
 		The number of bits reserved for encoding event ids.
 	**/
-	inline public static var NUM_EVENT_BITS = 32 - NUM_GROUP_BITS;
+	public inline static var NUM_EVENT_BITS = 32 - NUM_GROUP_BITS;
 	
 	/**
 		A bit mask of all possible event bits.
 	**/
-	inline public static var EVENT_MASK = (1 << NUM_EVENT_BITS) - 1;
+	public inline static var EVENT_MASK = (1 << NUM_EVENT_BITS) - 1;
 	
 	/**
 		A bit mask of all possible group bits.
 	**/
-	inline public static var GROUP_MASK = ((1 << NUM_GROUP_BITS) - 1) << NUM_EVENT_BITS;
+	public inline static var GROUP_MASK = ((1 << NUM_GROUP_BITS) - 1) << NUM_EVENT_BITS;
 	
 	/**
 		Returns an iterator over all event bit flags stored in the update id `x`.
@@ -77,7 +77,7 @@ class ObserverMacro
 				//add group bits
 				var type = g | e.msb();
 				//remove bit so msb() returns the next most significant event bit
-				e = e.clrBits(e.msb());
+				e = e & ~(e.msb());
 				i++;
 				return type;
 			}

@@ -29,7 +29,7 @@ class Random
 	/**
 		Returns a random integral number in the interval [0,0x7FFFFFFF).
 	**/
-	inline public static function rand():Int
+	public inline static function rand():Int
 	{
 		return cast (frand() * Limits.INT32_MAX);
 	}
@@ -37,7 +37,7 @@ class Random
 	/**
 		Returns a random integral number in the interval [`min`,`max`].
 	**/
-	inline public static function randRange(min:Int, max:Int):Int
+	public inline static function randRange(min:Int, max:Int):Int
 	{
 		var l = min - .4999;
 		var h = max + .4999;
@@ -47,7 +47,7 @@ class Random
 	/**
 		Returns a random integral number in the interval [-`range`,`range`].
 	**/
-	inline public static function randSymmetric(range:Int):Float
+	public inline static function randSymmetric(range:Int):Float
 	{
 		return randRange(-range, range);
 	}
@@ -55,7 +55,7 @@ class Random
 	/**
 		Returns a random boolean value.
 	**/
-	inline public static function randBool():Bool
+	public inline static function randBool():Bool
 	{
 		return frand() < .5;
 	}
@@ -63,7 +63,7 @@ class Random
 	/**
 		Returns a random real number in the interval [0,1).
 	**/
-	inline public static function frand():Float
+	public inline static function frand():Float
 	{
 		return Math.random();
 	}
@@ -71,7 +71,7 @@ class Random
 	/**
 		Returns a random real number in the interval [`min`,`max`).
 	**/
-	inline public static function frandRange(min:Float, max:Float):Float
+	public inline static function frandRange(min:Float, max:Float):Float
 	{
 		return min + (max - min) * frand();
 	}
@@ -79,7 +79,7 @@ class Random
 	/**
 		Returns a random real number in the interval [-`range`,`range`).
 	**/
-	inline public static function frandSymmetric(range:Float):Float
+	public inline static function frandSymmetric(range:Float):Float
 	{
 		return frandRange(-range, range);
 	}

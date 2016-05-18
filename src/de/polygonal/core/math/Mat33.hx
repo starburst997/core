@@ -30,7 +30,7 @@ class Mat33
 	/**
 		@return `c` = `a`*`b`.
 	**/
-	inline public static function matrixProduct(a:Mat33, b:Mat33, c:Mat33):Mat33
+	public inline static function matrixProduct(a:Mat33, b:Mat33, c:Mat33):Mat33
 	{
 		var b11 = b.m11; var b12 = b.m12; var b13 = b.m13;
 		var b21 = b.m21; var b22 = b.m22; var b23 = b.m23;
@@ -69,7 +69,7 @@ class Mat33
 	/**
 		Returns the column at index `i`
 	**/
-	inline public function getCol(i:Int, output:Vec3):Vec3
+	public inline function getCol(i:Int, output:Vec3):Vec3
 	{
 		assert(i >= 0 && i < 3, "i >= 0 && i < 3");
 		
@@ -97,7 +97,7 @@ class Mat33
 	/**
 		Assigns the values of `other` to this.
 	**/
-	inline public function of(other:Mat33):Mat33
+	public inline function of(other:Mat33):Mat33
 	{
 		m11 = other.m11; m12 = other.m12; m13 = other.m13;
 		m21 = other.m21; m22 = other.m22; m23 = other.m23;
@@ -108,7 +108,7 @@ class Mat33
 	/**
 		Assign three columns.
 	**/
-	inline public function setCols(u:Vec3, v:Vec3, w:Vec3):Mat33
+	public inline function setCols(u:Vec3, v:Vec3, w:Vec3):Mat33
 	{
 		m11 = u.x; m12 = v.x; m13 = w.x;
 		m21 = u.y; m22 = v.y; m23 = w.y;
@@ -119,7 +119,7 @@ class Mat33
 	/**
 		Set to identity matrix.
 	**/
-	inline public function setIdentity():Mat33
+	public inline function setIdentity():Mat33
 	{
 		m11 = 1; m12 = 0; m13 = 0;
 		m21 = 0; m22 = 1; m23 = 0;
@@ -130,7 +130,7 @@ class Mat33
 	/**
 		Zero out all matrix elements.
 	**/
-	inline public function setZero():Mat33
+	public inline function setZero():Mat33
 	{
 		m11 = 0; m12 = 0; m13 = 0;
 		m21 = 0; m22 = 0; m23 = 0;
@@ -141,7 +141,7 @@ class Mat33
 	/**
 		Set as rotation matrix, rotating by `angle` radians around x-axis.
 	**/
-	inline public function setRotateX(angle:Float):Mat33
+	public inline function setRotateX(angle:Float):Mat33
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -154,7 +154,7 @@ class Mat33
 	/**
 		Set as rotation matrix, rotating by `angle` radians around y-axis.
 	**/
-	inline public function setRotateY(angle:Float):Mat33
+	public inline function setRotateY(angle:Float):Mat33
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -167,7 +167,7 @@ class Mat33
 	/**
 		Set as rotation matrix, rotating by `angle` radians around z-axis.
 	**/
-	inline public function setRotateZ(angle:Float):Mat33
+	public inline function setRotateZ(angle:Float):Mat33
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -182,7 +182,7 @@ class Mat33
 		The angle is computed as atan2(sin(alpha), cos(alpha)) = atan2(>m21>, >m11>).
 		*The matrix must be a rotation matrix*.
 	**/
-	inline public function getAngle():Float
+	public inline function getAngle():Float
 	{
 		return Math.atan2(m21, m11);
 	}
@@ -190,7 +190,7 @@ class Mat33
 	/**
 		Set as rotation matrix, rotating by `angle` radians in 2d space.
 	**/
-	inline public function setRotate2(angle:Float):Mat33
+	public inline function setRotate2(angle:Float):Mat33
 	{
 		var s = Math.sin(angle);
 		var c = Math.cos(angle);
@@ -202,7 +202,7 @@ class Mat33
 	/**
 		Multiplies all matrix elements by the scalar `x`.
 	**/
-	inline public function timesScalar(x:Float)
+	public inline function timesScalar(x:Float)
 	{
 		m11 *= x; m12 *= x; m13 *= x;
 		m21 *= x; m22 *= x; m23 *= x;
@@ -212,7 +212,7 @@ class Mat33
 	/**
 		Matrix - column vector multiplication (M*V): `rhs`' = this * `rhs`.
 	**/
-	inline public function timesVector(rhs:Vec3):Vec3
+	public inline function timesVector(rhs:Vec3):Vec3
 	{
 		var x = rhs.x;
 		var y = rhs.y;
@@ -227,7 +227,7 @@ class Mat33
 		Same as `timesVector()`, but without modifying `rhs`.
 		@param output stores the result.
 	**/
-	inline public function timesVectorConst(rhs:Vec3, output:Vec3):Vec3
+	public inline function timesVectorConst(rhs:Vec3, output:Vec3):Vec3
 	{
 		var x = rhs.x;
 		var y = rhs.y;
@@ -241,7 +241,7 @@ class Mat33
 	/**
 		Matrix - row vector multiplication (M^t*V): `lhs`' = `lhs`*this.
 	**/
-	inline public function vectorTimes(lhs:Vec3):Vec3
+	public inline function vectorTimes(lhs:Vec3):Vec3
 	{
 		var x = lhs.x;
 		var y = lhs.y;
@@ -255,7 +255,7 @@ class Mat33
 	/**
 		Computes the matrix transpose and returns this matrix.
 	**/
-	inline public function transpose():Mat33
+	public inline function transpose():Mat33
 	{
 		var t;
 		t = m21; m21 = m12; m12 = t;
@@ -268,7 +268,7 @@ class Mat33
 		Same as `transpose()`, but without modifying this matrix.
 		@param output stores the result.
 	**/
-	inline public function transposeConst(output:Mat33):Mat33
+	public inline function transposeConst(output:Mat33):Mat33
 	{
 		output.m11 = m11; output.m12 = m21; output.m13 = m31;
 		output.m21 = m12; output.m22 = m22; output.m23 = m32;
@@ -279,7 +279,7 @@ class Mat33
 	/**
 		R = M*D
 	**/
-	inline public function timesDiagonal(rhs:Vec3):Mat33
+	public inline function timesDiagonal(rhs:Vec3):Mat33
 	{
 		//|m11 m12 m13| |x 0 0|
 		//|m21 m22 m23| |0 y 0|
@@ -296,7 +296,7 @@ class Mat33
 	/**
 		R = M*DStores the result in `output`.
 	**/
-	inline public function timesDiagonalConst(rhs:Vec3, output:Mat33):Mat33
+	public inline function timesDiagonalConst(rhs:Vec3, output:Mat33):Mat33
 	{
 		//|m11 m12 m13| |x 0 0|
 		//|m21 m22 m23| |0 y 0|
@@ -313,7 +313,7 @@ class Mat33
 	/**
 		R = D*M
 	**/
-	inline public function diagonalTimes(lhs:Vec3):Mat33
+	public inline function diagonalTimes(lhs:Vec3):Mat33
 	{
 		//|x 0 0| |m11 m12 m13|
 		//|0 y 0| |m21 m22 m23|
@@ -330,7 +330,7 @@ class Mat33
 	/**
 		Post-concatenates `lhs`: this = `lhs`*this.
 	**/
-	inline public function cat(lhs:Mat33):Mat33
+	public inline function cat(lhs:Mat33):Mat33
 	{
 		var c11 = m11; var c12 = m12; var c13 = m13;
 		var c21 = m21; var c22 = m22; var c23 = m23;
@@ -360,7 +360,7 @@ class Mat33
 	/**
 		Pre-concatenates `rhs`: this = this*`rhs`.
 	**/
-	inline public function precat(rhs:Mat33):Mat33
+	public inline function precat(rhs:Mat33):Mat33
 	{
 		var c11 = rhs.m11; var c12 = rhs.m12; var c13 = rhs.m13;
 		var c21 = rhs.m21; var c22 = rhs.m22; var c23 = rhs.m23;
@@ -443,7 +443,7 @@ class Mat33
 	/**
 		Divides all matrix elements by the scalar `x`.
 	**/
-	inline public function div(x:Float)
+	public inline function div(x:Float)
 	{
 		if (M.cmpZero(x, M.ZERO_TOLERANCE))
 		{

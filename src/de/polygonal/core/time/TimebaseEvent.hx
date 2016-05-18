@@ -21,7 +21,7 @@ package de.polygonal.core.time;
 @:build(de.polygonal.core.event.ObserverMacro.create
 ([
 	TICK,
-	RENDER,
+	DRAW,
 	CLAMP,
 	PAUSE,
 	RESUME,

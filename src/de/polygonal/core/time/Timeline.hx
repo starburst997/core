@@ -160,7 +160,7 @@ class Timeline
 		if (node != null)
 		{
 			node.cancel();
-			mIntervalLut.clr(id);
+			mIntervalLut.unset(id);
 			return true;
 		}
 		
@@ -202,7 +202,7 @@ class Timeline
 		}
 		
 		var lut = mIntervalLut;
-		inline function unregister(x:TimelineNode) lut.clr(x.id);
+		inline function unregister(x:TimelineNode) lut.unset(x.id);
 		
 		//handle buffered intervals
 		mNextTick = 1;
@@ -220,7 +220,6 @@ class Timeline
 			if (h.isEmpty()) break;
 			
 			var top = h.top();
-			
 			if (top.isCancelled())
 			{
 				h.pop();
@@ -257,7 +256,6 @@ class Timeline
 				}
 				continue;
 			}
-			
 			break;
 		}
 		

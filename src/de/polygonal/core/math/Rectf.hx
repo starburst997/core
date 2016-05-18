@@ -47,14 +47,33 @@ class Rectf
 	/**
 		The x coordinate of the bottom-right corner of the rectangle.
 	**/
-	public var r(get_r, never):Float;
-	inline function get_r():Float return x + w;
+	public var r(get_r, set_r):Float;
+	inline function get_r():Float
+	{
+		return x + w;
+	}
+	inline function set_r(value:Float):Float
+	{
+		if (value < x) value = x;
+		w = value - x;
+		
+		return value;
+	}
 	
 	/**
 		The y coordinate of the bottom-right corner of the rectangle.
 	**/
-	public var b(get_b, never):Float;
-	inline function get_b():Float return y + h;
+	public var b(get_b, set_b):Float;
+	inline function get_b():Float
+	{
+		return y + h;
+	}
+	inline function set_b(value:Float):Float
+	{
+		if (value < h) value = h;
+		h = value - y;
+		return value;
+	}
 	
 	public function new(x:Float = 0, y:Float = 0, w:Float = 0, h:Float = 0)
 	{
@@ -64,7 +83,7 @@ class Rectf
 		this.h = h;
 	}
 	
-	inline public function of(other:Rectf)
+	public inline function of(other:Rectf)
 	{
 		x = other.x;
 		y = other.y;
@@ -72,7 +91,7 @@ class Rectf
 		h = other.h;
 	}
 	
-	inline public function equals(other:Rectf):Bool
+	public inline function equals(other:Rectf):Bool
 	{
 		return x == other.x && y == other.y && w == other.w && h == other.h;
 	}
@@ -80,6 +99,11 @@ class Rectf
 	public function clone():Rectf
 	{
 		return new Rectf(x, y, w, h);
+	}
+	
+	public function toAabb2():Aabb2
+	{
+		return new Aabb2(x, y, x + w, y + h);
 	}
 	
 	public function toString():String

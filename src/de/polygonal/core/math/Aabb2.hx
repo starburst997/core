@@ -35,7 +35,7 @@ class Aabb2
 		@param w the width of the box.
 		@param h the height of the box.
 	**/
-	inline public static function ofMinWidths(x:Float, y:Float, w:Float, h:Float):Aabb2
+	public inline static function ofMinWidths(x:Float, y:Float, w:Float, h:Float):Aabb2
 	{
 		return new Aabb2(x, y, x + w, y + h);
 	}
@@ -48,7 +48,7 @@ class Aabb2
 		@param rx the radius of the box along the x-axis (half width).
 		@param ry the radius of the box along the y-axis (half height).
 	**/
-	inline public static function ofCenterRadius(cx:Float, cy:Float, rx:Float, ry:Float):Aabb2
+	public inline static function ofCenterRadius(cx:Float, cy:Float, rx:Float, ry:Float):Aabb2
 	{
 		return new Aabb2(cx - rx, cy - ry, cx + rx, cy + ry);
 	}
@@ -94,7 +94,7 @@ class Aabb2
 	/**
 		Copies the values of `other` to this.
 	**/
-	inline public function of(other:Aabb2):Aabb2
+	public inline function of(other:Aabb2):Aabb2
 	{
 		minX = other.minX;
 		minY = other.minY;
@@ -111,7 +111,7 @@ class Aabb2
 		@param maxX maximum position along the x-axis
 		@param maxY maximum position along the y-axis
 	**/
-	inline public function set(minX:Float, minY:Float, maxX:Float, maxY:Float):Aabb2
+	public inline function set(minX:Float, minY:Float, maxX:Float, maxY:Float):Aabb2
 	{
 		this.minX = minX;
 		this.minY = minY;
@@ -303,7 +303,7 @@ class Aabb2
 	/**
 		Marks the box as empty (min > max).
 	**/
-	inline public function empty()
+	public inline function empty()
 	{
 		minX = minY = Math.POSITIVE_INFINITY;
 		maxX = maxY = Math.NEGATIVE_INFINITY;
@@ -312,7 +312,7 @@ class Aabb2
 	/**
 		True if the box is empty (min > max)
 	**/
-	inline public function isEmpty():Bool
+	public inline function isEmpty():Bool
 	{
 		return (minX > maxX) || (minY > maxY);
 	}
@@ -320,7 +320,7 @@ class Aabb2
 	/**
 		Adds the point (`x`,`y`) to the box by expanding it if necessary.
 	**/
-	inline public function addPoint(x:Float, y:Float)
+	public inline function addPoint(x:Float, y:Float)
 	{
 		if (x < minX) minX = x;
 		if (x > maxX) maxX = x;
@@ -331,7 +331,7 @@ class Aabb2
 	/**
 		Adds the `other` to the box by expanding it if necessary.
 	**/
-	inline public function addAABB(other:Aabb2):Aabb2
+	public inline function addOther(other:Aabb2):Aabb2
 	{
 		if (other.minX < minX) minX = other.minX;
 		if (other.minY < minY) minY = other.minY;
@@ -343,7 +343,7 @@ class Aabb2
 	/**
 		Returns true if `other` is inside this box (includes a touching contact).
 	**/
-	inline public function contains(other:Aabb2):Bool
+	public inline function contains(other:Aabb2):Bool
 	{
 		if (other.minX < minX) return false;
 		else
@@ -359,7 +359,7 @@ class Aabb2
 	/**
 		Increases the size of the box by `dx`, `dy`.
 	**/
-	inline public function inflate(dx:Float, dy:Float):Aabb2
+	public inline function inflate(dx:Float, dy:Float):Aabb2
 	{
 		minX -= dx;
 		minY -= dy;
@@ -371,6 +371,16 @@ class Aabb2
 	public function clone():Aabb2
 	{
 		return new Aabb2(minX, minY, maxX, maxY);
+	}
+	
+	public function toRectf():Rectf
+	{
+		return new Rectf(x, y, w, h);
+	}
+	
+	public function toRecti():Recti
+	{
+		return new Recti(Std.int(x), Std.int(y), Std.int(w), Std.int(h));
 	}
 	
 	public function toString():String
