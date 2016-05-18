@@ -107,7 +107,7 @@ class EntityMacro
 		
 		#if !debug //generate at runtime
 		if (name == "Entity") return fields; //don't modify Entity constructor
-		if (next > 0xffff) Context.fatalError("type value out of bounds", p);
+		if (next > 0xFFFF) Context.fatalError("type value out of bounds", p);
 		
 		fields.push(
 		{

@@ -30,7 +30,7 @@ class EntityTools
 	**/
 	public static function print(root:Entity):String
 	{
-		if (root == null) return root.toString();
+		if (root == null) return Std.string(root);
 		
 		function depth(x:Entity):Int
 		{
@@ -45,8 +45,7 @@ class EntityTools
 			return c;
 		}	
 		
-		var s = root.name + '\n';
-		
+		var s = "";
 		var a = [root];
 		
 		var e = root.preorder;
@@ -204,16 +203,12 @@ class EntityTools
 	{
 		if (e.parent == null || e.parent.firstChild == e) return; //no parent or already first?
 		
-		Es._treeChanged = true;
-		
 		var c = e.parent.firstChild;
-		
 		while (c != null) //find predecessor to this entity
 		{
 			if (c.sibling == e) break;
 			c = c.sibling;
 		}
-		
 		if (e == e.parent.lastChild)
 		{
 			e.parent.lastChild = c;
@@ -221,7 +216,6 @@ class EntityTools
 		}
 		else
 			c.findLastLeaf().preorder = e.sibling;
-		
 		c.sibling = e.sibling;
 		e.sibling = e.parent.firstChild;
 		e.findLastLeaf().preorder = e.parent.firstChild;
@@ -237,10 +231,7 @@ class EntityTools
 	{
 		if (e.parent == null || e.sibling == null) return; //no parent or already last?
 		
-		Es._treeChanged = true;
-		
 		var c = e.parent.firstChild, last, tmp;
-		
 		if (c == e) //first child?
 		{
 			e.parent.preorder = e.parent.firstChild = e.sibling;
@@ -255,7 +246,6 @@ class EntityTools
 			
 			c.findLastLeaf().preorder = c.sibling = e.sibling;
 		}
-		
 		last = e.parent.lastChild;
 		last.sibling = e;
 		tmp = last.findLastLeaf().preorder;

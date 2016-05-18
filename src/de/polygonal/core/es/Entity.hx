@@ -21,9 +21,9 @@ package de.polygonal.core.es;
 import de.polygonal.core.es.EntityMessage;
 import de.polygonal.core.es.EntityMessageQue;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.core.util.ClassUtil;
+import de.polygonal.core.util.ClassTools;
 import de.polygonal.core.es.EntitySystem in Es;
-import de.polygonal.ds.Bits;
+import de.polygonal.ds.tools.Bits;
 
 using de.polygonal.core.es.EntitySystem;
 
@@ -74,10 +74,6 @@ class Entity
 	static var _classNameLut = new haxe.ds.StringMap<Int>();
 	static var _nextEntityId = 0;
 	#end
-	
-	inline static function getMsgQue() return Es._msgQue;
-	
-	inline static function getInheritLut() return Es._inheritanceLut;
 	
 	/**
 		Every entity has an unique identifier.
@@ -132,8 +128,6 @@ class Entity
 			{
 				var entityId = _nextEntityId++;
 				_classNameLut.set(entityName, entityId);
-				
-				trace("assign " + entityId + " to " + entityName);
 				Reflect.setField(cl, "ENTITY_TYPE", entityId);
 			}
 		}
@@ -146,7 +140,7 @@ class Entity
 		if (isGlobal && name == null) name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
 		
 		#if debug
-		if (name == null) name = "DEBUG_" + ClassUtil.getClassName(this);
+		if (name == null) name = "DEBUG_" + ClassTools.getClassName(this);
 		#end
 		
 		this.name = name;
@@ -165,7 +159,6 @@ class Entity
 		
 		if (parent != null) parent.remove(this);
 		Es.freeEntityTree(this);
-		Es._treeChanged = true;
 	}
 	
 	/**
@@ -347,7 +340,6 @@ class Entity
 	@:noCompletion function set_passable(value:Bool):Bool
 	{
 		value ? mBits &= ~BIT_SKIP_SUBTREE : mBits |= BIT_SKIP_SUBTREE;
-		Es._treeChanged = true;
 		return value;
 	}
 	
@@ -359,7 +351,7 @@ class Entity
 	public var incomingMessage(get, never):EntityMessage;
 	@:noCompletion function get_incomingMessage():EntityMessage
 	{
-		return getMsgQue().getMsgIn();
+		return Es._messageQueue.getIncomingMessage();
 	}
 	
 	/**
@@ -368,7 +360,7 @@ class Entity
 	public var outgoingMessage(get, never):EntityMessage;
 	@:noCompletion function get_outgoingMessage():EntityMessage
 	{
-		return getMsgQue().getMsgOut();
+		return Es._messageQueue.getOutgoingMessage();
 	}
 	
 	/**
@@ -380,8 +372,6 @@ class Entity
 	public function add<T:Entity>(?clss:Class<T>, ?inst:T):T
 	{
 		assert(clss != null || inst != null);
-		
-		Es._treeChanged = true;
 		
 		var x:Entity = inst;
 		if (x == null)
@@ -444,6 +434,7 @@ class Entity
 		
 		x.mBits &= ~BIT_NO_PARENT;
 		x.onAdd();
+		Es.onCallback(x, 1);
 		return cast x;
 	}
 	
@@ -479,8 +470,6 @@ class Entity
 		assert(x != this);
 		assert(x.parent == this);
 		
-		Es._treeChanged = true;
-		
 		//update #children
 		numChildren--;
 		
@@ -498,9 +487,8 @@ class Entity
 		//case 1: first child is removed
 		if (firstChild == x)
 		{
-			//update lastChild
-			if (firstChild.sibling == null)
-				lastChild = null;
+			//first and only child?
+			if (x.sibling == null) lastChild = null;
 			
 			var i = x.findLastLeaf();
 			
@@ -549,6 +537,7 @@ class Entity
 		x.mBits |= BIT_NO_PARENT;
 		x.parent = null;
 		x.onRemove(this);
+		Es.onCallback(x, 2);
 	}
 	
 	/**
@@ -595,8 +584,6 @@ class Entity
 			n = n.parent;
 		}
 		setSize(0);
-		
-		Es._treeChanged = true;
 	}
 	
 	/**
@@ -616,7 +603,7 @@ class Entity
 				n = n.sibling;
 			}
 			n = firstChild;
-			lut = getInheritLut();
+			lut = Es._superLut;
 			while (n != null)
 			{
 				if (lut.hasPair(n.type, t) && n.name == name) return cast n;
@@ -634,7 +621,7 @@ class Entity
 				n = n.sibling;
 			}
 			n = firstChild;
-			lut = getInheritLut();
+			lut = Es._superLut;
 			while (n != null)
 			{
 				if (lut.hasPair(n.type, t)) return cast n;
@@ -674,7 +661,7 @@ class Entity
 				n = n.sibling;
 			}
 			n = parent.firstChild;
-			lut = getInheritLut();
+			lut = Es._superLut;
 			while (n != null)
 			{
 				if (n != this)
@@ -698,7 +685,7 @@ class Entity
 				n = n.sibling;
 			}
 			n = parent.firstChild;
-			lut = getInheritLut();
+			lut = Es._superLut;
 			while (n != null)
 			{
 				if (n != this)
@@ -739,7 +726,7 @@ class Entity
 				n = n.parent;
 			}
 			n = p;
-			lut = getInheritLut();
+			lut = Es._superLut;
 			while (n != null)
 			{
 				if (lut.hasPair(n.type, t) && name == n.name) return cast n;
@@ -758,7 +745,7 @@ class Entity
 				n = n.parent;
 			}
 			n = p;
-			lut = getInheritLut();
+			lut = Es._superLut;
 			while (n != null)
 			{
 				if (lut.hasPair(n.type, t)) return cast n;
@@ -799,7 +786,7 @@ class Entity
 				n = n.preorder;
 			}
 			n = firstChild;
-			lut = getInheritLut();
+			lut = Es._superLut;
 			while (n != last)
 			{
 				if (lut.hasPair(n.type, t) && name == n.name) return cast n;
@@ -822,7 +809,7 @@ class Entity
 				n = n.preorder;
 			}
 			n = firstChild;
-			lut = getInheritLut();
+			lut = Es._superLut;
 			while (n != last)
 			{
 				if (lut.hasPair(n.type, t)) return cast n;
@@ -845,117 +832,120 @@ class Entity
 	/**
 		Sends a message of type `msgType` to `recipient`.
 		
-		If `dispatch` is true, the message will leave the message queue immediately.
+		If `instant` is true, the message will leave the message queue immediately.
 	**/
-	public function sendDirectMessage(recipient:Entity, msgType:Int, dispatch:Bool = false)
+	public function sendDirectMessage(recipient:Entity, msgType:Int, instant:Bool = false, ?data:Dynamic)
 	{
-		var q = getMsgQue();
+		var q = Es._messageQueue;
 		var e = recipient;
 		if (e != null)
+		{
+			if (data != null) outgoingMessage.data = data;
 			q.enqueue(this, e, msgType, 0, 0);
+		}
 		else
 		{
-			q.clrMessage();
-			dispatch = false;
+			q.discardMessage();
+			instant = false;
 		}
-		
-		if (dispatch) q.dispatch();
+		if (instant) q.flush();
 	}
 	
 	/**
 		Sends a message of type `msgType` to the parent entity.
 		
-		If `dispatch` is true, the message will leave the message queue immediately.
+		If `instant` is true, the message will leave the message queue immediately.
 	**/
-	public function sendMessageToParent(msgType:Int, dispatch = false)
+	public function sendMessageToParent(msgType:Int, instant:Bool = false, ?data:Dynamic)
 	{
-		var q = getMsgQue();
+		var q = Es._messageQueue;
 		var e = parent;
 		if (e != null)
+		{
+			if (data != null) outgoingMessage.data = data;
 			q.enqueue(this, e, msgType, 0, -1);
+		}
 		else
 		{
-			q.clrMessage();
+			q.discardMessage();
 			return;
 		}
-		
-		if (dispatch) q.dispatch();
+		if (instant) q.flush();
 	}
 	
 	/**
 		Sends a message of type `msgType` to all ancestors.
 		
-		If `dispatch` is true, the message will leave the message queue immediately.
+		If `instant` is true, the message will leave the message queue immediately.
 	**/
-	public function sendMessageToAncestors(msgType:Int, dispatch = false)
+	public function sendMessageToAncestors(msgType:Int, instant:Bool = false, ?data:Dynamic)
 	{
-		var q = getMsgQue();
+		var q = Es._messageQueue;
 		var e = parent;
 		if (e == null)
 		{
-			q.clrMessage();
+			q.discardMessage();
 			return;
 		}
-		
+		if (data != null) outgoingMessage.data = data;
 		var k = getDepth();
-		if (k == 0) dispatch = false;
+		if (k == 0) instant = false;
 		while (k-- > 0)
 		{
 			q.enqueue(this, e, msgType, k, -1);
 			e = e.parent;
 		}
-		
-		if (dispatch) q.dispatch();
+		if (instant) q.flush();
 	}
 	
 	/**
 		Sends a message of type `msgType` to all descendants.
 		
-		If `dispatch` is true, the message will leave the message queue immediately.
+		If `instant` is true, the message will leave the message queue immediately.
 	**/
-	public function sendMessageToDescendants(msgType:Int, dispatch = false)
+	public function sendMessageToDescendants(msgType:Int, instant:Bool = false, ?data:Dynamic)
 	{
-		var q = getMsgQue();
+		var q = Es._messageQueue;
 		var e = firstChild;
 		if (e == null)
 		{
-			q.clrMessage();
+			q.discardMessage();
 			return;
 		}
+		if (data != null) outgoingMessage.data = data;
 		var k = getSize();
-		if (k == 0) dispatch = false;
+		if (k == 0) instant = false;
 		while (k-- > 0)
 		{
 			q.enqueue(this, e, msgType, k, 1);
 			e = e.preorder;
 		}
-		
-		if (dispatch) q.dispatch();
+		if (instant) q.flush();
 	}
 	
 	/**
 		Sends a message of type `msgType` to all children.
 		
-		If `dispatch` is true, the message will leave the message queue immediately.
+		If `instant` is true, the message will leave the message queue immediately.
 	**/
-	public function sendMessageToChildren(msgType:Int, dispatch = false)
+	public function sendMessageToChildren(msgType:Int, instant:Bool = false, ?data:Dynamic)
 	{
-		var q = getMsgQue();
+		var q = Es._messageQueue;
 		var e = firstChild;
 		if (e == null)
 		{
-			q.clrMessage();
+			q.discardMessage();
 			return;
 		}
+		if (data != null) outgoingMessage.data = data;
 		var k = numChildren;
-		if (k == 0) dispatch = false;
+		if (k == 0) instant = false;
 		while (k-- > 0)
 		{
 			q.enqueue(this, e, msgType, k, 1);
 			e = e.sibling;
 		}
-		
-		if (dispatch) q.dispatch();
+		if (instant) q.flush();
 	}
 	
 	/**
@@ -1011,8 +1001,6 @@ class Entity
 		}
 		
 		if (sorted) return;
-		
-		Es._treeChanged = true;
 		
 		var t = lastChild.findLastLeaf().preorder;
 		
@@ -1115,7 +1103,7 @@ class Entity
 		#if flash
 		return untyped __is__(this, clss);
 		#else
-		return getInheritLut().hasPair(type, getEntityType(clss));
+		return Es._superLut.hasPair(type, getEntityType(clss));
 		#end
 	}
 	
@@ -1125,12 +1113,6 @@ class Entity
 	inline function stop()
 	{
 		mBits |= BIT_STOP_PROPAGATION;
-	}
-	
-	public function toString():String
-	{
-		if (name == null) name = '[${ClassUtil.getClassName(this)}]';
-		return '{ Entity $name }';
 	}
 	
 	inline function lookup<T:Entity>(clss:Class<T>):T return Es.lookup(clss);

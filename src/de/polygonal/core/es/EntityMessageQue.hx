@@ -21,356 +21,205 @@ package de.polygonal.core.es;
 import de.polygonal.core.fmt.StringUtil;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.Printf;
-import haxe.ds.Vector;
-
+import de.polygonal.core.util.ClassTools;
+import de.polygonal.ds.ArrayList;
+import de.polygonal.ds.NativeArray;
+import de.polygonal.ds.tools.NativeArrayTools;
 import de.polygonal.core.es.Entity in E;
-import de.polygonal.core.es.EntitySystem in ES;
 
-#if alchemy
-import flash.Memory in Mem;
-#end
-
-using de.polygonal.core.es.EntitySystem;
+using de.polygonal.ds.tools.NativeArrayTools;
 
 /**
 	A messaging system used by the entity system
 **/
 @:access(de.polygonal.core.es.Entity)
-@:access(de.polygonal.core.es.EntityId)
 @:access(de.polygonal.core.es.EntitySystem)
 class EntityMessageQue
 {
-	inline static var MSG_SIZE =
-	#if alchemy
-	//sender+recipient inner: 2*4 bytes
-	//sender+recipient index: 2*2 bytes
-	//type, skip count, message index: 3*2 bytes
-	18; //#bytes
-	#else
-	7; //#32bit integers
-	#end
+	inline static var MAX_BUFFER_SIZE = 0x8000;
+	inline static var MSG_STUB = -1;
+	inline static var MSG_SIZE = 8;
+	inline static var POS_SENDER_INDEX = 0;
+	inline static var POS_SENDER_INNER = 1;
+	inline static var POS_RECIPIENT_INDEX = 2;
+	inline static var POS_RECIPIENT_INNER = 3;
+	inline static var POS_MSG_INDEX = 4;
+	inline static var POS_MSG_TYPE = 5;
+	inline static var POS_SKIP_DIR = 6;
+	inline static var POS_SKIP_COUNT = 7;
 	
-	var mQue:
-	#if alchemy
-	de.polygonal.ds.mem.ByteMemory;
-	#else
-	Vector<Int>;
-	#end
-	
-	var mCapacity:Int;
-	var mSize:Int;
+	var mQue:NativeArray<Int>;
+	var mMessages:NativeArray<EntityMessage>;
+	var mBufferSize:Int;
 	var mFront:Int;
-	var mCurrMsgInIndex:Int;
-	var mCurrMsgOut:EntityMessage;
-	var mFreeMsgIndex:Int;
-	var mMessages:Array<EntityMessage>;
-	var mSending:Bool = false;
+	var mMessageIndex:Int;
+	var mSending:Bool;
+	var mCurrentIncomingMessageIndex:Int;
+	var mCurrentOutgoingMessage:EntityMessage;
 	
-	public function new(capacity:Int)
+	public function new()
 	{
-		mCapacity = capacity;
-		
-		mQue =
-		#if alchemy
-		//id.inner for sender: 4 bytes
-		//id.inner for recipient: 4 bytes
-		//id.index for sender: 2 bytes
-		//id.index for recipient: 2 bytes
-		//type: 2 bytes
-		//remaining: 2 bytes
-		//message index: 2 bytes
-		new de.polygonal.ds.mem.ByteMemory(mCapacity * MSG_SIZE, "entity_system_message_que");
-		#else
-		new Vector<Int>(mCapacity * MSG_SIZE);
-		#end
-		
-		mSize = 0;
+		mQue = NativeArrayTools.alloc(MAX_BUFFER_SIZE * MSG_SIZE);
+		mQue.init(0);
+		mMessages = NativeArrayTools.alloc(MAX_BUFFER_SIZE);
+		mMessages.init(null);
+		mBufferSize = 0;
 		mFront = 0;
-		
-		mFreeMsgIndex = 0;
-		mMessages = new Array<EntityMessage>();
-		
-		#if (verbose && log)
-		L.d('there are ${EntityMessage.countTotalMessages()} message types', "es");
-		#end
+		mMessageIndex = 0;
+		mSending = false;
 	}
 	
-	function getMsgIn():EntityMessage
+	function getIncomingMessage():EntityMessage
 	{
-		if (mCurrMsgInIndex == -1) return null;
-		
-		return mMessages[mCurrMsgInIndex];
+		return mCurrentIncomingMessageIndex < 0 ? null : mMessages.get(mCurrentIncomingMessageIndex);
 	}
 	
-	function getMsgOut():EntityMessage
+	function getOutgoingMessage():EntityMessage
 	{
-		mCurrMsgOut = mMessages[mFreeMsgIndex];
-		if (mCurrMsgOut == null) mCurrMsgOut = mMessages[mFreeMsgIndex] = new EntityMessage();
-		
-		return mCurrMsgOut;
-	}
-	
-	inline function clrMessage()
-	{
-		if (mCurrMsgOut != null)
+		var o = mMessages.get(mMessageIndex);
+		if (o == null)
 		{
-			mCurrMsgOut.mBits = 0;
-			mCurrMsgOut.mObject = null;
-			mCurrMsgOut = null;
+			o = new EntityMessage(mMessageIndex);
+			mMessages.set(mMessageIndex, o);
 		}
+		mCurrentOutgoingMessage = o;
+		return o;
 	}
 	
-	function enqueue(sender:E, recipient:E, type:Int, remaining:Int, dir:Int)
+	function enqueue(sender:E, recipient:E, type:Int, remaining:Int, direction:Int)
 	{
-		assert(sender != null);
-		assert(recipient != null);
+		//direction: 0=direct, 1=descendants 2=ancestors
+		assert(sender != null && recipient != null);
 		assert(type >= 0 && type <= 0xFFFF);
-		assert(mSize < mCapacity, 'message queue exhausted (size=$mSize capacity=$mCapacity)');
+		assert(mBufferSize < MAX_BUFFER_SIZE, "message queue exhausted");
 		
-		var i = (mFront + mSize) % mCapacity;
-		mSize++;
+		#if (debug && verbose == "extra")
+		var senderName = sender.name;
+		if (senderName == null) senderName = ClassTools.getUnqualifiedClassName(sender);
+		if (senderName.length > 30) senderName = StringUtil.ellipsis(senderName, 30, 1, true);
+		var recipientName = recipient.name;
+		if (recipientName == null) recipientName = ClassTools.getUnqualifiedClassName(recipient);
+		if (recipientName.length > 30) recipientName = StringUtil.ellipsis(recipientName, 30, 1, true);
+		var messageName = EntityMessage.resolveName(type);
+		if (messageName.length > 20) messageName = StringUtil.ellipsis(messageName, 20, 1, true);
+		L.d(Printf.format('<- [%30s] -> [%-30s]: [%-20s] (remaining: $remaining)', [senderName, recipientName, messageName]), "es", null);
+		#end
+		
+		var i = (mFront + mBufferSize++) % MAX_BUFFER_SIZE;
+		var p = i * MSG_SIZE;
+		var q = mQue;
 		
 		if (recipient.mBits & (E.BIT_SKIP_MSG | E.BIT_FREED) > 0)
 		{
-			//enqueue message even if recipient doesn't want it;
-			//this is required for properly stopping a message propagation (when an entity calls stop())
-			#if alchemy
-			Mem.setI32(mQue.offset + i * MSG_SIZE, -1);
-			#else
-			mQue[i * MSG_SIZE] = -1;
-			#end
+			//enqueue message even if recipient won't receive it;
+			//required for properly stopping a message propagation (when an entity calls stop())
+			mQue.set(p, MSG_STUB);
 			return;
 		}
 		
-		#if debug
-		#if (verbose == "extra")
-		var senderName = sender.name == null ? "N/A" : sender.name;
-		var recipientName = recipient.name == null ? "N/A" : recipient.name;
+		q.set(p + POS_SENDER_INDEX, sender.id.index);
+		q.set(p + POS_SENDER_INNER, sender.id.inner);
+		q.set(p + POS_RECIPIENT_INDEX, recipient.id.index);
+		q.set(p + POS_RECIPIENT_INNER, recipient.id.inner);
+		q.set(p + POS_MSG_INDEX, mMessageIndex);
+		q.set(p + POS_MSG_TYPE, type);
+		q.set(p + POS_SKIP_DIR, direction);
+		q.set(p + POS_SKIP_COUNT, remaining);
 		
-		if (senderName.length > 30) senderName = StringUtil.ellipsis(senderName, 30, 1, true);
-		if (recipientName.length > 30) recipientName = StringUtil.ellipsis(recipientName, 30, 1, true);
-		
-		var msgName = EntityMessage.name(type);
-		if (msgName.length > 20) msgName = StringUtil.ellipsis(msgName, 20, 1, true);
-		
-		L.d(Printf.format('enqueue message %30s -> %-30s: %-20s (remaining: $remaining)', [senderName, recipientName, msgName]), "es");
-		#end
-		#end
-		
-		if (dir > 0) type |= 0x8000; //dispatch to descendants
-		else
-		if (dir < 0) type |= 0x4000; //dispatch to ancestors
-		
-		var senderId = sender.id;
-		var recipientId = recipient.id;
-		var q = mQue;
-		
-		#if alchemy
-		var addr = q.getAddr(i * MSG_SIZE);
-		Mem.setI32(addr     , senderId.inner);
-		Mem.setI32(addr +  4, recipientId.inner);
-		Mem.setI16(addr +  8, senderId.index);
-		Mem.setI16(addr + 10, recipientId.index);
-		Mem.setI16(addr + 12, type);
-		Mem.setI16(addr + 14, remaining);
-		Mem.setI16(addr + 16, mFreeMsgIndex);
-		#else
-		var addr = i * MSG_SIZE;
-		q[addr    ] = senderId.inner;
-		q[addr + 1] = recipientId.inner;
-		q[addr + 2] = senderId.index;
-		q[addr + 3] = recipientId.index;
-		q[addr + 4] = type;
-		q[addr + 5] = remaining;
-		q[addr + 6] = mFreeMsgIndex;
-		#end
-		
-		//use same message for multiple recipients
-		//increment counter if batch is complete and data is set
-		if (remaining == 0)
+		//use single message instance for multiple recipients
+		if (remaining > 0) return;
+		if (mCurrentOutgoingMessage != null)
 		{
-			if (mCurrMsgOut != null && mCurrMsgOut.mBits > 0)
-			{
-				mCurrMsgOut.mBits |= EntityMessage.USED;
-				mFreeMsgIndex++; 
-				mCurrMsgOut = null;
-			}
+			mCurrentOutgoingMessage = null;
+			mMessageIndex++; 
 		}
 	}
-	
-	function dispatch()
+	function flush()
 	{
-		if (mSize == 0 || mSending) return;
+		if (mBufferSize == 0 || mSending) return;
 		mSending = true;
 		
-		var a = ES._freeList;
+		var a = EntitySystem._freeList, q = mQue, p, sender, recipient;
 		
-		var senderIndex:Int;
-		var senderInner:Int;
-		var recipientIndex:Int;
-		var recipientInner:Int;
-		var type:Int;
-		var skipCount:Int;
-		var sender:Entity;
-		var recipient:Entity;
-		var dir:Int;
-		
-		var q = mQue;
-		var c = mCapacity;
-		
-		#if verbose
-		var numSkippedMessages = 0;
-		var numDispatchedMessages = 0;
-		#end
-		
-		#if (verbose == "extra")
-		if (mSize == 1)
-			L.d("sending one message ...", "es");
-		else
-			L.d('sending $mSize messages ...', "es");
-		#end
-		
-		while (mSize > 0) //while there are buffered messages
+		inline function get(i) return q.get(p + i);
+		inline function getEntity(i) return a.get(get(i));
+		inline function dequeue(n)
 		{
-			#if alchemy
-			var addr        = q.getAddr(mFront * MSG_SIZE);
-			senderInner     = Mem.getI32(addr);
-			recipientInner  = Mem.getI32(addr  +  4);
-			senderIndex     = Mem.getUI16(addr +  8);
-			recipientIndex  = Mem.getUI16(addr + 10);
-			type            = Mem.getUI16(addr + 12);
-			skipCount       = Mem.getUI16(addr + 14);
-			mCurrMsgInIndex = Mem.getUI16(addr + 16);
-			#else
-			var addr        = mFront * MSG_SIZE;
-			senderInner     = q[addr    ];
-			recipientInner  = q[addr + 1];
-			senderIndex     = q[addr + 2];
-			recipientIndex  = q[addr + 3];
-			type            = q[addr + 4];
-			skipCount       = q[addr + 5];
-			mCurrMsgInIndex = q[addr + 6];
-			#end
+			mFront = (mFront + n) % MAX_BUFFER_SIZE;
+			mBufferSize -= n;
+		}
+		
+		while (mBufferSize > 0)
+		{
+			p = mFront * MSG_SIZE;
+			dequeue(1);
 			
-			if (type & 0x8000 > 0)
-			{
-				dir = 1;
-				type &= ~0x8000;
-			}
-			else
-			if (type & 0x4000 > 0)
-			{
-				dir =-1;
-				type &= ~0x4000;
-			}
-			else
-				dir = 0;
+			if (get(POS_SENDER_INDEX) == MSG_STUB) continue;
 			
-			//ignore message?
-			if (senderInner == -1)
+			sender = getEntity(POS_SENDER_INDEX);
+			if (sender == null || sender.id.inner != get(POS_SENDER_INNER))
 			{
-				#if verbose
-				numSkippedMessages++;
-				#end
-				
-				//dequeue
-				mFront = (mFront + 1) % c;
-				mSize--;
+				L.w("Discard message: sender lost");
 				continue;
 			}
 			
-			sender = a[senderIndex];
-			
-			recipient = a[recipientIndex];
-			
-			//dequeue
-			mFront = (mFront + 1) % c;
-			mSize--;
-			
-			if (sender == null || recipient == null || (sender.mBits | recipient.mBits) & E.BIT_FREED > 0)
+			recipient = getEntity(POS_RECIPIENT_INDEX);
+			if (recipient == null || recipient.id.inner != get(POS_RECIPIENT_INNER))
 			{
-				#if verbose
-				numSkippedMessages++;
-				#end
-				
-				#if (verbose == "extra")
-				L.d('sender or recipient gone, skipping message.');
-				#end
+				L.w("Discard message: recipient lost");
 				continue;
 			}
 			
-			#if debug
-			#if (verbose == "extra")
-			var data = mMessages[mCurrMsgInIndex] != null ? mMessages[mCurrMsgInIndex] : null;
+			#if (debug && verbose == "extra")
 			var senderId = sender.name == null ? Std.string(sender.id) : sender.name;
-			var recipientId = recipient.name == null ? Std.string(recipient.id) : recipient.name;
-			
 			if (senderId.length > 30) senderId = StringUtil.ellipsis(senderId, 30, 1, true);
+			var recipientId = recipient.name == null ? Std.string(recipient.id) : recipient.name;
 			if (recipientId.length > 30) recipientId = StringUtil.ellipsis(recipientId, 30, 1, true);
-			
-			var msgName = EntityMessage.name(type);
+			var msgName = EntityMessage.resolveName(get(POS_MSG_TYPE));
 			if (msgName.length > 20) msgName = StringUtil.ellipsis(msgName, 20, 1, true);
-			
-			L.d(Printf.format('message %30s -> %-30s: %-20s $data (remaining: $skipCount)', [senderId, recipientId, msgName, skipCount]), "es");
-			#end
+			L.d(Printf.format('-> [%30s] -> [%-30s]: [%-20s] (remaining: %d)', [senderId, recipientId, msgName, q.get(p + POS_SKIP_COUNT)]), "es", null);
 			#end
 			
-			//notify recipient
-			if (recipient.mBits & (E.BIT_SKIP_MSG | E.BIT_FREED) == 0)
-			{
-				recipient.onMsg(type, sender);
-				
-				#if verbose
-				numDispatchedMessages++;
-				#end
-			}
-			#if verbose
-			else
-				numSkippedMessages++;
-			#end
+			if (recipient.mBits & E.BIT_SKIP_MSG > 0) continue;
+			
+			mCurrentIncomingMessageIndex = get(POS_MSG_INDEX);
+			recipient.onMsg(get(POS_MSG_TYPE), sender);
 			
 			if (recipient.mBits & E.BIT_STOP_PROPAGATION > 0)
 			{
-				if (dir > 0)
-				{
-					//just skip the subtree rooted at the recipient, not the subtree of the sender
-					skipCount = recipient.getSize();
-					
-					#if (verbose == "extra")
-					trace('stop message propagation to descendants at "${recipient.name}" (skipping $skipCount messages)');
-					#end
-				}
-				else
-				if (dir < 0)
-				{
-					#if (verbose == "extra")
-					trace('stop message propagation to ancestors at "${recipient.name}" (skipping $skipCount messages)');
-					#end
-				}
-				
-				//recipient stopped notification;
-				//reset flag and skip remaining messages in current batch
 				recipient.mBits &= ~E.BIT_STOP_PROPAGATION;
-				mFront = (mFront + skipCount) % c;
-				mSize -= skipCount;
+				
+				var direction = get(POS_SKIP_DIR);
+				var skip =
+				if (direction > 0)
+					EntitySystem.getSize(recipient); //skip subtree rooted at the *recipient*, not the sender
+				else
+					get(POS_SKIP_COUNT);
+				
+				dequeue(skip); //skip remaining messages
+				
+				#if (verbose == "extra")
+				if (direction > 0)
+					L.d('Stop message propagation to descendants at entity "${recipient.name}" (skipping $skip messages)', "es");
+				else
+				if (direction < 0)
+					L.d('Stop message propagation to ancestors at entity "${recipient.name}" (skipping $skip messages)', "es");
+				#end
 			}
 		}
 		
-		#if verbose
-		if (numDispatchedMessages + numSkippedMessages > 0)
-			L.d('dispatched $numDispatchedMessages messages (skipped: $numSkippedMessages)', "es");
-		#end
-		
-		//clear messages
-		for (i in 0...mMessages.length)
-		{
-			assert(mMessages[i] != null);
-			mMessages[i].mBits = 0;
-			mMessages[i].mObject = null;
-		}
-		mFreeMsgIndex = 0;
-		mCurrMsgInIndex = -1;
-		
+		for (i in 0...mMessageIndex) mMessages.get(i).data = null;
+		mMessageIndex = 0;
+		mCurrentIncomingMessageIndex = -1;
 		mSending = false;
+	}
+	
+	function discardMessage()
+	{
+		if (mCurrentOutgoingMessage != null)
+		{
+			mCurrentOutgoingMessage.data = null;
+			mCurrentOutgoingMessage = null;
+		}
 	}
 }

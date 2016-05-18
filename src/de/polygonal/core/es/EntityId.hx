@@ -21,14 +21,17 @@ package de.polygonal.core.es;
 /**
 	Every entity can be identifiefd by an unique id
 **/
-@:allow(de.polygonal.core.es.EntitySystem)
 @:keep
 class EntityId
 {
 	public var index(default, null):Int;
 	public var inner(default, null):Int;
 	
-	public function new() {}
+	public function new(inner:Int, index:Int)
+	{
+		this.inner = inner;
+		this.index = index;
+	}
 	
 	public inline function equals(other:EntityId):Bool
 		return index == other.index && inner == other.inner;

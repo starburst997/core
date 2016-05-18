@@ -42,7 +42,7 @@ class MainLoop extends Entity implements IObserver
 	
 	var mBufferedEntities:NativeArray<E>;
 	var mStack:NativeArray<E>;
-	var mPostFlag:NativeArray<Bool>;
+	var mPostFlags:NativeArray<Bool>;
 	var mTop:Int;
 	var mNumBufferedEntities:Int;
 	var mMaxBufferSize:Int;
@@ -59,7 +59,7 @@ class MainLoop extends Entity implements IObserver
 		//multiply by two because every entity can be updated twice (pre/post visit)
 		mBufferedEntities = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
 		mStack = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
-		mPostFlag = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
+		mPostFlags = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
 		mTop = 0;
 		mNumBufferedEntities = 0;
 		mMaxBufferSize = 0;
@@ -84,14 +84,22 @@ class MainLoop extends Entity implements IObserver
 			//process scheduled events
 			Timeline.update();
 			
-			//advance entities
 			var dt:Float = userData;
+			
+			//prune scratch list for gc at regular intervals
+			mElapsedTime += dt;
+			if (mElapsedTime > 30)
+			{
+				mElapsedTime = 0;
+				mBufferedEntities.nullify(mMaxBufferSize);
+				mMaxBufferSize = 0;
+			}
+			
+			//advance entities
 			propagateTick(dt);
 			
-			//dispatch buffered messages
+			//send buffered messages
 			EntitySystem.dispatchMessages();
-			
-			mElapsedTime += dt;
 		}
 		else
 		if (type == TimebaseEvent.DRAW)
@@ -99,27 +107,13 @@ class MainLoop extends Entity implements IObserver
 			//draw all entities
 			var alpha:Float = userData;
 			propagateDraw(alpha);
-			
-			//prune scratch list for gc at regular intervals
-			if (mElapsedTime > 30)
-			{
-				mElapsedTime = 0;
-				mBufferedEntities.nullify(mMaxBufferSize);
-				mMaxBufferSize = 0;
-				mNumBufferedEntities = 0;
-				Es._treeChanged = true;
-			}
 		}
 	}
 	
 	function propagateTick(dt:Float)
 	{
-		var a = mBufferedEntities, p = mPostFlag, e;
-		
-		if (Es._treeChanged)
-			mNumBufferedEntities = bufferEntities();
-		Es._treeChanged = false;
-		
+		var a = mBufferedEntities, p = mPostFlags, e;
+		mNumBufferedEntities = bufferEntities();
 		for (i in 0...mNumBufferedEntities)
 		{
 			e = a.get(i);
@@ -138,14 +132,8 @@ class MainLoop extends Entity implements IObserver
 	
 	function propagateDraw(alpha:Float)
 	{
-		var a = mBufferedEntities;
-		var p = mPostFlag;
-		var e;
-		
-		if (Es._treeChanged)
-			mNumBufferedEntities = bufferEntities();
-		Es._treeChanged = false;
-		
+		var a = mBufferedEntities, p = mPostFlags, e;
+		mNumBufferedEntities = bufferEntities();
 		for (i in 0...mNumBufferedEntities)
 		{
 			e = a.get(i);
@@ -165,9 +153,8 @@ class MainLoop extends Entity implements IObserver
 	function bufferEntities():Int
 	{
 		var a = mBufferedEntities;
-		var p = mPostFlag;
+		var p = mPostFlags;
 		var s = mStack;
-		
 		var k = 0, j = 0, t;
 		var e = firstChild, last = null;
 		while (e != null)
@@ -208,7 +195,6 @@ class MainLoop extends Entity implements IObserver
 		}
 		
 		if (k > mMaxBufferSize) mMaxBufferSize = k;
-		
 		return k;
 	}
 }

@@ -10,9 +10,9 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or
 substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ALL KIND, EXPRESS OR IMPLIED, INCLUDING BUT
 NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ALL CLAIM,
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
@@ -20,10 +20,11 @@ package de.polygonal.core.es;
 
 import de.polygonal.core.math.Mathematics.M;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.ds.BucketList;
-import de.polygonal.ds.NativeArray;
+import de.polygonal.ds.ArrayList;
+import de.polygonal.ds.IntHashTable;
 import de.polygonal.ds.IntIntHashTable;
-import de.polygonal.ds.tools.NativeArrayTools;
+
+using de.polygonal.ds.tools.NativeArrayTools;
 
 /**
 	An entity that can take the part of a subject in the observer pattern
@@ -32,53 +33,45 @@ import de.polygonal.ds.tools.NativeArrayTools;
 **/
 class ObservableEntity extends Entity
 {
-	var mBuckets:BucketList<EntityId>;
-	var mStatus:IntIntHashTable;
-	var mTypeCount:NativeArray<Int>;
-	var mTmpArray1 = new Array<EntityId>();
-	var mTmpArray2 = new Array<Entity>();
+	inline static var ALL = -1;
 	
-	public function new(name:String = null, isGlobal:Null<Bool> = false, bucketSize = 4, shrink = true)
+	var mObserverTable:IntHashTable<ArrayList<EntityId>>;
+	var mState:IntIntHashTable;
+	var mRecipients:ArrayList<Entity>;
+	
+	public function new(name:String = null, isGlobal:Null<Bool> = false)
 	{
 		super(name, isGlobal);
 		
-		var k = EntityMessage.countTotalMessages() + 1; //use zero index to store observers attached to all types
-		mBuckets = new BucketList<EntityId>(M.max(k, 2), bucketSize, shrink);
-		mStatus = new IntIntHashTable(1024, k * 100);
-		
-		mTypeCount = NativeArrayTools.alloc(k);
-		for (i in 0...k) mTypeCount[i] = 0;
+		mObserverTable = new IntHashTable(M.nextPow2(EntityMessage.MAX_ID));
+		mObserverTable.set(ALL, new ArrayList(4));
+		mState = new IntIntHashTable(1024);
+		mRecipients = new ArrayList(16);
 	}
 	
 	override public function free()
 	{
 		super.free();
 		
-		mBuckets.free();
-		mStatus.free();
+		mState.free();
+		mState = null;
 		
-		mBuckets = null;
-		mStatus = null;
-		mTypeCount = null;
-		mTmpArray1 = null;
-		mTmpArray2 = null;
+		for (i in mObserverTable) i.free();
+		mObserverTable.free();
+		mObserverTable = null;
+		mRecipients.free();
+		mRecipients = null;
 	}
 	
-	public function clearObservers()
+	public function attach(entity:Entity, ?msgTypes:Array<Int>, msgType:Int = ALL):Bool
 	{
-		mBuckets.clear();
-		mStatus.clear(true);
+		#if debug
+		if (msgTypes == null && msgType != ALL)
+			assert(EntityMessage.isValid(msgType), "unknown message type");
+		#end
 		
-		for (i in 0...NativeArrayTools.size(mTypeCount)) mTypeCount[i] = 0;
-	}
-	
-	public function attach(e:Entity, ?msgTypes:Array<Int>, msgType:Int = -1):Bool
-	{
-		assert(msgType < EntityMessage.countTotalMessages());
-		
-		var id = e.id;
-		if (id == null) return false; //invalid entity (freed)
-		
+		var id = entity.id;
+		if (id == null) return false;
 		assert(id.inner >= 0);
 		
 		if (msgTypes != null)
@@ -87,206 +80,205 @@ class ObservableEntity extends Entity
 			for (i in msgTypes)
 			{
 				assert(i != -1);
-				success = success && attach(e, null, i);
+				success = success && attach(entity, null, i);
 			}
-			
 			return success;
 		}
 		
-		//an entity can be stored in the global list or the local list, but not in both simultaneously.
-		if (mStatus.hasKey(id.inner)) //is entity attached?
+		inline function add()
 		{
-			if (mStatus.hasPair(id.inner, -1)) //stored in global list?
+			#if verbose
+			if (msgType == ALL)
+				L.d('Entity $entity is now attached to $this');
+			else
+				L.d('Entity $entity is now attached to $this:${EntityMessage.resolveName(msgType)}');
+			#end
+			
+			var list = mObserverTable.get(msgType);
+			if (list == null)
 			{
-				if (msgType == -1) return false; //no change
+				list = new ArrayList(4);
+				mObserverTable.set(msgType, list);
+			}
+			list.pushBack(id);
+		}
+		
+		var s = mState;
+		if (s.hasKey(id.inner)) //attached?
+		{
+			if (s.get(id.inner) == ALL)
+			{
+				//already added to untyped list
+				if (msgType == ALL) return false; //no change
 				
-				//global list -> local list
-				mBuckets.removeAt(0, id);
-				mBuckets.add(msgType + 1, id);
-				
-				mStatus.clrPair(id.inner, -1); 
-				mStatus.set(id.inner, msgType);
-				
-				decCount(-1);
-				incCount(msgType);
-				
+				//remove from untyped list, add to targeted list
+				mObserverTable.get(ALL).remove(id);
+				add();
+				s.remap(id.inner, msgType);
 				return true;
 			}
 			else
 			{
-				if (msgType == -1) //local list(s) -> global list?
+				//already added to targeted list
+				if (msgType == ALL)
 				{
-					var success1 = false;
-					for (i in 1...mBuckets.numBuckets)
-					{
-						if (mBuckets.removeAt(i, id))
-						{
-							success1 = true;
-							decCount(i - 1);
-						}
-					}
-					
-					incCount(-1);
-					
-					while (mStatus.unset(id.inner)) {}
-					
-					mBuckets.add(0, id);
-					mStatus.set(id.inner, -1);
-					
-					return true;
+					//remove from targeted list(s), add to untyped list
+					for (i in mObserverTable) i.remove(id);
+					while (s.unset(id.inner)) {}
 				}
 				else
 				{
-					if (mBuckets.exists(msgType + 1, id)) return false; //no change
-					
-					//add to another local list
-					mBuckets.add(msgType + 1, id);
-					mStatus.set(id.inner, msgType);
-					incCount(msgType);
+					//add to another targeted list
+					var list = mObserverTable.get(msgType);
+					if (list != null && list.contains(id)) return false; //no change
 				}
+				
+				add();
+				s.set(id.inner, msgType);
 			}
 		}
 		else
 		{
-			//added for the first time
-			assert(!mStatus.hasKey(id.inner)); //id must not have a status yet
-			assert(!mBuckets.contains(id)); //id must not be contained in bucket list
-			
-			mBuckets.add(msgType + 1, id);
-			mStatus.set(id.inner, msgType);
-			incCount(msgType);
+			//attach for the first time
+			assert(s.set(id.inner, msgType));
+			add();
 		}
-		
 		return true;
 	}
 	
-	public function detach(e:Entity, ?msgTypes:Array<Int>, msgType:Int = -1):Bool
+	public function detach(entity:Entity, ?msgTypes:Array<Int>, msgType:Int = ALL):Bool
 	{
-		var id = e.id;
-		if (id == null) return false; //invalid entity (freed)
+		#if debug
+		if (msgTypes == null && msgType != ALL)
+			assert(EntityMessage.isValid(msgType), "unknown message type");
+		#end
 		
+		var id = entity.id;
+		if (id == null) return false; //stalled entity; removed when calling dispatch(), clearObservers() or free()
 		assert(id.inner >= 0);
+		
+		var s = mState;
+		if (!s.hasKey(id.inner)) return false; //not attached
 		
 		if (msgTypes != null)
 		{
 			var success = true;
 			for (i in msgTypes)
 			{
-				assert(i != -1);
-				
-				success = success && detach(e, i);
+				assert(i != ALL);
+				success = success && detach(entity, i);
 			}
 			return success;
 		}
 		
-		//check if e is attached
-		
-		var has1 = mStatus.hasKey(id.inner);
-		
-		if (!has1) return false; //quit: not attached
-		
-		if (mStatus.hasPair(id.inner, -1)) //stored in global list?
+		if (s.hasPair(id.inner, ALL))
 		{
-			mBuckets.removeAt(0, id);
-			mStatus.unset(id.inner);
-			decCount(-1);
+			//remove from wild card list
+			mObserverTable.get(ALL).remove(id);
+			s.unset(id.inner);
 			
+			#if verbose
+			L.d('Entity $entity is now detached from $this');
+			#end
 			return true;
+		}
+		
+		//remove from targeted lists
+		var success = false;
+		if (msgType == ALL)
+		{
+			var key = s.get(id.inner);
+			while (key != IntIntHashTable.KEY_ABSENT)
+			{
+				if (s.unset(id.inner))
+				{
+					#if verbose
+					L.d('Entity $entity is now detached from $this:${EntityMessage.resolveName(key)}');
+					#end
+					mObserverTable.get(key).remove(id);
+					success = true;
+				}
+				key = s.get(id.inner);
+			}
 		}
 		else
 		{
-			//must be in local list
-			if (msgType == -1)
+			var list = mObserverTable.get(msgType);
+			if (list != null)
 			{
-				//remove from all local lists
-				var t = mStatus.get(id.inner);
-				while (t != IntIntHashTable.KEY_ABSENT)
-				{
-					if (mStatus.unset(id.inner)) decCount(t);
-					
-					mBuckets.removeAt(t + 1, id);
-					
-					t = mStatus.get(id.inner);
-				}
-				
-				assert(!mStatus.hasKey(id.inner));
+				#if verbose
+				L.d('Entity $entity is now detached from $this:${EntityMessage.resolveName(msgType)}');
+				#end
+				s.unsetPair(id.inner, msgType);
+				success = list.remove(id);
 			}
-			else
-			{
-				var success = mBuckets.removeAt(msgType + 1, id);
-				if (mStatus.clrPair(id.inner, msgType)) decCount(msgType);
-				
-				return success;
-			}
-			
-			return true;
 		}
-	}
-	
-	public function hasObservers(msgType:Int):Bool
-	{
-		return getCount(msgType) > 0;
+		return success;
 	}
 	
 	@:access(de.polygonal.core.es.EntityMessageQue)
 	@:access(de.polygonal.core.es.EntitySystem)
 	public function dispatch(msgType:Int, dispatch = true)
 	{
-		if (getCount(msgType) == 0) return; //early out: no observers
+		#if debug
+		assert(msgType != ALL);
+		assert(EntityMessage.isValid(msgType), "unknown message type");
+		#end
 		
-		var a = mTmpArray1;
-		var b = mTmpArray2;
-		var q = Entity.getMsgQue();
-		var entities = EntitySystem._freeList;
+		var a = mObserverTable.get(ALL);
+		var b = mObserverTable.get(msgType);
 		
-		var k = 0;
-		k += mBuckets.getBucketData(msgType + 1, a, 0);
-		k += mBuckets.getBucketData(0, a, k);
+		var k = a.size + (b != null ? b.size : 0);
+		if (k == 0) return;
 		
-		var e:Entity, id:EntityId;
-		var n = k;
-		var j = 0;
-		var i = 0;
+		var r = mRecipients;
+		r.clear();
+		r.reserve(k);
 		
-		inline function removeAll(id:EntityId)
+		var q = EntitySystem._messageQueue, entities = EntitySystem._freeList, id:EntityId, e;
+		for (i in 0...a.size)
 		{
-			while (mStatus.unset(id.inner)) {}
-			
-			for (i in 0...mBuckets.numBuckets)
+			id = a.get(i);
+			e = entities.get(id.index);
+			if (id.inner < 0 || e == null || id.inner != e.id.inner)
 			{
-				if (mBuckets.removeAt(i, id))
-					decCount(i - 1);
+				a.remove(id);
+				mState.unset(id.inner);
+			}
+			else
+				r.unsafePushBack(e);
+		}
+		
+		if (b != null)
+		{
+			for (i in 0...b.size)
+			{
+				id = b.get(i);
+				e = entities.get(id.index);
+				if (id.inner < 0 || e == null || id.inner != e.id.inner)
+				{
+					for (i in mObserverTable) i.remove(id);
+					while (mState.unset(id.inner)) {}
+				}
+				else
+					r.unsafePushBack(e);
 			}
 		}
 		
-		//remove invalid/obsolete entities
-		while (i < n)
-		{
-			id = a[i++];
-			
-			e = entities[id.index];
-			
-			if (id.inner & 0x80000000 != 0 || id.inner != e.id.inner)
-			{
-				removeAll(id);
-				k--;
-				continue;
-			}
-			
-			b[j++] = e;
-		}
-		
-		//enqueue
-		n = k;
-		i = 0;
-		while (i < n) q.enqueue(this, b[i++], msgType, --k, 0);
-		
+		k = r.size;
+		for (i in 0...r.size) q.enqueue(this, r.get(i), msgType, --k, 0);
 		if (dispatch) EntitySystem.dispatchMessages();
 	}
 	
-	inline function getCount(msgType:Int):Int return mTypeCount.get(0) + mTypeCount.get(msgType + 1);
+	public function clearObservers()
+	{
+		mState.clear();
+		for (i in mObserverTable) i.clear(true);
+		mObserverTable.clear();
+	}
 	
-	inline function incCount(msgType:Int) mTypeCount.set(msgType + 1, mTypeCount.get(msgType + 1) + 1);
-	
-	inline function decCount(msgType:Int) mTypeCount.set(msgType + 1, mTypeCount.get(msgType + 1) - 1);
+	public function hasObservers(msgType:Int):Bool
+	{
+		return mObserverTable.hasKey(msgType);
+	}
 }
