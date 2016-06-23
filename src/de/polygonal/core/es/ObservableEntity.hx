@@ -71,11 +71,12 @@ class ObservableEntity extends Entity
 		#end
 		
 		var id = entity.id;
-		if (id == null) return false;
+		if (id == null) return false; //invalid entity, quit
 		assert(id.inner >= 0);
 		
 		if (msgTypes != null)
 		{
+			//invoke attach() for all given message types
 			var success = true;
 			for (i in msgTypes)
 			{
@@ -87,7 +88,7 @@ class ObservableEntity extends Entity
 		
 		inline function add()
 		{
-			#if verbose
+			#if (debug && verbose)
 			if (msgType == ALL)
 				L.d('Entity $entity is now attached to $this');
 			else
@@ -104,14 +105,13 @@ class ObservableEntity extends Entity
 		}
 		
 		var s = mState;
-		if (s.hasKey(id.inner)) //attached?
+		if (s.hasKey(id.inner)) //entity exists?
 		{
-			if (s.get(id.inner) == ALL)
+			if (s.get(id.inner) == ALL) //exists in untargeted list
 			{
-				//already added to untyped list
 				if (msgType == ALL) return false; //no change
 				
-				//remove from untyped list, add to targeted list
+				//shift from untargeted to targeted list
 				mObserverTable.get(ALL).remove(id);
 				add();
 				s.remap(id.inner, msgType);
@@ -119,10 +119,9 @@ class ObservableEntity extends Entity
 			}
 			else
 			{
-				//already added to targeted list
-				if (msgType == ALL)
+				if (msgType == ALL) //exists in targeted list
 				{
-					//remove from targeted list(s), add to untyped list
+					//shift from targeted list(s) to untargeted list
 					for (i in mObserverTable) i.remove(id);
 					while (s.unset(id.inner)) {}
 				}
@@ -140,7 +139,7 @@ class ObservableEntity extends Entity
 		else
 		{
 			//attach for the first time
-			assert(s.set(id.inner, msgType));
+			s.set(id.inner, msgType);
 			add();
 		}
 		return true;
@@ -192,7 +191,7 @@ class ObservableEntity extends Entity
 			{
 				if (s.unset(id.inner))
 				{
-					#if verbose
+					#if (debug && verbose)
 					L.d('Entity $entity is now detached from $this:${EntityMessage.resolveName(key)}');
 					#end
 					mObserverTable.get(key).remove(id);
@@ -206,7 +205,7 @@ class ObservableEntity extends Entity
 			var list = mObserverTable.get(msgType);
 			if (list != null)
 			{
-				#if verbose
+				#if (debug && verbose)
 				L.d('Entity $entity is now detached from $this:${EntityMessage.resolveName(msgType)}');
 				#end
 				s.unsetPair(id.inner, msgType);
