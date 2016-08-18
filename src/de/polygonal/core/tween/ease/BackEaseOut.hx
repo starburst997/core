@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics;
 
 /**
 	Back easing out
@@ -36,7 +36,7 @@ class BackEaseOut implements Interpolation<Float>
 	**/
 	public function new(overshoot = .1)
 	{
-		this.overshoot = M.lerp(0, 17.0158, overshoot);
+		this.overshoot = Mathematics.lerp(0, 17.0158, overshoot);
 	}
 	
 	/**

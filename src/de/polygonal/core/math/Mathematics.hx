@@ -18,8 +18,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math;
 
-typedef M = de.polygonal.core.math.Mathematics;
-
 /**
 	Various math functions and constants.
 **/
@@ -540,7 +538,7 @@ class Mathematics
 	**/
 	public inline static function numDigits(x:Float)
 	{
-		return Std.int((x == 0) ? 1 : M.log10(x) + 1);
+		return Std.int((x == 0) ? 1 : log10(x) + 1);
 	}
 	
 	/**

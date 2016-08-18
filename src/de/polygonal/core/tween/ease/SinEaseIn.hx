@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics;
 
 /**
 	Sinusoidal easing in
@@ -35,6 +35,6 @@ class SinEaseIn implements Interpolation<Float>
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return 1 - Math.cos(t * M.PI_OVER_2);
+		return 1 - Math.cos(t * Mathematics.PI_OVER_2);
 	}
 }

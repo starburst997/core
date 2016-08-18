@@ -57,7 +57,7 @@ class EntityMessage
 			var names:Array<String> = Reflect.field(meta, field)[1];
 			for (i in 0...ids.length)
 			{
-						assert(Reflect.field(cl, names[i]) == ids[i]);
+				assert(Reflect.field(cl, names[i]) == ids[i]);
 				#if verbose
 				L.d(de.polygonal.Printf.format("%40s -> %s", [Type.getClassName(cl) + ":" + names[i], ids[i]]));
 				#end

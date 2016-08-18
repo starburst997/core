@@ -19,7 +19,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.math.random;
 
 import de.polygonal.core.math.Limits;
-import de.polygonal.core.math.Mathematics.M;
 
 /**
 	Generates random numbers using the (platform-specific) *Math.random()* implementation.
@@ -41,7 +40,7 @@ class Random
 	{
 		var l = min - .4999;
 		var h = max + .4999;
-		return M.round(l + (h - l) * frand());
+		return Mathematics.round(l + (h - l) * frand());
 	}
 	
 	/**

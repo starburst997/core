@@ -18,8 +18,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math.random;
 
-import de.polygonal.core.math.Mathematics.M;
-
 /**
 	Random number generator base class.
 **/
@@ -71,7 +69,7 @@ class Rng
 	{
 		var l = min - .4999;
 		var h = max + .4999;
-		return M.round(l + (h - l) * randFloat());
+		return Mathematics.round(l + (h - l) * randFloat());
 	}
 	
 	/**

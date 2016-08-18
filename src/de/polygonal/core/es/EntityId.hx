@@ -35,4 +35,11 @@ class EntityId
 	
 	public inline function equals(other:EntityId):Bool
 		return index == other.index && inner == other.inner;
+	
+	#if debug
+	public function toString():String
+	{
+		return '{EntityId: inner=$inner index=$index}';
+	}
+	#end
 }

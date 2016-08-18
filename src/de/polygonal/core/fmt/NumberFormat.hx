@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.fmt;
 
 import de.polygonal.core.math.Limits;
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics;
 import de.polygonal.ds.tools.Bits;
 import de.polygonal.core.util.Assert.assert;
 
@@ -114,7 +114,7 @@ class NumberFormat
 			return "NaN";
 		else
 		{
-			var t = M.exp(10, decimalPlaces);
+			var t = Mathematics.exp(10, decimalPlaces);
 			var s = Std.string(Std.int(x * t) / t);
 			var i = s.indexOf(".");
 			if (i != -1)

@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics;
 import de.polygonal.core.util.Assert.assert;
 
 /**
@@ -60,9 +60,9 @@ class ElasticEaseOut implements Interpolation<Float>
 		else
 		{
 			a = amplitude;
-			s = period / M.PI2 * Math.asin(1 / a);
+			s = period / Mathematics.PI2 * Math.asin(1 / a);
 		}
 		
-		return a * Math.pow(2, -10 * t) * Math.sin((t - s) * M.PI2 / period) + 1;
+		return a * Math.pow(2, -10 * t) * Math.sin((t - s) * Mathematics.PI2 / period) + 1;
 	}
 }

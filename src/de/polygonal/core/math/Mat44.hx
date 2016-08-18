@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.math;
 
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics as M;
 import de.polygonal.core.util.Assert.assert;
 
 /**

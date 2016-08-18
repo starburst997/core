@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.math;
 
 import de.polygonal.core.math.Coord3f;
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics;
 
 /**
 	A 3d vector; a geometric object that has both a magnitude (or length) and direction.
@@ -107,7 +107,7 @@ class Vec3 extends Coord3f
 	public function normalize():Float
 	{
 		var l = length();
-		l = l < M.EPS ? 0 : 1 / l;
+		l = l < Mathematics.EPS ? 0 : 1 / l;
 		x *= l;
 		y *= l;
 		z *= l;

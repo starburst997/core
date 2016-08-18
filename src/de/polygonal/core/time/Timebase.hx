@@ -20,8 +20,8 @@ package de.polygonal.core.time;
 
 import de.polygonal.core.event.IObserver;
 import de.polygonal.core.event.Observable;
+import de.polygonal.core.math.Mathematics;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.core.math.Mathematics.M;
 
 /**
 	A Timebase is a constantly ticking source of time.
@@ -33,7 +33,7 @@ class Timebase
 	**/
 	public inline static function secondsToTicks(seconds:Float):Int
 	{
-		return M.round(seconds / tickRate);
+		return Mathematics.round(seconds / tickRate);
 	}
 	
 	/**

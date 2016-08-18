@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.time;
 
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics;
 
 class Interval
 {
@@ -37,7 +37,7 @@ class Interval
 	public var alpha(get_alpha, never):Float;
 	inline function get_alpha():Float
 	{
-		return M.fmin(mMin / mMax, 1);
+		return Mathematics.fmin(mMin / mMax, 1);
 	}
 	
 	public var finished(get_finished, never):Bool;

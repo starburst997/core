@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics;
 
 /**
 	The "classic" flash easing with an easing value in the range [-100,100]
@@ -33,7 +33,7 @@ class FlashEase implements Interpolation<Float>
 	**/
 	public function new(acceleration:Float)
 	{
-		this.acceleration = M.fclampSym(acceleration, 100) / 100;
+		this.acceleration = Mathematics.fclampSym(acceleration, 100) / 100;
 	}
 	
 	/**

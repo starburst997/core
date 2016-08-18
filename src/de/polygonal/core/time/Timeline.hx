@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.time;
 
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics;
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.ArrayedQueue;
 import de.polygonal.ds.Cloneable;
@@ -274,7 +274,7 @@ class Timeline
 				continue;
 			}
 			
-			n.progress = M.fclamp((now - n.timeStart) / n.duration, 0, 1);
+			n.progress = Mathematics.fclamp((now - n.timeStart) / n.duration, 0, 1);
 			n.onProgress();
 			
 			if (n.isFinished(now))
