@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012-2014 Michael Baczynski, http://www.polygonal.de
+Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -39,7 +39,7 @@ class EntityId
 	#if debug
 	public function toString():String
 	{
-		return '{EntityId: inner=$inner index=$index}';
+		return '[object EntityId: index=$index, inner=$inner]';
 	}
 	#end
 }

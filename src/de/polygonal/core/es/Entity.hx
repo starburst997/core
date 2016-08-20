@@ -140,7 +140,7 @@ class Entity
 		if (isGlobal && name == null) name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
 		
 		#if debug
-		if (name == null) name = "DEBUG_" + ClassTools.getClassName(this);
+		if (name == null) name = "[object " + ClassTools.getClassName(this) + "]";
 		#end
 		
 		this.name = name;
@@ -452,7 +452,6 @@ class Entity
 		if (clss != null)
 		{
 			x = findChild(clss);
-			
 			assert(x != null);
 			remove(x);
 			return;
@@ -476,7 +475,6 @@ class Entity
 		//update size on ancestors
 		var k = x.getSize() + 1;
 		setSize(getSize() - k);
-		
 		var n = parent;
 		while (n != null)
 		{
@@ -501,26 +499,26 @@ class Entity
 		else
 		{
 			//case 2: second to last child is removed
-			var prev = firstChild;
-			while (prev != null) //find predecessor
+			var pre = firstChild;
+			while (pre != null) //find predecessor
 			{
-				if (prev.sibling == x) break;
-				prev = prev.sibling;
+				if (pre.sibling == x) break;
+				pre = pre.sibling;
 			}
 			
-			assert(prev != null);
+			assert(pre != null);
 			
 			//update lastChild
 			if (x.sibling == null)
-				lastChild = prev;
+				lastChild = pre;
 			
-			var i = prev.findLastLeaf();
+			var i = pre.findLastLeaf();
 			var j = x.findLastLeaf();
 			
 			i.preorder = j.preorder;
 			j.preorder = null;
 			
-			prev.sibling = x.sibling;
+			pre.sibling = x.sibling;
 			x.sibling = null;
 		}
 		
@@ -1114,6 +1112,13 @@ class Entity
 	{
 		mBits |= BIT_STOP_PROPAGATION;
 	}
+	
+	#if debug
+	public function toString()
+	{
+		return '[object Entity: name=$name]';
+	}
+	#end
 	
 	inline function lookup<T:Entity>(clss:Class<T>):T return Es.lookup(clss);
 	
