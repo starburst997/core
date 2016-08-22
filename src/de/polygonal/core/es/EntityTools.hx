@@ -48,11 +48,13 @@ class EntityTools
 		var s = "";
 		var a = [root];
 		
+		var size = root.getSize();
+		
 		var e = root.preorder;
-		while (e != null)
+		
+		for (i in 0...size)
 		{
 			a.push(e);
-			
 			e = e.preorder;
 		}
 		
