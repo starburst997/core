@@ -111,7 +111,7 @@ class EntityMacro
 		
 		fields.push(
 		{
-			name: "__getType",
+			name: "_getType",
 			doc: null,
 			meta: [{name: ":noCompletion", pos: p}],
 			access: [APrivate, AOverride],

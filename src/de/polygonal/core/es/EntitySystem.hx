@@ -29,11 +29,13 @@ import haxe.ds.StringMap;
 
 using de.polygonal.ds.tools.NativeArrayTools;
 
+enum CallbackType { OnRegister; OnAdd; OnRemove; OnUnregister; }
+
 /**
 	Manages all active entities
 **/
 @:access(de.polygonal.core.es.Entity)
-@:access(de.polygonal.core.es.EntityMessageQue)
+@:access(de.polygonal.core.es.EntityMessageBuffer)
 class EntitySystem
 {
 	/**
@@ -41,23 +43,25 @@ class EntitySystem
 	**/
 	public static inline var MAX_SUPPORTED_ENTITIES = 0xFFFE;
 	
-	static inline var OFFSET_PREORDER = 0;
-	static inline var OFFSET_PARENT = 1;
-	static inline var OFFSET_FIRST_CHILD = 2;
-	static inline var OFFSET_LAST_CHILD = 3;
-	static inline var OFFSET_SIBLING = 4;
-	static inline var OFFSET_SIZE = 5;
-	static inline var OFFSET_DEPTH = 6;
-	static inline var OFFSET_NUM_CHILDREN = 7;
+	static inline var POS_PREORDER = 0;
+	static inline var POS_PARENT = 1;
+	static inline var POS_FIRST_CHILD = 2;
+	static inline var POS_LAST_CHILD = 3;
+	static inline var POS_SIBLING = 4;
+	static inline var POS_SIZE = 5;
+	static inline var POS_DEPTH = 6;
+	static inline var POS_NUM_CHILDREN = 7;
 	
 	public static var NUM_ACTIVE_ENTITIES(default, null) = 0;
 	
 	static var _freeList:NativeArray<E>;
+	
 	#if alchemy
 	static var _next:de.polygonal.ds.mem.ShortMemory;
 	#else
 	static var _next:NativeArray<Int>;
 	#end
+	
 	//indices [0,3]: parent, child, sibling, last child (indices into free list)
 	//indices [4,7]: size (#descendants), tree depth, #children
 	#if alchemy
@@ -65,12 +69,15 @@ class EntitySystem
 	#else
 	static var _tree:NativeArray<Int>;
 	#end
-	static var _entitiesByName:StringMap<E>;
-	static var _messageQueue:EntityMessageQue;
-	static var _superLut:IntIntHashTable;
+	
+	static var _names:NativeArray<String>;
+	
 	static var _callbacks:NativeArray<ArrayList<Entity->Bool>>;
 	
-	static var _nextInnerId:Int;
+	static var _nameLut:StringMap<E>;
+	static var _superLut:IntIntHashTable;
+	
+	static var _nextInner:Int;
 	static var _free:Int;
 	
 	/**
@@ -80,70 +87,47 @@ class EntitySystem
 		@param maxMessageCount the total capacity of the message queue.
 	**/
 	@:access(de.polygonal.core.es.EntityMessage)
+	@:access(de.polygonal.core.es.EntityMessaging)
 	public static function init(maxEntityCount:Int = 0x8000)
 	{
 		assert(maxEntityCount > 0 && maxEntityCount <= MAX_SUPPORTED_ENTITIES);
 		
-		if (_freeList != null)
-		{
-			//TODO kill
-		/*	for (i in 0..._freeList.size())
-			{
-				if (_freeList.get(i) != null)
-				{
-					_freeList.get(i).preorder = null;
-					_freeList.get(i).id = null;
-				}
-			}
-			
-			_freeList.nullify();
-			_freeList = null;
-			
-			#if alchemy
-			_tree.free();
-			_next.free();
-			#end
-			
-			_tree = null;
-			_entitiesByName = null;
-			_next = null;
-			_nextInnerId = 0;
-			_superLut.free();
-			_superLut = null;*/
-		}
-		
-		EntityMessage.init();
-		
-		_freeList = NativeArrayTools.alloc(1 + maxEntityCount); //index 0 is reserved for NULL
+		assert(_freeList == null);
 		
 		//first element is stored at index=1 (0 is reserved for NULL)
+		_freeList = NativeArrayTools.alloc(1 + maxEntityCount); 
 		#if alchemy
-		_next = new de.polygonal.ds.mem.ShortMemory(1 + maxEntityCount, "es_freelist_shorts");
+		_next = new de.polygonal.ds.mem.ShortMemory(1 + maxEntityCount, "es_freelist_i16");
 		#else
 		_next = NativeArrayTools.alloc(1 + maxEntityCount);
 		#end
 		for (i in 1...maxEntityCount) _next.set(i, i + 1);
 		_next.set(maxEntityCount, -1);
-		
 		#if alchemy
-		_tree = new de.polygonal.ds.mem.ShortMemory((1 + maxEntityCount) << 3, "topology");
+		_tree = new de.polygonal.ds.mem.ShortMemory((1 + maxEntityCount) * 8, "es_topology_i16");
 		#else
-		_tree = NativeArrayTools.alloc((1 + maxEntityCount) << 3);
+		_tree = NativeArrayTools.alloc((1 + maxEntityCount) * 8);
 		_tree.init(0);
 		#end
 		
-		_entitiesByName = new StringMap<E>();
-		_messageQueue = new EntityMessageQue();
-		_superLut = new IntIntHashTable(1024);
-		_callbacks = NativeArrayTools.alloc(3);
-		for (i in 0...3) _callbacks.set(i, new ArrayList());
+		_names = NativeArrayTools.alloc(1 + maxEntityCount);
 		
-		_nextInnerId = 0;
+		var k = CallbackType.getConstructors().length;
+		_callbacks = NativeArrayTools.alloc(k);
+		for (i in 0...k) _callbacks.set(i, new ArrayList<Entity->Bool>());
+
+		EntityMessage.init();
+		EntityMessaging.init();
+		
+		_nameLut = new StringMap<E>();
+		_superLut = new IntIntHashTable(1024);
+		
+		_nextInner = 0;
 		_free = 1;
 	}
 	
 	#if debug
-	public static function printAll():String
+	public static function print():String
 	{
 		var s = "";
 		var args = new Array<Dynamic>();
@@ -153,7 +137,7 @@ class EntitySystem
 			if (a[i] != null)
 			{
 				var name = Std.string(a[i]);
-				if (a[i].mBits & Entity.BIT_IS_GLOBAL > 0) name += " GLOBAL";
+				if (a[i].mBits & Entity.BIT_IS_GLOBAL > 0) name += " [GLOBAL]";
 				args[0] = i;
 				args[1] = name;
 				s += Printf.format("% 5d: %s\n", args);
@@ -164,73 +148,46 @@ class EntitySystem
 	#end
 	
 	/**
-		Dispatches all queued messages.
+		Returns the global entity that matches the given `name`. If `name` is omitted, "`clss`.ENTITY_NAME" is used.
 	**/
-	public static inline function dispatchMessages()
+	public static function lookup<T:Entity>(?name:String, ?clss:Class<T>):T
 	{
-		_messageQueue.flush();
-	}
-	
-	/**
-		Returns the entity that matches the given `name` or null if such an entity does not exist.
-	**/
-	public static inline function findByName<T:Entity>(name:String):T
-	{
-		return cast _entitiesByName.get(name);
-	}
-	
-	/**
-		Returns the entity whose name is set to `clss`::ENTITY_NAME or null if such an entity does not exist.
-	**/
-	public static inline function lookup<T:Entity>(clss:Class<T>):T
-	{
-		var name =
-		#if flash
-		untyped clss.ENTITY_NAME;
-		#elseif js
-		untyped clss["ENTITY_NAME"]; //TODO not needed
-		#else
-		Reflect.field(clss, "ENTITY_NAME");
-		#end
-		return cast _entitiesByName.get(name);
-	}
-	
-	/**
-		Returns the entity that matches the given `id` or null if such an entity does not exist.
-	**/
-	public static inline function findById(id:EntityId):E
-	{
-		if (id.index > 0)
+		assert(name != null || clss != null);
+		
+		if (name == null)
 		{
-			var e = _freeList.get(id.index);
-			if (e != null)
-				return (e.id.inner == id.inner) ? e : null;
-			else
-				return null;
+			name =
+			#if flash
+			untyped clss.ENTITY_NAME;
+			#elseif js
+			untyped clss["ENTITY_NAME"];
+			#else
+			Reflect.field(clss, "ENTITY_NAME");
+			#end
 		}
-		else
-			return null;
+		
+		return cast _nameLut.get(name);
 	}
 	
-	public static function onCreate(f:Entity->Bool)
+	public static function registerCallback(type:CallbackType, func:Entity->Bool)
 	{
-		_callbacks[0].add(f);
+		_callbacks[type.getIndex()].add(func);
 	}
 	
-	public static function onAdd(f:Entity->Bool)
+	public static function unregisterCallback(type:CallbackType, func:Entity->Bool)
 	{
-		_callbacks[1].add(f);
+		_callbacks[type.getIndex()].remove(func);
 	}
 	
-	public static function onRemove(f:Entity->Bool)
+	@:access(de.polygonal.core.es.EntityMessage)
+	public static function gc()
 	{
-		_callbacks[2].add(f);
+		EntityMessage.gc();
 	}
 	
-	static function register(e:E, isGlobal:Bool)
+	static function register(e:E, name:String, global:Bool)
 	{
 		if (_freeList == null) init();
-		assert(e.id == null, "Entity already registered");
 		
 		var i = _free;
 		
@@ -239,18 +196,24 @@ class EntitySystem
 		_free = _next.get(i);
 		_freeList.set(i, e);
 		
-		e.id = new EntityId(_nextInnerId++, i);
+		assert(e.id == null, "already registered");
+		e.id = new EntityId(_nextInner++, i);
 		
-		if (isGlobal)
+		if (global)
 		{
-			assert(e.name != null);
-			assert(!_entitiesByName.exists(e.name), "Entity \"" + ClassTools.getUnqualifiedClassName(e) + "\" already mapped to \"" + e.name + "\"");
-			_entitiesByName.set(e.name, e);
+			assert(!_nameLut.exists(name), "Entity \"" + ClassTools.getUnqualifiedClassName(e) + "\" already mapped to \"" + name + "\"");
+			_nameLut.set(name, e);
 			e.mBits |= E.BIT_IS_GLOBAL;
 			#if verbose
-			L.d("Entity \"" + ClassTools.getClassName(e) + "\" is now globally accessible by the name \"" + e.name + "\"", "es");
+			L.d("Entity \"" + ClassTools.getClassName(e) + "\" mapped to \"" + name + "\"", "es");
 			#end
 		}
+		
+		#if debug
+		e.name = name;
+		#else
+		setName(e, name);
+		#end
 		
 		var lut = _superLut;
 		if (!lut.hasKey(e.type))
@@ -265,8 +228,12 @@ class EntitySystem
 			}
 		}
 		
-		onCallback(e, 0);
 		NUM_ACTIVE_ENTITIES++;
+		testCallbacks(e, CallbackType.OnRegister);
+		
+		#if verbose
+		L.d('Registered $e', "es");
+		#end
 	}
 	
 	@:access(de.polygonal.core.es.EntityId)
@@ -274,43 +241,51 @@ class EntitySystem
 	{
 		assert(e.id != null);
 		
-		var i = e.id.index;
+		var index = e.id.index;
 		
 		//nullify for gc
-		_freeList.set(i, null);
+		_freeList.set(index, null);
 		
-		var pos = i << 3;
+		//zero out topology
+		var pos = index << 3;
 		for (i in 0...8) _tree.set(pos + i, 0);
 		
-		//mark as free
-		_next.set(i, _free);
-		_free = i;
+		//vacate slot, mark as free
+		_next.set(index, _free);
+		_free = index; //TODO store in queue?
 		
-		//don't forget to nullify preorder pointer
-		e.preorder = null;
-		
-		//remove from name => entity mapping
+		//remove <name,entity> mapping
 		if (e.mBits & E.BIT_IS_GLOBAL > 0)
 		{
-			_entitiesByName.remove(e.name);
+			_nameLut.remove(e.name);
 			e.mBits &= ~E.BIT_IS_GLOBAL;
 		}
 		
-		//mark as removed by setting msb to one
+		e.mBits |= E.BIT_FREED | E.BIT_SKIP_DRAW | E.BIT_SKIP_TICK | E.BIT_SKIP_SUBTREE;
+		
+		//mark as freed by setting msb
 		e.id.inner |= 0x80000000;
+		
+		//nullify id for gc
 		e.id = null;
 		
 		NUM_ACTIVE_ENTITIES--;
+		testCallbacks(e, CallbackType.OnUnregister);
+		
+		#if verbose
+		L.d('Unregistered $e', "es");
+		#end
 	}
 	
-	static function onCallback(e:Entity, type:Int)
+	static function testCallbacks(e:Entity, type:CallbackType)
 	{
-		var a = _callbacks[type];
+		var a = _callbacks[type.getIndex()];
+		if (a.isEmpty()) return;
 		var i = 0;
 		var k = a.size;
 		while (i < k)
 		{
-			if (a.get(i)(e))
+			if (!a.get(i)(e))
 			{
 				a.swapPop(i);
 				k--;
@@ -320,149 +295,109 @@ class EntitySystem
 		}
 	}
 	
-	static function freeEntityTree(e:E)
+	static function freeSubtree(e:E)
 	{
-		if (getSize(e) < 512)
-			freeRecursive(e); //postorder traversal
-		else
-			freeIterative(e); //inverse levelorder traversal
+		//bottom-up order: push all, then pop
+		var a = [];
+		while (e != null)
+		{
+			a.push(e);
+			e = e.next;
+		}
+		for (i in 0...a.length)
+		{
+			e = a.pop();
+			e.mBits |= E.BIT_FREED | E.BIT_SKIP_DRAW | E.BIT_SKIP_TICK | E.BIT_SKIP_SUBTREE;
+			e.onFree();
+			unregister(e);
+		}
 	}
 	
-	static inline function getPreorder(e:E):E
+	static inline function getName(e:E):String
 	{
-		return _freeList.get(_tree.get(pos(e, OFFSET_PREORDER)));
+		assert(e.id != null);
+		return _names.get(e.id.index);
 	}
-	static inline function setPreorder(e:E, value:E)
+	static inline function setName(e:E, name:String)
 	{
-		_tree.set(pos(e, OFFSET_PREORDER), value == null ? 0 : value.id.index);
+		assert(e.id != null);
+		_names.set(e.id.index, name);
+	}
+	
+	static inline function getNext(e:E):E
+	{
+		return _freeList.get(_tree.get(pos(e, POS_PREORDER)));
+	}
+	static inline function setNext(e:E, value:E)
+	{
+		_tree.set(pos(e, POS_PREORDER), value == null ? 0 : value.id.index);
 	}
 	
 	static inline function getParent(e:E):E
 	{
-		return _freeList.get(_tree.get(pos(e, OFFSET_PARENT)));
+		return _freeList.get(_tree.get(pos(e, POS_PARENT)));
 	}
 	static inline function setParent(e:E, value:E)
 	{
-		_tree.set(pos(e, OFFSET_PARENT), value == null ? 0 : value.id.index);
+		_tree.set(pos(e, POS_PARENT), value == null ? 0 : value.id.index);
 	}
 	
 	static inline function getFirstChild(e:E):E
 	{
-		return _freeList.get(_tree.get(pos(e, OFFSET_FIRST_CHILD)));
+		return _freeList.get(_tree.get(pos(e, POS_FIRST_CHILD)));
 	}
 	static inline function setFirstChild(e:E, value:E)
 	{
-		_tree.set(pos(e, OFFSET_FIRST_CHILD), value == null ? 0 : value.id.index);
+		_tree.set(pos(e, POS_FIRST_CHILD), value == null ? 0 : value.id.index);
 	}
 	
 	static inline function getLastChild(e:E):E
 	{
-		return _freeList.get(_tree.get(pos(e, OFFSET_LAST_CHILD)));
+		return _freeList.get(_tree.get(pos(e, POS_LAST_CHILD)));
 	}
 	static inline function setLastChild(e:E, value:E)
 	{
-		_tree.set(pos(e, OFFSET_LAST_CHILD), value == null ? 0 : value.id.index);
+		_tree.set(pos(e, POS_LAST_CHILD), value == null ? 0 : value.id.index);
 	}
 	
 	static inline function getSibling(e:E):E
 	{
-		return _freeList.get(_tree.get(pos(e, OFFSET_SIBLING)));
+		return _freeList.get(_tree.get(pos(e, POS_SIBLING)));
 	}
 	static inline function setSibling(e:E, value:E)
 	{
-		_tree.set(pos(e, OFFSET_SIBLING), value == null ? 0 : value.id.index);
+		_tree.set(pos(e, POS_SIBLING), value == null ? 0 : value.id.index);
 	}
 	
 	public static inline function getSize(e:E):Int
 	{
-		return _tree.get(pos(e, OFFSET_SIZE));
+		return _tree.get(pos(e, POS_SIZE));
 	}
 	static inline function setSize(e:E, value:Int)
 	{
-		_tree.set(pos(e, OFFSET_SIZE), value);
+		_tree.set(pos(e, POS_SIZE), value);
 	}
 	
 	static inline function getDepth(e:E):Int
 	{
-		return _tree.get(pos(e, OFFSET_DEPTH));
+		return _tree.get(pos(e, POS_DEPTH));
 	}
 	static inline function setDepth(e:E, value:Int)
 	{
-		_tree.set(pos(e, OFFSET_DEPTH), value);
+		_tree.set(pos(e, POS_DEPTH), value);
 	}
 	
-	static inline function getNumChildren(e:E):Int
+	static inline function getChildCount(e:E):Int
 	{
-		return _tree.get(pos(e, OFFSET_NUM_CHILDREN));
+		return _tree.get(pos(e, POS_NUM_CHILDREN));
 	}
-	static inline function setNumChildren(e:E, value:Int)
+	static inline function setChildCount(e:E, value:Int)
 	{
-		_tree.set(pos(e, OFFSET_NUM_CHILDREN), value);
+		_tree.set(pos(e, POS_NUM_CHILDREN), value);
 	}
 	
 	static inline function pos(e:E, shift:Int):Int
 	{
 		return (e.id.index << 3) + shift;
-	}
-   	
-	static function freeRecursive(e:E)
-	{
-		var n = e.firstChild;
-		while (n != null)
-		{
-			var sibling = n.sibling;
-			freeRecursive(n);
-			n = sibling;
-		}
-		e.mBits |= E.BIT_FREED;
-		e.onFree();
-		unregister(e);
-		
-		#if verbose
-		L.d("Entity \"" + ClassTools.getUnqualifiedClassName(e) + "\" freed", "es");
-		#end
-	}
-	
-	static function freeIterative(e:E)
-	{
-		var k = getSize(e) + 1;
-		var a = new Array<E>();
-		var q = [e];
-		var i = 0;
-		var s = 1;
-		var j, c;
-		while (i < s)
-		{
-			j = q[i++];
-			a[--k] = j; //add in reverse order
-			c = j.firstChild;
-			while (c != null)
-			{
-				q[s++] = c;
-				c = c.sibling;
-			}
-		}
-		for (e in a)
-		{
-			e.mBits |= E.BIT_FREED;
-			e.onFree();
-			unregister(e);
-			#if verbose
-			L.d("Entity \"" + ClassTools.getUnqualifiedClassName(e) + "\" freed", "es");
-			#end
-		}
-	}
-	
-	static inline function findLastLeaf(e:Entity):Entity
-	{
-		//find bottom-most, right-most entity in the subtree e
-		while (e.firstChild != null) e = getLastChild(e);
-		return e;
-	}
-	
-	static inline function nextSubtree(e:Entity):Entity
-	{
-		var t = e.sibling;
-		return t != null ? t : findLastLeaf(e).preorder;
 	}
 }

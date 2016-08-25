@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.es;
 
 /**
-	Every entity can be identifiefd by an unique id
+	Every entity can be identified by an unique id
 **/
 @:keep
 class EntityId
@@ -32,9 +32,6 @@ class EntityId
 		this.inner = inner;
 		this.index = index;
 	}
-	
-	public inline function equals(other:EntityId):Bool
-		return index == other.index && inner == other.inner;
 	
 	#if debug
 	public function toString():String

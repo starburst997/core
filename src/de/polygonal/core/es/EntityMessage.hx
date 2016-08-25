@@ -20,22 +20,39 @@ package de.polygonal.core.es;
 
 import de.polygonal.core.util.Assert.assert;
 import de.polygonal.core.util.ClassTools;
+import de.polygonal.ds.ArrayList;
+import de.polygonal.ds.tools.ObjectPool;
+
+import de.polygonal.core.es.Entity as E;
 
 /**
 	Entities communicate through messages.
 	
 	A message object stores the message content.
 **/
-@:allow(de.polygonal.core.es.EntityMessageQue)
+@:allow(de.polygonal.core.es.EntityMessageBuffer)
 @:allow(de.polygonal.core.es.ObservableEntity)
+@:access(de.polygonal.core.es.Entity)
+
 class EntityMessage
 {
+	#if debug
+	static var _nameLut = new Array<String>();
+	public static function resolveName(messageId:Int):String return _nameLut[messageId];
+	public static function isValid(messageId:Int):Bool return _nameLut[messageId] != null;
+	#end
+	
+	inline static var FLAG_STOP_PROPAGATION = 0x01;
+	inline static var FLAG_STOP_IMMEDIATE_PROPAGATION = 0x02;
+	
 	public static var MESSAGE_COUNT(default, null) = 0;
 	public static var MAX_ID(default, null) = 0;
 	
 	static inline function getGroup(msgType:Int) return (msgType - (msgType & (32 - 1))) >> 5;
 	
-	static function init()
+	@:noCompletion static var mMessages:ObjectPool<EntityMessage> = null;
+	
+	@:noCompletion static function init()
 	{
 		var meta = haxe.rtti.Meta.getType(EntityMessage);
 		
@@ -47,6 +64,8 @@ class EntityMessage
 		MESSAGE_COUNT = cast o[0];
 		MAX_ID = cast o[1];
 		
+		mMessages = new ObjectPool<EntityMessage>(function() return new EntityMessage());
+		
 		#if debug
 		var fields = Reflect.fields(meta);
 		for (field in fields)
@@ -57,7 +76,7 @@ class EntityMessage
 			var names:Array<String> = Reflect.field(meta, field)[1];
 			for (i in 0...ids.length)
 			{
-				assert(Reflect.field(cl, names[i]) == ids[i]);
+				assert(Reflect.field(cl, names[i]) == ids[i]); //TODO cl is null with inner classes
 				#if verbose
 				L.d(de.polygonal.Printf.format("%40s -> %s", [Type.getClassName(cl) + ":" + names[i], ids[i]]));
 				#end
@@ -65,19 +84,49 @@ class EntityMessage
 			}
 		}
 		#end
-	} 
+	}
+	
+	@:noCompletion static function gc()
+	{
+		for (message in mMessages)
+		{
+			message.data = null;
+			message.sender = null;
+		}
+	}
+	
+	@:noCompletion static function get(type:Int, data:{}, sender:Entity):EntityMessage
+	{
+		var o = mMessages.get();
+		o.type = type;
+		o.data = data;
+		o.sender = sender;
+		return o;
+	}
+	
+	@:noCompletion static function put(message:EntityMessage)
+	{
+		mMessages.put(message);
+	}
+	
+	public var type(default, null):Int;
+	public var data(default, null):{};
+	public var sender(default, null):Entity;
+	
+	@:noCompletion var mFlags:Int;
+	
+	public function new() {}
+	
+	@:extern inline public function stopPropagation() mFlags |= FLAG_STOP_PROPAGATION;
+	@:extern inline public function stopImmediatePropagation() mFlags |= FLAG_STOP_PROPAGATION | FLAG_STOP_IMMEDIATE_PROPAGATION;
 	
 	#if debug
-	static var _nameLut = new Array<String>();
-	public static function resolveName(messageId:Int):String return _nameLut[messageId];
-	public static function isValid(messageId:Int):Bool return _nameLut[messageId] != null;
-	#end
-	
-	public var id(default, null):Int;
-	public var data:Dynamic;
-	
-	public function new(id:Int)
+	public function toString():String
 	{
-		this.id = id;
+		var name = resolveName(type);
+		name = (name != null) ? 'name=$name[$type]' : 'type=$type';
+		var data = data != null ? ', data=$data' : '';
+		return '[object EntityMessage: $name$data, sender=${sender.name}]';
 	}
+	#end
 }

@@ -30,6 +30,7 @@ import de.polygonal.ds.NativeArray;
 import de.polygonal.ds.tools.NativeArrayTools;
 
 using de.polygonal.core.es.EntitySystem;
+using de.polygonal.core.es.EntityTools;
 using de.polygonal.ds.tools.NativeArrayTools;
 
 /**
@@ -50,7 +51,7 @@ class MainLoop extends Entity implements IObserver
 	
 	public function new()
 	{
-		assert(Es.lookup(MainLoop) == null, "MainLoop instance already created, use EntitySystem.lookup(MainLoop);");
+		assert(Es.lookupByClass(MainLoop) == null, "MainLoop instance already created, use EntitySystem.lookup(MainLoop);");
 		
 		super(MainLoop.ENTITY_NAME, true);
 		
@@ -95,16 +96,13 @@ class MainLoop extends Entity implements IObserver
 				mMaxBufferSize = 0;
 			}
 			
-			//advance entities
 			propagateTick(dt);
 			
-			//send buffered messages
-			EntitySystem.dispatchMessages();
+			EntityMessaging.flushBuffer();
 		}
 		else
 		if (type == TimebaseEvent.DRAW)
 		{
-			//draw all entities
 			var alpha:Float = userData;
 			propagateDraw(alpha);
 		}
@@ -117,7 +115,7 @@ class MainLoop extends Entity implements IObserver
 		for (i in 0...mNumBufferedEntities)
 		{
 			e = a.get(i);
-			if (e.mBits & (E.BIT_SKIP_TICK | E.BIT_FREED | E.BIT_NO_PARENT) == 0)
+			if (e.mBits & (E.BIT_SKIP_TICK | E.BIT_FREED | E.BIT_PARENTLESS) == 0)
 			{
 				if (p.get(i)) //post-subtree update?
 				{
@@ -137,7 +135,7 @@ class MainLoop extends Entity implements IObserver
 		for (i in 0...mNumBufferedEntities)
 		{
 			e = a.get(i);
-			if (e.mBits & (E.BIT_SKIP_DRAW | E.BIT_FREED | E.BIT_NO_PARENT) == 0)
+			if (e.mBits & (E.BIT_SKIP_DRAW | E.BIT_FREED | E.BIT_PARENTLESS) == 0)
 			{
 				if (p.get(i)) //post-subtree update?
 				{
@@ -161,7 +159,7 @@ class MainLoop extends Entity implements IObserver
 		{
 			if (e.mBits & E.BIT_SKIP_SUBTREE != 0)
 			{
-				e = e.nextSubtree();
+				e = e.getNextSubtree();
 				continue;
 			}
 			
@@ -183,7 +181,7 @@ class MainLoop extends Entity implements IObserver
 				k++;
 			}
 			
-			e = e.preorder;
+			e = e.next;
 		}
 		
 		while (j > 0)
