@@ -19,12 +19,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.event;
 
 import de.polygonal.core.event.Observable;
-import de.polygonal.core.fmt.StringUtil;
+import de.polygonal.core.fmt.StringTools;
 import de.polygonal.ds.ArrayedStack;
 import de.polygonal.ds.tools.Bits;
 import de.polygonal.ds.HashableItem;
 import de.polygonal.ds.ListSet;
-import de.polygonal.ds.pooling.DynamicObjectPool;
 import haxe.ds.Vector;
 import haxe.ds.IntMap;
 
@@ -53,7 +52,7 @@ class Observable extends HashableItem implements IObservable
 		for (observable in _getRegistry())
 		{
 			c += observable.size();
-			s += Printf.format("%-20s -> %s\n", [StringUtil.ellipsis(Std.string(observable), 20, 0), observable.size()]);
+			s += Printf.format("%-20s -> %s\n", [StringTools.ellipsis(Std.string(observable), 20, 0), observable.size()]);
 		}
 		return Printf.format("#observers: %03d\n", [c]) + s;
 	}
@@ -83,59 +82,6 @@ class Observable extends HashableItem implements IObservable
 		var c = 0;
 		for (observable in _getRegistry()) c += observable.size();
 		return c;
-	}
-	
-	/**
-		Calls the function `func` whenever `source` triggers an update of one type specified in `mask`.
-		Example:
-		<pre class="prettyprint">
-		import de.polygonal.core.event.Observable;
-		import de.polygonal.core.time.Timbase;
-		import de.polygonal.core.time.TimbaseEvent;
-		class Main {
-		    static function main() {
-		        var func = function(type, userData) {
-		            if (type == TimebaseEvent.TICK) {
-		                trace("tick");
-		                return false; //stop TICK updates, but keep RENDER updates
-		            }
-		            if (type == TimebaseEvent.RENDER) {
-		                trace("render");
-		                return true; //keep alive
-		            }
-		        }
-		        Observable.bind(func, Timebase.get(), TimebaseEvent.TICK | TimebaseEvent.RENDER);
-		    }
-		}
-		</pre>
-	**/
-	public static function bind(func:Int->Dynamic->Bool, source:IObservable, mask = 0)
-	{
-		source.attach(Bind.get(func, mask), mask);
-	}
-	
-	/**
-		Delegates `IObserver.onUpdate()` to the given function `func`, as long as `func` returns true.
-		Example:
-		<pre class="prettyprint">
-		import de.polygonal.core.event.Observable;
-		import de.polygonal.core.time.TimbaseEvent;
-		class Main
-		{
-		    static function main() {
-		        var func = function(type:Int, source:Observable, userData:Dynamic):Bool {
-		            trace(type);
-		            return false; //detach from event source
-		        }
-		        var observable = new Observable();
-		        observable.attach(Observable.delegate(func));
-		    }
-		}
-		</pre>
-	**/
-	public static function delegate(func:Int->IObservable->Dynamic->Bool):IObserver
-	{
-		return Delegate.get(func);
 	}
 	
 	var _source:IObservable;
@@ -714,101 +660,5 @@ private class ObservableIterator<T>
 		var val = _walker.observer;
 		_walker = _walker.next;
 		return val;
-	}
-}
-
-private class Bind implements IObserver
-{
-	static var _pool:DynamicObjectPool<Bind>;
-	public static function get(f:Int->Dynamic->Bool, mask:Int):Bind
-	{
-		if (_pool == null)
-			_pool = new DynamicObjectPool<Bind>(Bind, null, null, 1024);
-		
-		#if verbose
-		if (_pool.capacity() == _pool.size)
-			L.d("observable bind pool exhausted");
-		#end
-		
-		var o = _pool.get();
-		o._f = f;
-		o._g = mask & ObserverMacro.GROUP_MASK;
-		o._t = mask & ObserverMacro.EVENT_MASK;
-		return o;
-	}
-	
-	var _f:Int->Dynamic->Bool;
-	var _g:Int;
-	var _t:Int;
-	
-	public function onUpdate(type:Int, source:IObservable, userData:Dynamic)
-	{
-		if (_t != 0)
-		{
-			if (_g != (type & ObserverMacro.GROUP_MASK)) return;
-			if (_t & (type & ObserverMacro.EVENT_MASK) == 0) return;
-		}
-		
-		if (_f(type, userData)) return;
-		
-		_t &= ~(type & ObserverMacro.EVENT_MASK);
-		source.detach(this, type);
-		if (_t != 0) return;
-		
-		_f = null;
-		_pool.put(this);
-		
-		#if verbose
-		L.d("returning observable bind object");
-		#end
-		
-		if (_pool.used() == 0)
-		{
-			#if verbose
-			L.d("reclaiming observable bind pool");
-			#end
-			_pool.reclaim();
-		}
-	}
-}
-
-private class Delegate implements IObserver
-{
-	static var _pool:DynamicObjectPool<Delegate>;
-	public static function get(f:Int->IObservable->Dynamic->Bool):Delegate
-	{
-		if (_pool == null) _pool = new DynamicObjectPool<Delegate>(Delegate, null, null, 256);
-		
-		#if verbose
-		if (_pool.capacity() == _pool.size)
-			L.d("observable delegate pool exhausted");
-		#end
-		
-		var o = _pool.get();
-		o._f = f;
-		return o;
-	}
-	
-	var _f:Int->IObservable->Dynamic->Bool;
-	
-	public function onUpdate(type:Int, source:IObservable, userData:Dynamic)
-	{
-		if (_f(type, source, userData)) return;
-		
-		source.detach(this);
-		_f = null;
-		_pool.put(this);
-		
-		#if verbose
-		L.d("returning observable delegate object");
-		#end
-		
-		if (_pool.used() == 0)
-		{
-			#if verbose
-			L.d("reclaiming observable delegate pool");
-			#end
-			_pool.reclaim();
-		}
 	}
 }

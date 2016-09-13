@@ -22,11 +22,23 @@ import de.polygonal.core.fmt.Ascii;
 import de.polygonal.core.math.random.Random;
 import de.polygonal.core.util.Assert.assert;
 
+import StringTools in HaxeStringTools;
+
 /**
 	Various utility functions for working with strings
 **/
-class StringUtil
+class StringTools
 {
+	static function nthOccurence(ereg:EReg, s:String, n:Int):String
+	{
+		for (i in 0...n)
+		{
+			ereg.match(s);
+			s = ereg.matchedRight();
+		}
+		return ereg.matched(0);
+	}
+	
 	/**
 		Returns true if the string `x` consists of whitespace characters only.
 	**/
@@ -229,7 +241,7 @@ class StringUtil
 			else if (c <= 0xFFFF) 3;
 			else if (c <= 0x10FFFF) 4;
 			else
-				throw 'Invalid Unicode character : 0x${StringTools.hex(c)}';
+				throw 'Invalid Unicode character : 0x${HaxeStringTools.hex(c)}';
 		}
 		
 		return n;
