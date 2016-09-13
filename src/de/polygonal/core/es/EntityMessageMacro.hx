@@ -125,22 +125,12 @@ class EntityMessageMacro
 		
 		#if debug
 		//add meta for resolving message names at run time
-		var r = ~/(.*?)\.(\w+)$/;
-		var resolveName = //for reflection
-			if (r.match(module))
-			{
-				if (r.matched(2) != name) //private class?
-					r.matched(1) + "._" + r.matched(2) + "." + name;
-				else
-					module;
-			}
+		var resolveName =
+		if (cl.pack.length > 0)
+				cl.pack.join(".") + "." + name;
 			else
-			{
-				if (module == name)
-					name;
-				else //private class?
-					"_" + module + "." + name;
-			}
+				module;
+		
 		switch (Context.getModule("de.polygonal.core.es.EntityMessage")[0])
 		{
 			case TInst(t, params):
