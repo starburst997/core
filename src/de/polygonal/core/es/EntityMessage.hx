@@ -54,6 +54,8 @@ class EntityMessage
 	
 	@:noCompletion static function init()
 	{
+		mMessages = new ObjectPool<EntityMessage>(function() return new EntityMessage());
+		
 		var meta = haxe.rtti.Meta.getType(EntityMessage);
 		
 		var s = Type.getClassName(EntityMessage);
@@ -63,8 +65,6 @@ class EntityMessage
 		
 		MESSAGE_COUNT = cast o[0];
 		MAX_ID = cast o[1];
-		
-		mMessages = new ObjectPool<EntityMessage>(function() return new EntityMessage());
 		
 		#if debug
 		var fields = Reflect.fields(meta);
