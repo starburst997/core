@@ -7,6 +7,7 @@ import de.polygonal.ds.tools.ObjectPool;
 import haxe.Timer;
 
 using de.polygonal.core.es.EntitySystem;
+using de.polygonal.ds.tools.NativeArrayTools;
 
 @:access(de.polygonal.core.es.EntitySystem)
 @:access(de.polygonal.core.es.EntityMessage)
@@ -37,17 +38,17 @@ class EntityMessaging
 		mMessageBuffer.sendToMultiple(sender, recipients, type, data);
 	}
 	
-	public static inline function sendBufferedToChildren(root:E, type:Int, ?data:Dynamic)
+	public static inline function sendBufferedToChildren(root:E, type:Int, ?data:{})
 	{
 		mMessageBuffer.sendToChildren(root, type, data);
 	}
 	
-	public static inline function sendBufferedToDescedants(root:E, type:Int, ?data:Dynamic)
+	public static inline function sendBufferedToDescedants(root:E, type:Int, ?data:{})
 	{
 		mMessageBuffer.sendToDescandants(root, type, data);
 	}
 	
-	public static inline function sendBufferedToAncestors(root:E, type:Int, ?data:Dynamic)
+	public static inline function sendBufferedToAncestors(root:E, type:Int, ?data:{})
 	{
 		mMessageBuffer.sendToAncestors(root, type, data);
 	}
@@ -67,18 +68,14 @@ class EntityMessaging
 		EntityMessage.put(message);
 	}
 	
-	/*public static function sendToMany(sender:E, recipients:ArrayList<E>, type:Int, ?data:{})
+	public static function sendToMultiple(sender:E, recipients:ArrayList<E>, type:Int, ?data:{})
 	{
-		var m = mMessage;
-		m.type = type; m.data = data; m.sender = sender;
-		
-		for (i in 0...recipients.size)
-		{
-			
-		}
-	}*/
+		var message = EntityMessage.get(type, data, sender);
+		for (i in 0...recipients.size) recipients.get(i).onMessage(message);
+		EntityMessage.put(message);
+	}
 	
-	public static function sendToChildren(root:E, type:Int, ?data:Dynamic)
+	public static function sendToChildren(root:E, type:Int, ?data:{})
 	{
 		assert(root != null);
 		
@@ -87,31 +84,38 @@ class EntityMessaging
 		if (e == null) return;
 		
 		var message = EntityMessage.get(type, data, root);
-		
 		var k = root.childCount;
-		var a = createList();
-		var i = 0;
+		var l = mLists.get().reserve(k);
+		var d = l.getData();
+		var i;
+		
+		i = 0;
 		while (i < k)
 		{
-			a[i++] = e;
+			d.set(i, e);
 			e = e.sibling;
+			i++;
 		}
 		
 		i = 0;
 		while (i < k)
 		{
-			a[i++].onMessage(message);
+			d.get(i).onMessage(message);
+			d.set(i, null);
+			i++;
 			if (message.mFlags & EntityMessage.FLAG_STOP_PROPAGATION > 0)
 			{
 				message.mFlags = 0;
+				while (i < k) d.set(i++, null);
 				break;
 			}
 		}
 		
+		mLists.put(l);
 		EntityMessage.put(message);
 	}
 	
-	public static function sendToDescedants(root:E, type:Int, ?data:Dynamic)
+	public static function sendToDescedants(root:E, type:Int, ?data:{})
 	{
 		assert(root != null);
 		
@@ -120,14 +124,17 @@ class EntityMessaging
 		if (e == null) return;
 		
 		var message = EntityMessage.get(type, data, root);
-		
 		var k = root.getSize();
-		var a = createList();
+		var l = mLists.get().reserve(k);
+		var d = l.getData();
+		var i, j;
+		var immediate;
 		var b = [];
-		var i = 0;
+		
+		i = 0;
 		while (i < k)
 		{
-			a[i] = e;
+			d.set(i, e);
 			b[i] = e.getSize();
 			i++;
 			e = e.next;
@@ -136,21 +143,30 @@ class EntityMessaging
 		i = 0;
 		while (i < k)
 		{
-			a[i++].onMessage(message);
+			d.get(i).onMessage(message);
+			d.set(i, null);
+			i++;
 			if (message.mFlags & EntityMessage.FLAG_STOP_PROPAGATION > 0)
 			{
-				var immediate = message.mFlags & EntityMessage.FLAG_STOP_IMMEDIATE_PROPAGATION > 0;
+				immediate = message.mFlags & EntityMessage.FLAG_STOP_IMMEDIATE_PROPAGATION > 0;
 				message.mFlags = 0;
-				if (immediate) break;
+				if (immediate)
+				{
+					while (i < k) d.set(i++, null);
+					break;
+				}
+				j = i;
 				i += b[i - 1];
+				while (j < i) d.set(j++, null);
 				continue;
 			}
 		}
 		
+		mLists.put(l);
 		EntityMessage.put(message);
 	}
 	
-	public static function sendToAncestors(root:E, type:Int, ?data:Dynamic)
+	public static function sendToAncestors(root:E, type:Int, ?data:{})
 	{
 		assert(root != null);
 		
@@ -160,44 +176,34 @@ class EntityMessaging
 		
 		var message = EntityMessage.get(type, data, root);
 		
-		/*while (e != null)
-		{
-			e.onMessage(message);
-			if (message.mFlags & EntityMessage.FLAG_STOP_PROPAGATION > 0)
-			{
-				message.mFlags = 0;
-				break;
-			}
-			e = e.parent;
-		}*/
-		
 		var k = root.getDepth();
-		var a = createList();
-		var i = 0;
-		while (i < k)
-		{
-			a[i++] = e;
-			e = e.parent;
-		}
+		var l = mLists.get().reserve(k);
+		var d = l.getData();
+		var i;
+		
 		i = 0;
 		while (i < k)
 		{
-			e = a[i++];
-			e.onMessage(message);
+			d.set(i, e);
+			e = e.parent;
+			i++;
+		}
+		
+		i = 0;
+		while (i < k)
+		{
+			d.get(i).onMessage(message);
+			d.set(i, null);
+			i++;
 			if (message.mFlags & EntityMessage.FLAG_STOP_PROPAGATION > 0)
 			{
+				while (i < k) d.set(i++, null);
 				message.mFlags = 0;
 				break;
 			}
 		}
 		
+		mLists.put(l);
 		EntityMessage.put(message);
-	}
-	
-	static function createList():Array<Entity>
-	{
-		//trace('create list ');
-		
-		return [];
 	}
 }
