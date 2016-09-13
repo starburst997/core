@@ -480,9 +480,9 @@ class EntityTools
 	{
 		var sibling = entity.sibling;
 		if (sibling != null)
-			sibling;
+			return sibling;
 		else
-			getLastLeaf(entity).next;
+			return getLastLeaf(entity).next;
 	}
 	
 	/**

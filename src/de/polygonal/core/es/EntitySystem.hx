@@ -185,7 +185,7 @@ class EntitySystem
 		EntityMessage.gc();
 	}
 	
-	static function register(e:E, name:String, global:Bool)
+	static function register(entity:E, name:String, global:Bool)
 	{
 		if (_freeList == null) init();
 		
@@ -194,33 +194,33 @@ class EntitySystem
 		assert(i != -1);
 		
 		_free = _next.get(i);
-		_freeList.set(i, e);
+		_freeList.set(i, entity);
 		
-		assert(e.id == null, "already registered");
-		e.id = new EntityId(_nextInner++, i);
+		assert(entity.id == null, "already registered");
+		entity.id = new EntityId(_nextInner++, i);
 		
 		if (global)
 		{
-			assert(!_nameLut.exists(name), "Entity \"" + ClassTools.getUnqualifiedClassName(e) + "\" already mapped to \"" + name + "\"");
-			_nameLut.set(name, e);
-			e.mBits |= E.BIT_IS_GLOBAL;
+			assert(!_nameLut.exists(name), "Entity \"" + ClassTools.getUnqualifiedClassName(entity) + "\" already mapped to \"" + name + "\"");
+			_nameLut.set(name, entity);
+			entity.mBits |= E.BIT_IS_GLOBAL;
 			#if verbose
-			L.d("Entity \"" + ClassTools.getClassName(e) + "\" mapped to \"" + name + "\"", "es");
+			L.d("Entity \"" + ClassTools.getClassName(entity) + "\" mapped to \"" + name + "\"", "es");
 			#end
 		}
 		
 		#if debug
-		e.name = name;
+		entity.name = name;
 		#else
-		setName(e, name);
+		setName(entity, name);
 		#end
 		
 		var lut = _superLut;
-		if (!lut.hasKey(e.type))
+		if (!lut.hasKey(entity.type))
 		{
-			var t = e.type;
+			var t = entity.type;
 			lut.set(t, t);
-			var sc:Class<E> = Reflect.field(Type.getClass(e), "SUPER_CLASS");
+			var sc:Class<E> = Reflect.field(Type.getClass(entity), "SUPER_CLASS");
 			while (sc != null)
 			{
 				_superLut.set(t, E.getEntityType(sc));
@@ -229,19 +229,19 @@ class EntitySystem
 		}
 		
 		NUM_ACTIVE_ENTITIES++;
-		testCallbacks(e, CallbackType.OnRegister);
+		testCallbacks(entity, CallbackType.OnRegister);
 		
 		#if verbose
-		L.d('Registered $e', "es");
+		L.d('registered $entity', "es");
 		#end
 	}
 	
 	@:access(de.polygonal.core.es.EntityId)
-	static function unregister(e:E)
+	static function unregister(entity:E)
 	{
-		assert(e.id != null);
+		assert(entity.id != null);
 		
-		var index = e.id.index;
+		var index = entity.id.index;
 		
 		//nullify for gc
 		_freeList.set(index, null);
@@ -255,25 +255,25 @@ class EntitySystem
 		_free = index; //TODO store in queue?
 		
 		//remove <name,entity> mapping
-		if (e.mBits & E.BIT_IS_GLOBAL > 0)
+		if (entity.mBits & E.BIT_IS_GLOBAL > 0)
 		{
-			_nameLut.remove(e.name);
-			e.mBits &= ~E.BIT_IS_GLOBAL;
+			_nameLut.remove(entity.name);
+			entity.mBits &= ~E.BIT_IS_GLOBAL;
 		}
 		
-		e.mBits |= E.BIT_FREED | E.BIT_SKIP_DRAW | E.BIT_SKIP_TICK | E.BIT_SKIP_SUBTREE;
+		entity.mBits |= E.BIT_FREED | E.BIT_SKIP_DRAW | E.BIT_SKIP_TICK | E.BIT_SKIP_SUBTREE;
 		
 		//mark as freed by setting msb
-		e.id.inner |= 0x80000000;
+		entity.id.inner |= 0x80000000;
 		
 		//nullify id for gc
-		e.id = null;
+		entity.id = null;
 		
 		NUM_ACTIVE_ENTITIES--;
-		testCallbacks(e, CallbackType.OnUnregister);
+		testCallbacks(entity, CallbackType.OnUnregister);
 		
 		#if verbose
-		L.d('Unregistered $e', "es");
+		L.d('unregistered $entity', "es");
 		#end
 	}
 	

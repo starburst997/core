@@ -51,7 +51,7 @@ class MainLoop extends Entity implements IObserver
 	
 	public function new()
 	{
-		assert(Es.lookupByClass(MainLoop) == null, "MainLoop instance already created, use EntitySystem.lookup(MainLoop);");
+		assert(Es.lookup(MainLoop) == null, "MainLoop instance already created, use EntitySystem.lookup(MainLoop);");
 		
 		super(MainLoop.ENTITY_NAME, true);
 		
