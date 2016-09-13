@@ -166,6 +166,7 @@ class Entity
 	**/
 	public function free()
 	{
+		if (id == null) return;
 		if (mBits & BIT_FREED > 0) return;
 		if (parent != null) parent.remove(this);
 		Es.freeSubtree(this);
