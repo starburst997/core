@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.tween;
 
 import de.polygonal.core.tween.ease.Ease;
-import de.polygonal.ds.ArrayUtil;
+import de.polygonal.ds.tools.ArrayTools;
 
 using Reflect;
 
@@ -39,8 +39,9 @@ class GenericTween extends Tween implements TweenTarget
 		else
 		if (Std.is(field, Array))
 		{
-			_fields = ArrayUtil.alloc(field.length);
-			_fields = ArrayUtil.copy(field, _fields);
+			throw 'verify';
+			_fields = ArrayTools.alloc(field.length);
+			_fields = field.copy(); //TODO verify
 		}
 		else
 			throw "invalid/unsupported field";

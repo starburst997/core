@@ -302,7 +302,7 @@ class Timebase
 				mAccumulator = mAccumulatorLimit;
 			}
 			
-			gameTimeDelta = tickRate * timeScale;
+			var ticked = false;
 			while (mAccumulator >= tickRate)
 			{
 				mAccumulator -= tickRate;
@@ -310,8 +310,11 @@ class Timebase
 				elapsedGameTime += gameTimeDelta;
 				observable.notify(TimebaseEvent.TICK, gameTimeDelta);
 				numTickCalls++;
+				ticked = true;
 				if (mPaused) break;
 			}
+			
+			if (!ticked) return;
 			
 			if (mPaused) return;
 			

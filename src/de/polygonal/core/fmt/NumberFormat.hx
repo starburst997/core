@@ -47,6 +47,7 @@ class NumberFormat
 			x >>= 1;
 		}
 		
+		//TODO not all byte delimiters printed with leadingZeros=true
 		if (leadingZeros)
 			for (i in 0...32 - n)
 				s = "0" + s;

@@ -23,7 +23,7 @@ import de.polygonal.core.event.IObserver;
 import de.polygonal.core.event.Observable;
 import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.ChangeRange;
-import de.polygonal.core.math.Mathematics.M;
+import de.polygonal.core.math.Mathematics;
 import de.polygonal.core.time.Timebase;
 import de.polygonal.core.time.TimebaseEvent;
 import de.polygonal.core.time.Timeline;
@@ -31,7 +31,7 @@ import de.polygonal.core.time.TimelineListener;
 import de.polygonal.core.tween.ease.Ease;
 import de.polygonal.core.tween.ease.EaseFactory;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.ds.Da;
+import de.polygonal.ds.ArrayList;
 import haxe.ds.StringMap;
 
 /**
@@ -39,7 +39,7 @@ import haxe.ds.StringMap;
 **/
 class Tween implements IObservable implements IObserver implements TimelineListener
 {
-	static var _activeTweens:Da<Tween>;
+	static var _activeTweens:ArrayList<Tween>;
 	static var _map:StringMap<Tween>;
 	
 	/**
@@ -76,7 +76,7 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	public static function createEaseFunc(from:Float, to:Float, ease:Ease):Float->Float
 	{
 		var ease = EaseFactory.create(ease);
-		return function (alpha:Float):Float return M.lerp(from, to, ease.interpolate(alpha));
+		return function (alpha:Float):Float return Mathematics.lerp(from, to, ease.interpolate(alpha));
 	}
 	
 	/**
@@ -282,7 +282,7 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	{
 		if (_id == -1) return;
 		var alpha:Float = userData;
-		_target.set(M.lerp(_a, _b, alpha));
+		_target.set(Mathematics.lerp(_a, _b, alpha));
 	}
 	
 	function onInstant(id:Int, iteration:Int)
@@ -291,9 +291,9 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	
 	function onStart(id:Int, iteration:Int)
 	{
-		if (_activeTweens == null) _activeTweens = new Da<Tween>();
+		if (_activeTweens == null) _activeTweens = new ArrayList<Tween>();
 		_activeTweens.pushBack(this);
-		if (_interpolate) Timebase.attach(this, TimebaseEvent.RENDER);
+		if (_interpolate) Timebase.attach(this, TimebaseEvent.DRAW);
 		_a = _b = _min;
 		if (!_interpolate) _target.set(_b);
 		notify(TweenEvent.START, _min);
@@ -302,7 +302,7 @@ class Tween implements IObservable implements IObserver implements TimelineListe
 	function onProgress(alpha:Float)
 	{
 		if (_id == -1) return;
-		_a = _b; _b = M.lerp(_min, _max, _ease.interpolate(alpha));
+		_a = _b; _b = Mathematics.lerp(_min, _max, _ease.interpolate(alpha));
 		if (!_interpolate) _target.set(_b);
 		notify(TweenEvent.ADVANCE, _b);
 	}

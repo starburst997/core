@@ -26,7 +26,7 @@ import de.polygonal.ds.Dll;
 import de.polygonal.ds.Heap;
 import de.polygonal.ds.Heapable;
 import de.polygonal.ds.IntHashTable;
-import de.polygonal.ds.pooling.ObjectPool;
+import de.polygonal.ds.tools.ObjectPool;
 
 /**
 	A service that can schedule time intervals to run after a given delay for a given amount of time, or periodically.
@@ -36,7 +36,7 @@ import de.polygonal.ds.pooling.ObjectPool;
 @:access(de.polygonal.core.time.TimelineListener)
 class Timeline
 {
-	public static var DEFAULT_POOL_SIZE = 4096;
+	public static var MAX_POOL_SIZE = 4096;
 	
 	static var mInitialized = false;
 	static var mNextId:Int;
@@ -64,8 +64,7 @@ class Timeline
 		mPendingIntervals = new Heap<TimelineNode>();
 		mIntervalLut = new IntHashTable<TimelineNode>(1 << 16);
 		
-		mNodePool = new ObjectPool<TimelineNode>(DEFAULT_POOL_SIZE);
-		mNodePool.allocate(true, TimelineNode);
+		mNodePool = new ObjectPool<TimelineNode>(function() return new TimelineNode(), MAX_POOL_SIZE);
 	}
 	
 	public static function free()
@@ -78,6 +77,7 @@ class Timeline
 		mPendingIntervals.free();
 		mIntervalLut.free();
 		
+		for (i in mNodePool) i.listener = null;
 		mNodePool.free();
 		
 		mBufferedIntervals = null;
@@ -114,19 +114,7 @@ class Timeline
 			
 		var id = mNextId++;
 		
-		var node:TimelineNode;
-		
-		if (mNodePool.isEmpty())
-		{
-			L.w("pool exhausted");
-			node = new TimelineNode();
-		}
-		else
-		{
-			var poolId = mNodePool.next();
-			node = mNodePool.get(poolId);
-			node.poolId = poolId;
-		}
+		var node:TimelineNode = mNodePool.get();
 		
 		var now = Timebase.elapsedTime;
 		
@@ -139,7 +127,8 @@ class Timeline
 		node.timeFinish = node.timeStart + duration;
 		
 		node.iteration = 0;
-		node.listener = listener;
+		//node.listener = listener;
+		node.listener = new TimelineListenerWrapper(listener);
 		
 		mBufferedIntervals.enqueue(node);
 		mIntervalLut.set(node.id, node);
@@ -194,11 +183,8 @@ class Timeline
 		
 		inline function reuse(x:TimelineNode)
 		{
-			if (x.poolId != -1)
-			{
-				x.listener = null;
-				mNodePool.put(x.poolId);
-			}
+			x.listener = null;
+			mNodePool.put(x);
 		}
 		
 		var lut = mIntervalLut;
@@ -298,6 +284,42 @@ class Timeline
 	}
 }
 
+
+private class TimelineListenerWrapper implements TimelineListener
+{
+	var listener:TimelineListener;
+	
+	public function new(listener:TimelineListener)
+	{
+		this.listener = listener;
+	}
+	
+	private function onInstant(id:Int, iteration:Int):Void
+	{
+		listener.onInstant(id, iteration);
+	}
+	
+	private function onStart(id:Int, iteration:Int):Void
+	{
+		listener.onStart(id, iteration);
+	}
+	
+	private function onProgress(alpha:Float):Void
+	{
+		listener.onProgress(alpha);
+	}
+	
+	private function onFinish(id:Int, iteration:Int):Void
+	{
+		listener.onFinish(id, iteration);
+	}
+	
+	private function onCancel(id:Int):Void
+	{
+		listener.onCancel(id);
+	}
+}
+
 @:publicFields
 @:access(de.polygonal.core.time.TimelineListener)
 private class TimelineNode implements Heapable<TimelineNode> implements Cloneable<TimelineNode>
@@ -314,7 +336,6 @@ private class TimelineNode implements Heapable<TimelineNode> implements Cloneabl
 	var iteration:Int;
 	
 	var id:Int;
-	var poolId:Int = -1;
 	var position:Int;
 	
 	var listener:TimelineListener;
