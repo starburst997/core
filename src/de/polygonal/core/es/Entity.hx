@@ -467,7 +467,7 @@ class Entity
 		return EntityTools.findAncestor(this, name, clss);
 	
 	#if !debug @:extern #end
-	inline public function sortByPhase() sortChildren(comparePhase);
+	inline public function sortChildrenByPhase() sortChildren(comparePhase);
 	
 	/**
 		Convenience method for casting this Entity to the type `clss`.

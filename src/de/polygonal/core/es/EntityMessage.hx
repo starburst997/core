@@ -120,6 +120,12 @@ class EntityMessage
 	@:extern inline public function stopPropagation() mFlags |= FLAG_STOP_PROPAGATION;
 	@:extern inline public function stopImmediatePropagation() mFlags |= FLAG_STOP_PROPAGATION | FLAG_STOP_IMMEDIATE_PROPAGATION;
 	
+	@:extern inline public function field<T>(field:String):T
+	{
+		assert(Reflect.hasField(data, field), 'message data is missing property "$field"');
+		return Reflect.field(data, field);
+	}
+	
 	#if debug
 	public function toString():String
 	{
