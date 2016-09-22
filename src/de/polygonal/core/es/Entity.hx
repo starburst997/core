@@ -93,9 +93,11 @@ class Entity
 	#if debug
 	public var name(default, null):String;
 	#else
-	public var name(get, never):String;
+	public var name(get, set):String;
 	#if !debug @:extern #end
 	@:noCompletion inline function get_name():String { assert(id != null); return getName(); }
+	#if !debug @:extern #end
+	@:noCompletion inline function set_name(value:String):String { assert(id != null); setName(value); return value; }
 	#end
 	
 	/**
