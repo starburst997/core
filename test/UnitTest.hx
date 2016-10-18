@@ -10,7 +10,7 @@ class UnitTest extends haxe.unit.TestRunner
 	public function new()
 	{
 		super();
-		
+		add(new TestEntity());
 		add(new TestMersenne());
 		run();
 	}

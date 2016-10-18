@@ -1,10 +1,9 @@
-package;
-
 import de.polygonal.core.es.Entity;
-import de.polygonal.core.es.EntitySystem;
+import de.polygonal.core.es.EntitySystem as Es;
 import haxe.unit.TestCase;
+import haxe.unit.TestRunner;
 
-using de.polygonal.core.es.EntityIterator;
+using de.polygonal.core.es.EntityTools;
 
 @:access(de.polygonal.core.es.Entity)
 @:access(de.polygonal.core.es.EntitySystem)
@@ -13,7 +12,7 @@ class TestEntity extends TestCase
 	public function new()
 	{
 		super();
-		EntitySystem.init();
+		Es.init();
 	}
 	
 	function testSize()
@@ -31,12 +30,12 @@ class TestEntity extends TestCase
 			d.add(e);
 			d.add(f);
 			
-		assertEquals(a.size, 5);
-		assertEquals(b.size, 0);
-		assertEquals(c.size, 0);
-		assertEquals(d.size, 2);
-		assertEquals(e.size, 0);
-		assertEquals(f.size, 0);
+		assertEquals(Es.getSize(a), 5);
+		assertEquals(Es.getSize(b), 0);
+		assertEquals(Es.getSize(c), 0);
+		assertEquals(Es.getSize(d), 2);
+		assertEquals(Es.getSize(e), 0);
+		assertEquals(Es.getSize(f), 0);
 		
 		var s = new Entity("s");
 			var b = new Entity("b");
@@ -49,11 +48,11 @@ class TestEntity extends TestCase
 		var a = new Entity("a");
 		a.add(s);
 		
-		assertEquals(a.size, 4);
-		assertEquals(s.size, 3);
-		assertEquals(b.size, 0);
-		assertEquals(c.size, 0);
-		assertEquals(d.size, 0);
+		assertEquals(Es.getSize(a), 4);
+		assertEquals(Es.getSize(s), 3);
+		assertEquals(Es.getSize(b), 0);
+		assertEquals(Es.getSize(c), 0);
+		assertEquals(Es.getSize(d), 0);
 	}
 	
 	function testGetChildAt()
@@ -82,13 +81,78 @@ class TestEntity extends TestCase
 		d.free();
 	}
 	
+	function testRemoveChildren()
+	{
+		var o = new E("o");
+			var h = new E("h");
+			var r = new E("r");
+				var a = new E("a");
+					var aa = new E("aa");
+					var ab = new E("ab");
+					var ac = new E("ac");
+					a.add(aa);
+					a.add(ab);
+					a.add(ac);
+				var b = new E("b");
+					var ba = new E("ba");
+					var bb = new E("bb");
+					var bc = new E("bc");
+					b.add(ba);
+					b.add(bb);
+					b.add(bc);
+				var c = new E("c");
+					var ca = new E("ca");
+					var cb = new E("cb");
+					var cc = new E("cc");
+					c.add(ca);
+					c.add(cb);
+					c.add(cc);
+			r.add(a);
+			r.add(b);
+			r.add(c);
+			var t = new E("t");
+		o.add(h);
+		o.add(r);
+		o.add(t);
+		
+		r.removeChildren();
+		
+		assertEquals("o,h,r,t", printPreorder(o));
+		assertEquals("a,aa,ab,ac", printPreorder(a));
+		assertEquals("b,ba,bb,bc", printPreorder(b));
+		assertEquals("c,ca,cb,cc", printPreorder(c));
+		
+		assertEquals(0, r.childCount);
+		
+		assertEquals(null, r.firstChild);
+		assertEquals(null, r.lastChild);
+		
+		assertEquals(0, Es.getSize(r));
+		assertEquals(3, Es.getSize(o));
+		
+		assertEquals(0, Es.getDepth(a));
+		assertEquals(1, Es.getDepth(aa));
+		assertEquals(1, Es.getDepth(ab));
+		assertEquals(1, Es.getDepth(ac));
+		
+		assertEquals(0, Es.getDepth(b));
+		assertEquals(1, Es.getDepth(ba));
+		assertEquals(1, Es.getDepth(bb));
+		assertEquals(1, Es.getDepth(bc));
+		
+		assertEquals(0, Es.getDepth(c));
+		assertEquals(1, Es.getDepth(ca));
+		assertEquals(1, Es.getDepth(cb));
+		assertEquals(1, Es.getDepth(cc));
+	}
+	
 	function testRemove1()
 	{
 		var a = new E("a");
 		var b = new E("b");
 		a.add(b);
 		a.remove(b);
-		assertEquals("a", printPreOrder(a));
+		assertEquals("a", printPreorder(a));
 		
 		var a = new E("a");
 		var b = new E("b");
@@ -97,9 +161,9 @@ class TestEntity extends TestCase
 		a.add(c);
 		
 		a.remove(c);
-		assertEquals("a,b", printPreOrder(a));
+		assertEquals("a,b", printPreorder(a));
 		a.remove(b);
-		assertEquals("a", printPreOrder(a));
+		assertEquals("a", printPreorder(a));
 	}
 	
 	function testRemove2()
@@ -110,11 +174,11 @@ class TestEntity extends TestCase
 		a.add(b);
 		b.add(c);
 		
-		assertEquals("a,b,c", printPreOrder(a));
+		assertEquals("a,b,c", printPreorder(a));
 		
 		a.remove(b);
-		assertEquals("a", printPreOrder(a));
-		assertEquals("b,c", printPreOrder(b));
+		assertEquals("a", printPreorder(a));
+		assertEquals("b,c", printPreorder(b));
 		
 		var a = new E("a");
 		var b = new E("b");
@@ -123,11 +187,11 @@ class TestEntity extends TestCase
 		b.add(c);
 		var d = new E("d");
 		a.add(d);
-		assertEquals("a,b,c,d", printPreOrder(a));
+		assertEquals("a,b,c,d", printPreorder(a));
 		
 		a.remove(b);
-		assertEquals("a,d", printPreOrder(a));
-		assertEquals("b,c", printPreOrder(b));
+		assertEquals("a,d", printPreorder(a));
+		assertEquals("b,c", printPreorder(b));
 	}
 	
 	function testRemove3()
@@ -143,11 +207,11 @@ class TestEntity extends TestCase
 		a.add(d);
 			d.add(e);
 		
-		assertEquals("a,b,c,d,e", printPreOrder(a));
+		assertEquals("a,b,c,d,e", printPreorder(a));
 		
 		a.remove(d);
-		assertEquals("a,b,c", printPreOrder(a));
-		assertEquals("d,e", printPreOrder(d));
+		assertEquals("a,b,c", printPreorder(a));
+		assertEquals("d,e", printPreorder(d));
 		
 		var a = new E("a");
 		var b = new E("b");
@@ -166,11 +230,11 @@ class TestEntity extends TestCase
 		a.add(f);
 			f.add(g);
 		
-		assertEquals("a,b,c,d,e,f,g", printPreOrder(a));
+		assertEquals("a,b,c,d,e,f,g", printPreorder(a));
 		
 		a.remove(d);
-		assertEquals("a,b,c,f,g", printPreOrder(a));
-		assertEquals("d,e", printPreOrder(d));
+		assertEquals("a,b,c,f,g", printPreorder(a));
+		assertEquals("d,e", printPreorder(d));
 	}
 	
 	function testUpdateLastChild()
@@ -224,13 +288,13 @@ class TestEntity extends TestCase
 		var a = new Entity("a");
 		var b = new Entity("b");
 		
-		assertEquals(a.depth, 0);
-		assertEquals(b.depth, 0);
+		assertEquals(Es.getDepth(a), 0);
+		assertEquals(Es.getDepth(b), 0);
 		
 		a.add(b);
 		
-		assertEquals(a.depth, 0);
-		assertEquals(b.depth, 1);
+		assertEquals(Es.getDepth(a), 0);
+		assertEquals(Es.getDepth(b), 1);
 		
 		var c = new Entity("c");
 			b.add(c);
@@ -238,17 +302,17 @@ class TestEntity extends TestCase
 		var d = new Entity("d");
 			c.add(d);
 		
-		assertEquals(a.depth, 0);
-		assertEquals(b.depth, 1);
-		assertEquals(c.depth, 2);
-		assertEquals(d.depth, 3);
+		assertEquals(Es.getDepth(a), 0);
+		assertEquals(Es.getDepth(b), 1);
+		assertEquals(Es.getDepth(c), 2);
+		assertEquals(Es.getDepth(d), 3);
 		
 		b.remove(c);
 		
-		assertEquals(a.depth, 0);
-		assertEquals(b.depth, 1);
-		assertEquals(c.depth, 0);
-		assertEquals(d.depth, 1);
+		assertEquals(Es.getDepth(a), 0);
+		assertEquals(Es.getDepth(b), 1);
+		assertEquals(Es.getDepth(c), 0);
+		assertEquals(Es.getDepth(d), 1);
 		
 		var a = new Entity("a");
 		var s = new Entity("s");
@@ -257,9 +321,9 @@ class TestEntity extends TestCase
 		
 		a.add(s);
 		
-		assertEquals(a.depth, 0);
-		assertEquals(s.depth, 1);
-		assertEquals(b.depth, 2);
+		assertEquals(Es.getDepth(a), 0);
+		assertEquals(Es.getDepth(s), 1);
+		assertEquals(Es.getDepth(b), 2);
 		
 		var a = new Entity("a");
 		var s = new Entity("s");
@@ -270,248 +334,10 @@ class TestEntity extends TestCase
 		
 		a.add(s);
 		
-		assertEquals(a.depth, 0);
-		assertEquals(s.depth, 1);
-		assertEquals(b.depth, 2);
-		assertEquals(c.depth, 2);
-	}
-	
-	function testMsgToDescendants1()
-	{
-		var result = [];
-		Callback.onMsg = function(recipient:Entity, sender:Entity, type:Int)
-		{
-			result.push(sender.name + recipient.name + type);
-		}
-		
-		var a = new E("a");
-			var b = new E("b");
-			var c = new E("c");
-			var d = new E("d");
-		
-		a.add(b);
-		a.add(c);
-		a.add(d);
-		
-		a.msgToDescendants(3);
-		
-		EntitySystem.dispatchMessages();
-		
-		assertEquals(result.join(','), "ab3,ac3,ad3");
-		
-		Callback.onMsg = null;
-	}
-	
-	function testMsgToDescendants2()
-	{
-		//send message from a => b,c,d but stop on b
-		var result = [];
-		Callback.onMsg = function(recipient:Entity, sender:Entity, type:Int)
-		{
-			result.push(sender.name + recipient.name + type);
-		}
-		
-		var a = new E("a");
-			var b = new E("b");
-			var c = new E("c");
-			var d = new E("d");
-		
-		a.add(b);
-		a.add(c);
-		a.add(d);
-		
-		a.msgToDescendants(3);
-		
-		b.onMsgFunc = function()
-		{
-			b.stop();
-		}
-		
-		EntitySystem.dispatchMessages();
-		
-		assertEquals(result.join(','), "ab3");
-		
-		Callback.onMsg = null;
-	}
-	
-	function testMsgToDescendants3()
-	{
-		//send message from a => b,c,d but stop on c
-		var result = [];
-		Callback.onMsg = function(recipient:Entity, sender:Entity, type:Int)
-		{
-			result.push(sender.name + recipient.name + type);
-		}
-		
-		var a = new E("a");
-			var b = new E("b");
-			var c = new E("c");
-			var d = new E("d");
-		
-		a.add(b);
-		a.add(c);
-		a.add(d);
-		
-		a.msgToDescendants(3);
-		
-		c.onMsgFunc = function()
-		{
-			c.stop();
-		}
-		
-		EntitySystem.dispatchMessages();
-		
-		assertEquals(result.join(','), "ab3,ac3");
-		
-		Callback.onMsg = null;
-	}
-	
-	function testMsgToDescendants4()
-	{
-		//send message from a => b,c,d but stop on d
-		var result = [];
-		Callback.onMsg = function(recipient:Entity, sender:Entity, type:Int)
-		{
-			result.push(sender.name + recipient.name + type);
-		}
-		
-		var a = new E("a");
-			var b = new E("b");
-			var c = new E("c");
-			var d = new E("d");
-		
-		a.add(b);
-		a.add(c);
-		a.add(d);
-		
-		a.msgToDescendants(3);
-		
-		d.onMsgFunc = function()
-		{
-			d.stop();
-		}
-		
-		a.msgToDescendants(4);
-		
-		EntitySystem.dispatchMessages();
-		
-		assertEquals(result.join(','), "ab3,ac3,ad3,ab4,ac4,ad4");
-		
-		Callback.onMsg = null;
-	}
-	
-	function testMsgToAncestors()
-	{
-		//send message from c => b,a
-		var result = [];
-		Callback.onMsg = function(recipient:Entity, sender:Entity, type:Int)
-		{
-			result.push(sender.name + recipient.name + type);
-		}
-		
-		var a = new E("a");
-			var b = new E("b");
-				var c = new E("c");
-		
-		a.add(b);
-		b.add(c);
-		
-		c.msgToAncestors(3);
-		EntitySystem.dispatchMessages();
-		
-		assertEquals(result.join(','), "cb3,ca3");
-		
-		result = [];
-		b.onMsgFunc = function()
-		{
-			b.stop();
-		}
-		c.msgToAncestors(3);
-		EntitySystem.dispatchMessages();
-		assertEquals(result.join(','), "cb3");
-		
-		result = [];
-		b.onMsgFunc = function() {}
-		c.onMsgFunc = function()
-		{
-			c.stop();
-		}
-		c.msgToAncestors(3);
-		EntitySystem.dispatchMessages();
-		assertEquals(result.join(','), "cb3,ca3");
-		
-		Callback.onMsg = null;
-	}
-	
-	function testMsgToChildren()
-	{
-		//send message from a => b,c,d
-		var result = [];
-		Callback.onMsg = function(recipient:Entity, sender:Entity, type:Int)
-		{
-			result.push(sender.name + recipient.name + type);
-		}
-		
-		var a = new E("a");
-			var b = new E("b");
-			var c = new E("c");
-			var d = new E("d");
-		
-		a.add(b);
-		a.add(c);
-		a.add(d);
-		
-		a.msgToChildren(3);
-		EntitySystem.dispatchMessages();
-		
-		result = [];
-		b.onMsgFunc = function()
-		{
-			b.stop();
-		}
-		a.msgToChildren(3);
-		EntitySystem.dispatchMessages();
-		
-		assertEquals(result.join(','), "ab3");
-		
-		result = [];
-		b.onMsgFunc = function() {}
-		c.onMsgFunc = function()
-		{
-			c.stop();
-		}
-		a.msgToChildren(3);
-		EntitySystem.dispatchMessages();
-		
-		assertEquals(result.join(','), "ab3,ac3");
-		
-		Callback.onMsg = null;
-	}
-	
-	function testMsgToName()
-	{
-		var result = [];
-		Callback.onMsg = function(recipient:Entity, sender:Entity, type:Int)
-		{
-			result.push(sender.name + recipient.name + type);
-		}
-		
-		var a1 = new E("y");
-		var a2 = new E("y");
-		var b1 = new E("z");
-		var b2 = new E("z");
-		
-		a1.msgTo("z", 3);
-		EntitySystem.dispatchMessages();
-		
-		assertEquals(result.join(','), "yz3,yz3");
-		
-		result = [];
-		b1.msgTo("y", 3);
-		EntitySystem.dispatchMessages();
-		assertEquals(result.join(','), "zy3,zy3");
-		
-		Callback.onMsg = null;
+		assertEquals(Es.getDepth(a), 0);
+		assertEquals(Es.getDepth(s), 1);
+		assertEquals(Es.getDepth(b), 2);
+		assertEquals(Es.getDepth(c), 2);
 	}
 	
 	function testAdd1()
@@ -520,27 +346,27 @@ class TestEntity extends TestCase
 		var b = new E("b");
 		a.add(b);
 		
-		assertEquals("a,b", printPreOrder(a));
+		assertEquals("a,b", printPreorder(a));
 		
 		var a = new E("a");
 		var b = new E("b");
 		var c = new E("c");
 		a.add(b);
 		a.add(c);
-		assertEquals("a,b,c", printPreOrder(a));
+		assertEquals("a,b,c", printPreorder(a));
 		
 		var a = new E("a");
 		var b = new E("b");
 		a.add(b);
-		assertEquals("a,b", printPreOrder(a));
+		assertEquals("a,b", printPreorder(a));
 		
 		var c = new E("c");
 		var d = new E("d");
 		c.add(d);
-		assertEquals("c,d", printPreOrder(c));
+		assertEquals("c,d", printPreorder(c));
 		
 		a.add(c);
-		assertEquals("a,b,c,d", printPreOrder(a));
+		assertEquals("a,b,c,d", printPreorder(a));
 	}
 	
 	function testAdd2()
@@ -550,7 +376,7 @@ class TestEntity extends TestCase
 				var c = new E("c");
 				a.add(c);
 			r.add(a);
-		assertEquals("r,a,c", printPreOrder(r));
+		assertEquals("r,a,c", printPreorder(r));
 	}
 	
 	function testAdd3()
@@ -562,7 +388,7 @@ class TestEntity extends TestCase
 			r.add(a);
 			var b = new E("b");
 			r.add(b);
-		assertEquals("r,a,c,b", printPreOrder(r));
+		assertEquals("r,a,c,b", printPreorder(r));
 	}
 	
 	function testAddRemove1()
@@ -580,15 +406,15 @@ class TestEntity extends TestCase
 		bag.add(a);
 		bag.add(b);
 		
-		assertEquals("r,bag,a,b", printPreOrder(r));
+		assertEquals("r,bag,a,b", printPreorder(r));
 		
 		a.remove();
 		
-		assertEquals("r,bag,b", printPreOrder(r));
+		assertEquals("r,bag,b", printPreorder(r));
 		
 		r.add(a);
 		
-		assertEquals("r,bag,b,a", printPreOrder(r));
+		assertEquals("r,bag,b,a", printPreorder(r));
 	}
 	
 	function testAddOnRemove()
@@ -600,11 +426,11 @@ class TestEntity extends TestCase
 		{
 			a.add(b);
 			
-			assertEquals(1, a.size);
-			assertEquals(a.child, b);
+			assertEquals(1, Es.getSize(a));
+			assertEquals(a.firstChild, b);
 			assertEquals(b.parent, a);
-			assertEquals("a,b", printPreOrder(a));
-			assertEquals("b", printPreOrder(b));
+			assertEquals("a,b", printPreorder(a));
+			assertEquals("b", printPreorder(b));
 		}
 		
 		a.add(b);
@@ -620,11 +446,11 @@ class TestEntity extends TestCase
 		{
 			a.remove(b);
 			
-			assertEquals(0, a.size);
-			assertEquals(a.child, null);
+			assertEquals(0, Es.getSize(a));
+			assertEquals(a.firstChild, null);
 			assertEquals(b.parent, null);
-			assertEquals("a", printPreOrder(a));
-			assertEquals("b", printPreOrder(b));
+			assertEquals("a", printPreorder(a));
+			assertEquals("b", printPreorder(b));
 		}
 		
 		a.add(b);
@@ -632,28 +458,62 @@ class TestEntity extends TestCase
 	
 	function testRemoveAllChildren()
 	{
-		var r = new E("r");
-			var a = new E("a");
-				var b = new E("b");
-					var c = new E("c");
-					
-		var d = new E("d");
-			var e = new E("e");
+		var r = new Entity("r");
+		var a = new Entity("a");
+			var a1a = new Entity("a1a");
+			var a1b = new Entity("a1b");
+				var a2a = new Entity("a2a");
+		var b = new Entity("b");
+		var c = new Entity("c");
 		r.add(a);
-			a.add(b);
-				b.add(c);
-				
-		r.add(d);
-			d.add(e);
+			a.add(a1a);
+			a.add(a1b);
+				a1b.add(a2a);
+		r.add(b);
+		r.add(c);
 		
-		r.removeAllChildren();
+		assertEquals(3, a.getSubtreeSize());
 		
-		assertEquals(r.child, null);
+		EntityTools.removeChildren(a);
 		
-		assertEquals(b.preorder, c);
-		assertEquals(c.preorder, null);
-		assertEquals(d.preorder, e);
-		assertEquals(e.preorder, null);
+		assertEquals(0, a1a.getDepth());
+		assertEquals(0, a1b.getDepth());
+		assertEquals(1, a2a.getDepth());
+		
+		assertEquals(0, a.getSubtreeSize());
+		assertEquals(1, a1b.getSubtreeSize());
+		
+		assertEquals(null, a1a.parent);
+		assertEquals(null, a1b.parent);
+		assertEquals(a1b, cast a2a.parent);
+		
+		assertEquals("r,a,b,c", printPreorder(r));
+		assertEquals(3, r.getSubtreeSize());
+		assertEquals(0, a.getSubtreeSize());
+		assertEquals(0, b.getSubtreeSize());
+		assertEquals(0, c.getSubtreeSize());
+		
+		r.free();
+		
+		var r = new Entity("r");
+			var a = new Entity("a");
+				var a1 = new Entity("a1");
+					var a2 = new Entity("a2");
+			var b = new Entity("b");
+		
+		r.add(a);
+			a.add(a1);
+			a1.add(a2);
+		r.add(b);
+		
+		a1.removeChildren();
+		
+		assertEquals("r,a,a1,b", printPreorder(r));
+		
+		assertEquals(3, r.getSubtreeSize());
+		assertEquals(1, a.getSubtreeSize());
+		assertEquals(0, a1.getSubtreeSize());
+		assertEquals(0, b.getSubtreeSize());
 	}
 	
 	function testSetFirst()
@@ -663,20 +523,23 @@ class TestEntity extends TestCase
 		r.add(a);
 		
 		a.setFirst();
-		
-		assertEquals(r.child, a);
+		assertEquals(r.firstChild, a);
+		assertEquals(r.lastChild, a);
+		assertEquals(r.firstChild.sibling, null);
+		assertEquals("r,a", printPreorder(r));
 		
 		var r = new E("r");
 			var a = new E("a");
 			var b = new E("b");
 		r.add(a);
 		r.add(b);
-		
 		b.setFirst();
 		
-		assertEquals(r.child, b);
+		assertEquals(r.firstChild, b);
+		assertEquals(r.lastChild, a);
 		assertEquals(b.sibling, a);
 		assertEquals(a.sibling, null);
+		assertEquals("r,b,a", printPreorder(r));
 		
 		var r = new E("r");
 			var a = new E("a");
@@ -685,21 +548,18 @@ class TestEntity extends TestCase
 		r.add(a);
 		r.add(b);
 		r.add(c);
-		
-		assertEquals("r,a,b,c", printPreOrder(r));
-		
+		assertEquals("r,a,b,c", printPreorder(r));
 		assertEquals(c.sibling, null);
 		
 		b.setFirst();
-		
-		assertEquals("r,b,a,c", printPreOrder(r));
+		assertEquals("r,b,a,c", printPreorder(r));
 		assertEquals(b.sibling, a);
 		assertEquals(a.sibling, c);
 		assertEquals(c.sibling, null);
-		assertEquals(r.preorder, b);
-		assertEquals(b.preorder, a);
-		assertEquals(a.preorder, c);
-		assertEquals(c.preorder, null);
+		assertEquals(r.next, b);
+		assertEquals(b.next, a);
+		assertEquals(a.next, c);
+		assertEquals(c.next, null);
 		
 		var r = new E("r");
 			var a = new E("a");
@@ -708,15 +568,64 @@ class TestEntity extends TestCase
 		r.add(a);
 		r.add(b);
 		r.add(c);
-		
-		assertEquals("r,a,b,c", printPreOrder(r));
-		
+		assertEquals("r,a,b,c", printPreorder(r));
 		c.setFirst();
 		
-		assertEquals("r,c,a,b", printPreOrder(r));
+		assertEquals("r,c,a,b", printPreorder(r));
 		assertEquals(c.sibling, a);
 		assertEquals(a.sibling, b);
 		assertEquals(b.sibling, null);
+		
+		function createTree():E
+		{
+			var r = new E("r");
+				var a = new E("a");
+					a.add(new E("aa"));
+					a.add(new E("ab"));
+					a.add(new E("ac"));
+				var b = new E("b");
+					b.add(new E("ba"));
+					b.add(new E("bb"));
+					b.add(new E("bc"));
+				var c = new E("c");
+					c.add(new E("ca"));
+					c.add(new E("cb"));
+					c.add(new E("cc"));
+			r.add(a);
+			r.add(b);
+			r.add(c);
+			return r;
+		}
+		
+		var r = createTree();
+		var o = new E("o");
+		o.add(new E("h"));
+		o.add(r);
+		o.add(new E("t"));
+		var b = r.getChildAt(0);
+		b.setFirst();
+		assertEquals("o,h,r,a,aa,ab,ac,b,ba,bb,bc,c,ca,cb,cc,t", printPreorder(o));
+		o.free();
+		
+		var r = createTree();
+		var o = new E("o");
+		o.add(new E("h"));
+		o.add(r);
+		o.add(new E("t"));
+		var b = r.getChildAt(1);
+		b.setFirst();
+		assertEquals("o,h,r,b,ba,bb,bc,a,aa,ab,ac,c,ca,cb,cc,t", printPreorder(o));
+		o.free();
+		
+		var r = createTree();
+		var o = new E("o");
+		o.add(new E("h"));
+		o.add(r);
+		o.add(new E("t"));
+		var b = r.getChildAt(2);
+		b.setFirst();
+		assertEquals("o,h,r,c,ca,cb,cc,a,aa,ab,ac,b,ba,bb,bc,t", printPreorder(o));
+		o.free();
 	}
 	
 	function testSetLast()
@@ -724,24 +633,22 @@ class TestEntity extends TestCase
 		var r = new E("r");
 			var a = new E("a");
 		r.add(a);
-		
 		a.setLast();
-		
-		assertEquals(r.child, a);
+		assertEquals(r.firstChild, a);
+		assertEquals(r.lastChild, a);
+		assertEquals("r,a", printPreorder(r));
 		
 		var r = new E("r");
 			var a = new E("a");
 			var b = new E("b");
 		r.add(a);
 		r.add(b);
-		
 		a.setLast();
-		
-		assertEquals(r.child, b);
+		assertEquals(r.firstChild, b);
+		assertEquals(r.lastChild, a);
 		assertEquals(b.sibling, a);
 		assertEquals(a.sibling, null);
-		
-		assertEquals("r,b,a", printPreOrder(r));
+		assertEquals("r,b,a", printPreorder(r));
 		
 		var r = new E("r");
 			var a = new E("a");
@@ -750,21 +657,19 @@ class TestEntity extends TestCase
 		r.add(a);
 		r.add(b);
 		r.add(c);
-		
-		assertEquals("r,a,b,c", printPreOrder(r));
-		
+		assertEquals("r,a,b,c", printPreorder(r));
 		b.setLast();
 		
-		assertEquals("r,a,c,b", printPreOrder(r));
+		assertEquals("r,a,c,b", printPreorder(r));
 		assertEquals(a.sibling, c);
 		assertEquals(c.sibling, b);
 		assertEquals(b.sibling, null);
-		
-		assertEquals(a.preorder, c);
-		assertEquals(c.preorder, b);
-		assertEquals(b.preorder, null);
-		assertEquals(r.preorder, a);
-		assertEquals(r.child, a);
+		assertEquals(a.next, c);
+		assertEquals(c.next, b);
+		assertEquals(b.next, null);
+		assertEquals(r.next, a);
+		assertEquals(r.firstChild, a);
+		assertEquals(r.lastChild, b);
 		
 		var r = new E("r");
 			var s = new E("s");
@@ -778,47 +683,255 @@ class TestEntity extends TestCase
 		
 		var d = new E("d");
 		r.add(d);
-			
-		assertEquals("r,s,a,b,c,d", printPreOrder(r));
+		assertEquals("r,s,a,b,c,d", printPreorder(r));
 		
 		b.setLast();
-		assertEquals("r,s,a,c,b,d", printPreOrder(r));
+		assertEquals("r,s,a,c,b,d", printPreorder(r));
 		assertEquals(a.sibling, c);
 		assertEquals(c.sibling, b);
 		assertEquals(b.sibling, null);
-		
-		assertEquals(a.preorder, c);
-		assertEquals(c.preorder, b);
-		assertEquals(b.preorder, d);
-		assertEquals(r.preorder, s);
-		assertEquals(r.child, s);
-		assertEquals(s.preorder, a);
+		assertEquals(a.next, c);
+		assertEquals(c.next, b);
+		assertEquals(b.next, d);
+		assertEquals(r.next, s);
+		assertEquals(r.firstChild, s);
+		assertEquals(s.lastChild, b);
+		assertEquals(s.next, a);
 		
 		var r = new E("r");
 			var a = new E("a");
 			var b = new E("b");
 		r.add(a);
 		r.add(b);
-		assertEquals("r,a,b", printPreOrder(r));
+		assertEquals("r,a,b", printPreorder(r));
 		a.setLast();
-		assertEquals("r,b,a", printPreOrder(r));
-		
-		assertEquals(r.child, b);
+		assertEquals("r,b,a", printPreorder(r));
+		assertEquals(r.firstChild, b);
+		assertEquals(r.lastChild, a);
 		assertEquals(b.sibling, a);
 		assertEquals(a.sibling, null);
+		assertEquals(r.next, b);
+		assertEquals(b.next, a);
+		assertEquals(a.next, null);
 		
-		assertEquals(r.preorder, b);
-		assertEquals(b.preorder, a);
-		assertEquals(a.preorder, null);
+		function createTree():E
+		{
+			var r = new E("r");
+				var a = new E("a");
+					a.add(new E("aa"));
+					a.add(new E("ab"));
+					a.add(new E("ac"));
+				var b = new E("b");
+					b.add(new E("ba"));
+					b.add(new E("bb"));
+					b.add(new E("bc"));
+				var c = new E("c");
+					c.add(new E("ca"));
+					c.add(new E("cb"));
+					c.add(new E("cc"));
+			r.add(a);
+			r.add(b);
+			r.add(c);
+			return r;
+		}
+
+		var r = createTree();
+		var o = new E("o");
+		o.add(new E("h"));
+		o.add(r);
+		o.add(new E("t"));
+		var b = r.getChildAt(0);
+		b.setLast();
+		assertEquals("o,h,r,b,ba,bb,bc,c,ca,cb,cc,a,aa,ab,ac,t", printPreorder(o));
+		o.free();
+
+		var r = createTree();
+		var o = new E("o");
+		o.add(new E("h"));
+		o.add(r);
+		o.add(new E("t"));
+		var b = r.getChildAt(1);
+		b.setLast();
+		assertEquals("o,h,r,a,aa,ab,ac,c,ca,cb,cc,b,ba,bb,bc,t", printPreorder(o));
+		o.free();
+
+		var r = createTree();
+		var o = new E("o");
+		o.add(new E("h"));
+		o.add(r);
+		o.add(new E("t"));
+		var b = r.getChildAt(2);
+		b.setLast();
+		assertEquals("o,h,r,a,aa,ab,ac,b,ba,bb,bc,c,ca,cb,cc,t", printPreorder(o));
+		o.free();
 	}
 	
-	function printPreOrder(e:Entity):String
+	function testPhase()
+	{
+		var r = new E("r");
+		var a = new E("a");
+		var b = new E("b");
+		var c = new E("c");
+		
+		r.add(a);
+		r.add(b);
+		r.add(c);
+		
+		a.phase = 3;
+		b.phase = 2;
+		c.phase = 1;
+		
+		assertEquals("r,a,b,c", printPreorder(r));
+		
+		r.sortChildrenByPhase();
+		
+		assertEquals(c, cast r.firstChild);
+		assertEquals(a, cast r.lastChild);
+		assertEquals(b, cast c.sibling);
+		assertEquals(a, cast b.sibling);
+		assertEquals(null, a.sibling);
+		
+		assertEquals("r,c,b,a", printPreorder(r));
+		
+		function createTree():E
+		{
+			var r = new E("r");
+				var a = new E("a");
+				a.phase = 2;
+					a.add(new E("aa"));
+					a.add(new E("ab"));
+					a.add(new E("ac"));
+				var b = new E("b");
+				b.phase = 3;
+					b.add(new E("ba"));
+					b.add(new E("bb"));
+					b.add(new E("bc"));
+				var c = new E("c");
+				c.phase = 1;
+					c.add(new E("ca"));
+					c.add(new E("cb"));
+					c.add(new E("cc"));
+			r.add(a);
+			r.add(b);
+			r.add(c);
+			return r;
+		}
+		
+		var r = createTree();
+		var o = new E("o");
+		o.add(new E("h"));
+		o.add(r);
+		o.add(new E("t"));
+		
+		assertEquals("o,h,r,a,aa,ab,ac,b,ba,bb,bc,c,ca,cb,cc,t", printPreorder(o));
+		
+		r.sortChildrenByPhase();
+		
+		assertEquals("o,h,r,c,ca,cb,cc,a,aa,ab,ac,b,ba,bb,bc,t", printPreorder(o));
+	}
+	
+	function testDescendantsIterator()
+	{
+		var a = new Entity('a');
+		var b = new Entity('b');
+		var c = new Entity('c');
+		
+		var result:Array<String> = [];
+		
+		for (e in a.getDescendants()) result.push(e.name);
+		assertEquals("", result.join(""));
+		result = [];
+		
+		a.add(b);
+		
+		for (e in a.getDescendants()) result.push(e.name);
+		assertEquals("b", result.join(""));
+		result = [];
+		
+		a.add(c);
+		
+		for (e in a.getDescendants()) result.push(e.name);
+		assertEquals("bc", result.join(""));
+	}
+	
+	function testAncestorsIterator()
+	{
+		var a = new Entity('a');
+		var b = new Entity('b');
+		var c = new Entity('c');
+		
+		var result:Array<String> = [];
+		
+		for (e in a.getAncestors()) result.push(e.name);
+		assertEquals("", result.join(""));
+		result = [];
+		
+		a.add(b);
+		
+		for (e in b.getAncestors()) result.push(e.name);
+		assertEquals("a", result.join(""));
+		result = [];
+		
+		b.add(c);
+		
+		for (e in c.getAncestors()) result.push(e.name);
+		assertEquals("ba", result.join(""));
+	}
+	
+	function testSiblingsIterator()
+	{
+		var a = new Entity('a');
+		var b = new Entity('b');
+		var c = new Entity('c');
+		var d = new Entity('d');
+		
+		var result:Array<String> = [];
+		
+		for (e in a.getSiblings()) result.push(e.name);
+		assertEquals("", result.join(""));
+		result = [];
+		
+		a.add(b);
+		
+		for (e in b.getSiblings()) result.push(e.name);
+		assertEquals("", result.join(""));
+		result = [];
+		
+		a.add(c);
+		
+		for (e in b.getSiblings()) result.push(e.name);
+		assertEquals("c", result.join(""));
+		result = [];
+		
+		for (e in c.getSiblings()) result.push(e.name);
+		assertEquals("b", result.join(""));
+		result = [];
+		
+		a.add(d);
+		
+		for (e in d.getSiblings()) result.push(e.name);
+		assertEquals("bc", result.join(""));
+		result = [];
+		
+		for (e in d.getSiblings()) result.push(e.name);
+		assertEquals("bc", result.join(""));
+		result = [];
+		
+		for (e in c.getSiblings()) result.push(e.name);
+		assertEquals("bd", result.join(""));
+		result = [];
+		
+		for (e in b.getSiblings()) result.push(e.name);
+		assertEquals("cd", result.join(""));
+	}
+	
+	function printPreorder(e:Entity):String
 	{
 		var a = [];
 		while (e != null)
 		{
 			a.push(e.name);
-			e = e.preorder;
+			e = e.next;
 		}
 		return a.join(',');
 	}
@@ -828,33 +941,18 @@ private class Callback
 {
 	public static var onAdd:Entity->Entity->Void = null;
 	public static var onRemove:Entity->Entity->Void = null;
-	public static var onTick:Entity->Void = null;
-	public static var onMsg:Entity->Entity->Int->Void = null;
-	public static var onFree:Entity->Void;
 }
 
 private class E extends Entity
 {
-	public var onTickFunc:Void->Void;
 	public var onAddFunc:Void->Void;
 	public var onRemoveFunc:Void->Void;
-	public var onMsgFunc:Void->Void;
-	public var onFreeFunc:Void->Void;
 	
 	public function new(name:String)
 	{
 		super(name);
-		onTickFunc = function() {};
 		onAddFunc = function() {};
 		onRemoveFunc = function() {};
-		onMsgFunc = function() {};
-		onFreeFunc = function() {};
-	}
-	
-	override function onTick(dt:Float)
-	{
-		if (Callback.onTick != null) Callback.onTick(this);
-		onTickFunc();
 	}
 	
 	override function onAdd()
@@ -867,17 +965,5 @@ private class E extends Entity
 	{
 		if (Callback.onRemove != null) Callback.onRemove(this, parent);
 		onRemoveFunc();
-	}
-	
-	override function onMsg(type:Int, sender:Entity)
-	{
-		if (Callback.onMsg != null) Callback.onMsg(this, sender, type);
-		onMsgFunc();
-	}
-	
-	override function onFree()
-	{
-		if (Callback.onFree != null) Callback.onFree(this);
-		onFreeFunc();
 	}
 }

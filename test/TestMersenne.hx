@@ -213,13 +213,13 @@ class TestMersenne extends TestCase
 		];
 		
 		var m = new Mersenne();
-		m.setSeed(1);
+		m.seed = 1;
 		for (i in 0...values.length)
-			assertEquals(values[i],  m.random());
+			assertEquals(values[i], m.rand());
 		m.free();
 		
 		m = new Mersenne();
-		m.setSeed(1);
+		m.seed = 1;
 		var a = [0x123,  0x234,  0x345,  0x456];
 		m.initByArray(a);
 		
@@ -427,6 +427,6 @@ class TestMersenne extends TestCase
 			2643151863, 3896204135, 2416995901, 1397735321, 3460025646
 		];
 		
-		for (i in 0...values.length) assertEquals(values[i],  m.random());
+		for (i in 0...values.length) assertEquals(values[i], m.rand());
 	}
 }
