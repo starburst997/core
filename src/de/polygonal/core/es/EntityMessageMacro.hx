@@ -127,9 +127,14 @@ class EntityMessageMacro
 		//add meta for resolving message names at run time
 		var resolveName =
 		if (cl.pack.length > 0)
-				cl.pack.join(".") + "." + name;
+			cl.pack.join(".") + "." + name;
+		else
+		{
+			if (module != name)
+				name
 			else
 				module;
+		}
 		
 		switch (Context.getModule("de.polygonal.core.es.EntityMessage")[0])
 		{
