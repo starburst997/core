@@ -105,7 +105,6 @@ class EntityMessaging
 			i++;
 			if (message.mFlags & EntityMessage.FLAG_STOP_PROPAGATION > 0)
 			{
-				message.mFlags = 0;
 				while (i < k) d.set(i++, null);
 				break;
 			}
@@ -149,7 +148,6 @@ class EntityMessaging
 			if (message.mFlags & EntityMessage.FLAG_STOP_PROPAGATION > 0)
 			{
 				immediate = message.mFlags & EntityMessage.FLAG_STOP_IMMEDIATE_PROPAGATION > 0;
-				message.mFlags = 0;
 				if (immediate)
 				{
 					while (i < k) d.set(i++, null);
@@ -198,7 +196,6 @@ class EntityMessaging
 			if (message.mFlags & EntityMessage.FLAG_STOP_PROPAGATION > 0)
 			{
 				while (i < k) d.set(i++, null);
-				message.mFlags = 0;
 				break;
 			}
 		}

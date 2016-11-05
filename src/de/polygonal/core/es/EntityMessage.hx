@@ -101,6 +101,7 @@ class EntityMessage
 		o.type = type;
 		o.data = data;
 		o.sender = sender;
+		o.mFlags = 0;
 		return o;
 	}
 	
