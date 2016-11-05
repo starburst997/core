@@ -72,7 +72,7 @@ class EntitySystem
 	
 	static var _names:NativeArray<String>;
 	
-	static var _callbacks:NativeArray<ArrayList<Entity->Bool>>;
+	static var _callbacks:NativeArray<Array<Entity->Bool>>;
 	
 	static var _nameLut:StringMap<E>;
 	static var _superLut:IntIntHashTable;
@@ -114,7 +114,7 @@ class EntitySystem
 		
 		var k = CallbackType.getConstructors().length;
 		_callbacks = NativeArrayTools.alloc(k);
-		for (i in 0...k) _callbacks.set(i, new ArrayList<Entity->Bool>());
+		for (i in 0...k) _callbacks.set(i, new Array<Entity->Bool>());
 
 		EntityMessage.init();
 		EntityMessaging.init();
@@ -171,7 +171,7 @@ class EntitySystem
 	
 	public static function registerCallback(type:CallbackType, func:Entity->Bool)
 	{
-		_callbacks[type.getIndex()].add(func);
+		_callbacks[type.getIndex()].push(func);
 	}
 	
 	public static function unregisterCallback(type:CallbackType, func:Entity->Bool)
@@ -280,14 +280,14 @@ class EntitySystem
 	static function testCallbacks(e:Entity, type:CallbackType)
 	{
 		var a = _callbacks[type.getIndex()];
-		if (a.isEmpty()) return;
+		var k = a.length;
+		if (k == 0) return;
 		var i = 0;
-		var k = a.size;
 		while (i < k)
 		{
-			if (!a.get(i)(e))
+			if (!a[i](e))
 			{
-				a.swapPop(i);
+				a[i] = a.pop();
 				k--;
 				continue;
 			}

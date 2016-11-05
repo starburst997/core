@@ -60,7 +60,8 @@ class EntityMessageBuffer
 	var mData:NativeArray<Dynamic>;
 	var mNextDataIndex = 0;
 	var mFlushing = false;
-	var mCallbacks:ArrayList<Void->Void>;
+	var mCallbacks:Array<Void->Void>;
+	var mCallbacksCount = 0;
 	
 	public function new()
 	{
@@ -69,7 +70,7 @@ class EntityMessageBuffer
 		mBatchQue = new ArrayedQueue<Int>(MAX_BUFFER_SIZE);
 		mData = NativeArrayTools.alloc(MAX_BUFFER_SIZE);
 		mData.init(null);
-		mCallbacks = new ArrayList<Void->Void>();
+		mCallbacks = new Array<Void->Void>();
 	}
 	
 	public function free()
@@ -82,7 +83,6 @@ class EntityMessageBuffer
 		mData.nullify();
 		mData = null;
 		
-		mCallbacks.free();
 		mCallbacks = null;
 	}
 	
@@ -256,13 +256,17 @@ class EntityMessageBuffer
 	{
 		if (mSize == 0)
 		{
-			for (i in 0...mCallbacks.size) mCallbacks.get(i)();
-			mCallbacks.clear(true);
+			for (i in 0...mCallbacksCount)
+			{
+				mCallbacks[i]();
+				mCallbacks[i] = null;
+			}
+			mCallbacksCount = 0;
 			if (onFinish != null) onFinish();
 			return;
 		}
 		
-		if (onFinish != null) mCallbacks.pushBack(onFinish);
+		if (onFinish != null) mCallbacks[mCallbacksCount++] = onFinish;
 		
 		if (mFlushing) return;
 		mFlushing = true;
@@ -364,8 +368,12 @@ class EntityMessageBuffer
 		
 		mFlushing = false;
 		
-		for (i in 0...mCallbacks.size) mCallbacks.get(i)();
-		mCallbacks.clear(true);
+		for (i in 0...mCallbacksCount)
+		{
+			mCallbacks[i]();
+			mCallbacks[i] = null;
+		}
+		mCallbacksCount = 0;
 	}
 	
 	inline function getDataIndex(data:Dynamic)
