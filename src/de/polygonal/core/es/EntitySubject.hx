@@ -254,10 +254,15 @@ class EntitySubject extends Entity
 		mObserverTable.nullify(1);
 	}
 	
-	public function hasSubscribers(message = -1):Bool
+	public function hasSubscribers(message:Int):Bool
 	{
-		var list = mObserverTable.get(message + 1);
-		return list != null && list.size > 0;
+		var table = mObserverTable, ids;
+		
+		ids = table.get(0);
+		if (ids.size > 0) return true;
+		
+		ids = table.get(message + 1);
+		return ids != null && ids.size > 0;
 	}
 	
 	@:access(de.polygonal.core.es.EntitySystem)
