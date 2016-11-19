@@ -250,7 +250,8 @@ class EntitySubject extends Entity
 	public function clearSubscribers()
 	{
 		mStatus.clear();
-		for (i in mObserverTable) i.clear(true);
+		for (i in mObserverTable)
+			if (i != null) i.clear(true);
 		mObserverTable.nullify(1);
 	}
 	
