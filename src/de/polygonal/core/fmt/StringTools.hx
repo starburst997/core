@@ -126,6 +126,11 @@ class StringTools
 		return null;
 	}
 	
+	public static function camelCaseToSnakeCase(value:String):String
+	{
+		return ~/[A-Z]/g.map(value, function(r) return "_" + r.matched(0).toLowerCase());
+	}
+	
 	/**
 		Prepends a total of (`n` - `x`.length) zeros to the string `x`.
 	**/
