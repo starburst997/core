@@ -18,18 +18,15 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
-import de.polygonal.core.es.Entity in E;
-import de.polygonal.core.event.IObservable;
-import de.polygonal.core.event.IObserver;
+import de.polygonal.core.es.Entity;
+import de.polygonal.core.es.EntitySystem;
 import de.polygonal.core.time.Timebase;
-import de.polygonal.core.time.TimebaseEvent;
+import de.polygonal.core.time.TimebaseListener;
 import de.polygonal.core.time.Timeline;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.core.es.EntitySystem as Es;
 import de.polygonal.ds.NativeArray;
 import de.polygonal.ds.tools.NativeArrayTools;
 
-using de.polygonal.core.es.EntitySystem;
 using de.polygonal.core.es.EntityTools;
 using de.polygonal.ds.tools.NativeArrayTools;
 
@@ -37,75 +34,58 @@ using de.polygonal.ds.tools.NativeArrayTools;
 	The top entity responsible for updating the entire entity hierachy
 **/
 @:access(de.polygonal.core.es.EntitySystem)
-class MainLoop extends Entity implements IObserver
+class MainLoop extends Entity implements TimebaseListener
 {
-	public var paused:Bool;
-	
 	var mBufferedEntities:NativeArray<E>;
 	var mStack:NativeArray<E>;
 	var mPostFlags:NativeArray<Bool>;
-	var mTop:Int;
-	var mNumBufferedEntities:Int;
-	var mMaxBufferSize:Int;
-	var mElapsedTime:Float;
+	var mTop = 0;
+	var mNumBufferedEntities = 0;
+	var mMaxBufferSize = 0;
+	var mElapsedTime = 0.;
 	
 	public function new()
 	{
-		assert(Es.lookup(MainLoop) == null, "MainLoop instance already created, use EntitySystem.lookup(MainLoop);");
+		assert(EntitySystem.lookup(MainLoop) == null,
+			"MainLoop instance already created, use EntitySystem.lookup(MainLoop);");
 		
 		super(MainLoop.ENTITY_NAME, true);
 		
-		paused = false;
-		
-		//multiply by two because every entity can be updated twice (pre/post visit)
+		//*2 because every entity can be updated twice (pre/post visit)
 		mBufferedEntities = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
 		mStack = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
 		mPostFlags = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);
-		mTop = 0;
-		mNumBufferedEntities = 0;
-		mMaxBufferSize = 0;
-		mElapsedTime = 0;
 		
-		Timebase.init();
-		Timebase.attach(this);
-		Timeline.init();
+		Timebase.addListener(this);
 	}
 	
 	override function onFree()
 	{
-		Timebase.detach(this);
+		Timebase.removeListener(this);
 	}
 	
-	public function onUpdate(type:Int, source:IObservable, userData:Dynamic)
+	override function onTick(dt:Float)
 	{
-		if (paused) return;
+		//process scheduled events
+		Timeline.update();
 		
-		if (type == TimebaseEvent.TICK)
+		//prune scratch list for gc at regular intervals
+		mElapsedTime += dt;
+		if (mElapsedTime > 30)
 		{
-			//process scheduled events
-			Timeline.update();
-			
-			var dt:Float = userData;
-			
-			//prune scratch list for gc at regular intervals
-			mElapsedTime += dt;
-			if (mElapsedTime > 30)
-			{
-				mElapsedTime = 0;
-				mBufferedEntities.nullify(mMaxBufferSize);
-				mMaxBufferSize = 0;
-			}
-			
-			propagateTick(dt);
-			
-			EntityMessaging.flushBuffer();
+			mElapsedTime = 0;
+			mBufferedEntities.nullify(mMaxBufferSize);
+			mMaxBufferSize = 0;
 		}
-		else
-		if (type == TimebaseEvent.DRAW)
-		{
-			var alpha:Float = userData;
-			propagateDraw(alpha);
-		}
+		
+		propagateTick(dt);
+		
+		EntityMessaging.flushBuffer();
+	}
+	
+	override function onDraw(alpha:Float)
+	{
+		propagateDraw(alpha);
 	}
 	
 	function propagateTick(dt:Float)

@@ -18,10 +18,16 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.time;
 
-import de.polygonal.core.event.IObserver;
-import de.polygonal.core.event.Observable;
-import de.polygonal.core.math.Mathematics;
 import de.polygonal.core.util.Assert.assert;
+import de.polygonal.ds.Sll;
+
+@:enum
+abstract TimebaseContext(Int)
+{
+  var None = 0;
+  var Tick = 1;
+  var Draw = 2;
+}
 
 /**
 	A Timebase is a constantly ticking source of time.
@@ -31,211 +37,169 @@ class Timebase
 	/**
 		Converts `seconds` seconds to ticks.
 	**/
-	public inline static function secondsToTicks(seconds:Float):Int
+	public static inline function secondsToTicks(seconds:Float):Int
 	{
-		return Mathematics.round(seconds / tickRate);
+		return Math.round(seconds / tickRate);
 	}
 	
 	/**
 		Converts `ticks` to seconds.
 	**/
-	public inline static function ticksToSeconds(ticks:Int):Float
+	public static inline function ticksToSeconds(ticks:Int):Float
 	{
 		return ticks * tickRate;
 	}
 	
 	/**
-		If true, time is consumed using a fixed time step.
-		
-		Default is true.
+		If true, time is consumed using a fixed time step (default is true).
 	**/
-	public static var useFixedTimeStep:Bool = true;
+	public static var useFixedTimeStep = true;
 	
 	/**
 		The update rate measured in seconds per tick.
 		
-		The default update rate is 60 ticks per second (or ~16.6ms per update).
+		The default update rate is 60 ticks per second (or ~16.6ms per tick).
 	**/
-	public static var tickRate(default, null):Float = 0.01666666;
+	public static var tickRate(default, null) = .01666666;
+	
+	/**
+		The accumulator limit in seconds. Default is ten times `tickRate`.
+	**/
+	public static var accumulatorLimit = 10 * tickRate;
 	
 	/**
 		Elapsed time in seconds since application start.
 	**/
-	public static var elapsedTime(default, null):Float = 0;
+	public static var elapsedTime(default, null) = 0.;
 	
 	/**
 		Elapsed "virtual" time in seconds (includes scaling).
 	**/
-	public static var elapsedGameTime(default, null):Float = 0;
+	public static var elapsedGameTime(default, null) = 0.;
 	
 	/**
 		Current frame delta time in seconds.
 	**/
-	public static var timeDelta(default, null):Float = 0;
+	public static var timeDelta(default, null) = 0.;
 	
 	/**
 		Current "virtual" frame delta time in seconds (includes scaling).
 	**/
-	public static var gameTimeDelta(default, null):Float = 0;
+	public static var gameTimeDelta(default, null) = 0.;
 	
 	/**
 		The current time scale > 0.
 	**/
-	public static var timeScale:Float = 1;
+	public static var timeScale = 1.;
 	
 	/**
 		The total number of processed ticks since application start.
 	**/
-	public static var numTickCalls(default, null):Int = 0;
+	public static var numTickCalls(default, null) = 0;
 	
 	/**
 		The total number of rendered frames since application start.
 	**/
-	public static var numDrawCalls(default, null):Int = 0;
+	public static var numDrawCalls(default, null) = 0;
 	
 	/**
-		Current frames per second (how many frames were rendered in 1 second).
+		Frames per second (how many frames were rendered in 1 second).
 		
 		Updated every second.
 	**/
-	public static var fps(default, null):Int = 60;
+	public static var fps(default, null) = 60;
 	
-	public static var observable(default, null):Observable = null;
-	public static function attach(o:IObserver, mask:Int = 0)
+	public static var context = TimebaseContext.None;
+	
+	public static function addListener(listener:TimebaseListener)
 	{
-		assert(_initialized, "call Timebase.init() first");
-		observable.attach(o, mask);
+		if (_listenerList == null) _listenerList = new Sll<TimebaseListener>();
+		if (!_listenerList.contains(listener)) _listenerList.add(listener);
 	}
 	
-	public static function detach(o:IObserver, mask:Int = 0)
+	public static function removeListener(listener:TimebaseListener)
 	{
-		assert(_initialized, "call Timebase.init() first");
-		observable.detach(o, mask);
+		_listenerList.remove(listener);
 	}
 	
-	static var mFreezeDelay:Float;
-	static var mPaused:Bool;
+	static var _time:Time;
+	static var _listenerList:Sll<TimebaseListener>;
+	static var _paused:Bool;
+	static var _RemainingFreezeTime:Float;
+	static var _accumulator = 0.;
+	static var _fpsTicks = 0;
+	static var _fpsTime = 0.;
+	static var _past = 0.;
 	
-	static var mAccumulator:Float = 0;
-	static var mAccumulatorLimit:Float = tickRate * 10;
-	
-	static var mFpsTicks:Int = 0;
-	static var mFpsTime:Float = 0;
-	static var mPast:Float;
-	
-	static var _initialized:Bool;
-	
-	static var mTime:Time;
-	
-	//TODO auto-init
-	public static function init()
+	public static function setTime(time:Time)
 	{
-		if (_initialized) return;
-		_initialized = true;
+		if (_time != null)
+		{
+			_time.setTimingEventHandler(null);
+			if (time == null)
+			{
+				_time = null;
+				return;
+			}
+		}
+		_time = time;
+		_time.setTimingEventHandler(handleTimeUpdate);
 		
-		observable = new Observable(100);
+		elapsedTime = elapsedGameTime = timeDelta = gameTimeDelta = 0;
+		numTickCalls = numDrawCalls = 0;
 	}
 	
-	public static function resetElapsedTime()
-	{
-		elapsedTime = 0;
-		elapsedGameTime = 0;
-	}
-	
-	public static function setTimeSource(time:Time)
-	{
-		mTime = time;
-		mTime.setTimingEventHandler(update);
-		mPast = mTime.now();
-	}
-	
-	/**
-		Disposes the system by removing all registered observers and explicitly nullifying all references for GC'ing used resources.
-		
-		The system is automatically reinitialized once an observer is attached.
-	**/
 	public static function free()
 	{
-		if (!_initialized) return;
-		_initialized = false;
-		
-		observable.free();
-		observable = null;
-	}
-	
-	/**
-		Sets the update rate measured in ticks per second, e.g. a value of 60 indicates that `TimebaseEvent.TICK` is fired 60 times per second (or every ~16.6ms).
-		
-		@param max the accumulator limit in seconds. If omitted, `max` is set to ten times `ticksPerSecond`.
-	**/
-	public static function setTickRate(ticksPerSecond:Int, max = -1.)
-	{
-		tickRate = 1 / ticksPerSecond;
-		mAccumulator = 0;
-		mAccumulatorLimit = (max == -1. ? 10 : max * tickRate);
+		if (_listenerList != null)
+		{
+			_listenerList.free();
+			_listenerList = null;
+		}
 	}
 	
 	/**
 		Stops the flow of time.
-		
-		Triggers a `TimebaseEvent.PAUSE` update.
 	**/
 	public static function pause()
 	{
-		assert(_initialized, "call Timebase.init() first");
-		if (!mPaused)
-		{
-			mPaused = true;
-			observable.notify(TimebaseEvent.PAUSE);
-		}
+		if (_paused) return;
+		_paused = true;
 	}
 	
 	/**
 		Resumes the flow of time.
-		
-		Triggers a `TimebaseEvent.RESUME` update.
 	**/
 	public static function resume()
 	{
-		assert(_initialized, "call Timebase.init() first");
-		if (mPaused)
-		{
-			mPaused = false;
-			mAccumulator = 0.;
-			mPast = mTime.now();
-			observable.notify(TimebaseEvent.RESUME);
-		}
+		if (!_paused) return;
+		_paused = false;
+		_accumulator = 0.;
+		_past = _time.now();
 	}
 	
 	/**
 		Toggles (pause/resume) the flow of time.
-		Triggers a `TimebaseEvent.PAUSE` or em>TimebaseEvent.RESUME` update.
 	**/
 	public static function togglePause()
 	{
-		mPaused ? resume() : pause();
+		_paused ? resume() : pause();
 	}
 	
 	/**
 		Freezes the flow of time for `seconds`.
-	
-		Triggers a `TimebaseEvent.FREEZE_BEGIN` update.
 	**/
 	public static function freeze(seconds:Float)
 	{
-		assert(_initialized, "call Timebase.init() first");
-		mFreezeDelay = seconds;
-		mAccumulator = 0;
-		observable.notify(TimebaseEvent.FREEZE_BEGIN);
+		_RemainingFreezeTime = seconds;
+		_accumulator = 0;
 	}
 	
 	/**
 		Performs a manual update step.
 	**/
-	public static function step(dt:Float = 0, draw:Bool = true)
+	public static function step(dt = 0., draw = true)
 	{
-		assert(_initialized, "call Timebase.init() first");
-		
 		if (dt == 0) dt = tickRate;
 		
 		timeDelta = dt;
@@ -246,91 +210,102 @@ class Timebase
 		gameTimeDelta = dt * timeScale;
 		elapsedGameTime += gameTimeDelta;
 		
-		observable.notify(TimebaseEvent.TICK, dt);
-		numTickCalls++;
+		onTick(dt);
+		if (draw) onDraw(1);
 		
-		if (draw)
-		{
-			observable.notify(TimebaseEvent.DRAW, 1);
-			numDrawCalls++;
-		}
+		context = None;
 	}
 	
-	static function update()
+	static function handleTimeUpdate(now:Float):Void 
 	{
-		if (mPaused) return;
+		if (_paused) return;
 		
 		assert(timeScale > 0);
 		
-		var now = mTime.now();
-		var dt = now - mPast;
-		mPast = now;
+		var dt = now - _past;
+		_past = now;
 		
 		timeDelta = dt;
 		elapsedTime += dt;
 		
-		mFpsTicks++;
-		mFpsTime += dt;
-		if (mFpsTime >= 1)
+		_fpsTicks++;
+		_fpsTime += dt;
+		if (_fpsTime >= 1)
 		{
-			mFpsTime = 0;
-			fps = mFpsTicks;
-			mFpsTicks = 0;
+			_fpsTime = 0;
+			fps = _fpsTicks;
+			_fpsTicks = 0;
 		}
 		
-		if (mFreezeDelay > 0.)
+		if (_RemainingFreezeTime > 0.)
 		{
-			mFreezeDelay -= timeDelta;
-			observable.notify(TimebaseEvent.TICK, 0.);
-			observable.notify(TimebaseEvent.DRAW, 1.);
-			numTickCalls++;
-			numDrawCalls++;
-			
-			if (mFreezeDelay <= 0.)
-				observable.notify(TimebaseEvent.FREEZE_END);
+			_RemainingFreezeTime -= timeDelta;
+			onTick(0.);
+			onDraw(1.);
 			return;
 		}
 		
 		if (useFixedTimeStep)
 		{
-			mAccumulator += timeDelta * timeScale;
+			_accumulator += timeDelta * timeScale;
 			
 			//clamp accumulator to prevent "spiral of death"
-			if (mAccumulator > mAccumulatorLimit)
-			{
-				observable.notify(TimebaseEvent.CLAMP, mAccumulator);
-				mAccumulator = mAccumulatorLimit;
-			}
+			if (_accumulator > accumulatorLimit) _accumulator = accumulatorLimit;
 			
-			var ticked = false;
-			while (mAccumulator >= tickRate)
+			var updated = false;
+			while (_accumulator >= tickRate)
 			{
-				mAccumulator -= tickRate;
+				_accumulator -= tickRate;
 				gameTimeDelta = tickRate * timeScale;
 				elapsedGameTime += gameTimeDelta;
-				observable.notify(TimebaseEvent.TICK, gameTimeDelta);
-				numTickCalls++;
-				ticked = true;
-				if (mPaused) break;
+				onTick(gameTimeDelta);
+				updated = true;
+				if (_paused) break;
 			}
 			
-			if (!ticked) return;
-			
-			if (mPaused) return;
-			
-			var alpha = mAccumulator / tickRate;
-			observable.notify(TimebaseEvent.DRAW, alpha);
-			numDrawCalls++;
+			if (updated) onDraw(_accumulator / tickRate);
 		}
 		else
 		{
-			mAccumulator = 0;
+			_accumulator = 0;
 			gameTimeDelta = dt * timeScale;
 			elapsedGameTime += gameTimeDelta;
-			observable.notify(TimebaseEvent.TICK, gameTimeDelta);
-			numTickCalls++;
-			observable.notify(TimebaseEvent.DRAW, 1.);
-			numDrawCalls++;
+			onTick(gameTimeDelta);
+			onDraw(1.);
 		}
+	}
+	
+	@:access(de.polygonal.core.time.TimebaseListener)
+	inline static function onTick(dt:Float)
+	{
+		if (_listenerList == null) return;
+		
+		context = Tick;
+		var n = _listenerList.head, next;
+		while (n != null)
+		{
+			next = n.next;
+			n.val.onTick(dt);
+			n = next;
+		}
+		numTickCalls++;
+		context = None;
+	}
+	
+	@:access(de.polygonal.core.time.TimebaseListener)
+	inline static function onDraw(alpha:Float)
+	{
+		if (_listenerList == null) return;
+		
+		context = Draw;
+		var n = _listenerList.head, next;
+		while (n != null)
+		{
+			next = n.next;
+			n.val.onDraw(alpha);
+			n = next;
+		}
+		numDrawCalls++;
+		context = None;
 	}
 }

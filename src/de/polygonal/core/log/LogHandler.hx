@@ -23,6 +23,7 @@ import de.polygonal.core.event.IObserver;
 import de.polygonal.core.fmt.StringTools;
 import de.polygonal.core.log.LogLevel;
 import de.polygonal.core.log.LogMessage;
+import de.polygonal.core.time.Timebase;
 import de.polygonal.core.util.Assert.assert;
 import haxe.ds.StringMap;
 
@@ -220,11 +221,25 @@ class LogHandler implements IObserver
 		//tick
 		if (has(TICK))
 		{
-			fmt = "%03d";
+			fmt = "%s%d";
 			val = "";
 			if (has(DATE | TIME)) fmt = " " + fmt;
 			args.push(fmt);
-			vals.push(de.polygonal.core.time.Timebase.numTickCalls % 1000);
+			
+			switch (Timebase.context)
+			{
+				case None:
+					vals.push("?");
+					vals.push(0);
+				
+				case Tick:
+					vals.push("T");
+					vals.push(Timebase.numTickCalls);
+				
+				case Draw: "D";
+					vals.push("D");
+					vals.push(Timebase.numDrawCalls);
+			};
 		}
 		
 		//level
