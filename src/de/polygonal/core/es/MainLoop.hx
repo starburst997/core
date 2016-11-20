@@ -120,10 +120,10 @@ class MainLoop extends Entity implements IObserver
 				if (p.get(i)) //post-subtree update?
 				{
 					if (e.mBits & E.BIT_SKIP_POST_TICK == 0)
-						e.onTick(dt, true);
+						e.onPostTick(dt);
 				}
 				else
-					e.onTick(dt, false);
+					e.onTick(dt);
 			}
 		}
 	}
@@ -140,10 +140,10 @@ class MainLoop extends Entity implements IObserver
 				if (p.get(i)) //post-subtree update?
 				{
 					if (e.mBits & E.BIT_SKIP_POST_DRAW == 0)
-						e.onDraw(alpha, true);
+						e.onPostDraw(alpha);
 				}
 				else
-					e.onDraw(alpha, false);
+					e.onDraw(alpha);
 			}
 		}
 	}

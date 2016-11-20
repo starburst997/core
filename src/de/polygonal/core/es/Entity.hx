@@ -513,9 +513,13 @@ class Entity
 	
 	@:noCompletion function onFree() {}
 	
-	@:noCompletion function onTick(dt:Float, post:Bool) {}
+	@:noCompletion function onTick(dt:Float) {}
 	
-	@:noCompletion function onDraw(alpha:Float, post:Bool) {}
+	@:noCompletion function onPostTick(dt:Float) {}
+	
+	@:noCompletion function onDraw(alpha:Float) {}
+	
+	@:noCompletion function onPostDraw(alpha:Float) {}
 	
 	@:noCompletion function onMessage(message:EntityMessage) {}
 	
