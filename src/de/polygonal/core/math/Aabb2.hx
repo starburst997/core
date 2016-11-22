@@ -35,7 +35,7 @@ class Aabb2
 		@param w the width of the box.
 		@param h the height of the box.
 	**/
-	public inline static function ofMinWidths(x:Float, y:Float, w:Float, h:Float):Aabb2
+	public static inline function ofMinWidths(x:Float, y:Float, w:Float, h:Float):Aabb2
 	{
 		return new Aabb2(x, y, x + w, y + h);
 	}
@@ -48,7 +48,7 @@ class Aabb2
 		@param rx the radius of the box along the x-axis (half width).
 		@param ry the radius of the box along the y-axis (half height).
 	**/
-	public inline static function ofCenterRadius(cx:Float, cy:Float, rx:Float, ry:Float):Aabb2
+	public static inline function ofCenterRadius(cx:Float, cy:Float, rx:Float, ry:Float):Aabb2
 	{
 		return new Aabb2(cx - rx, cy - ry, cx + rx, cy + ry);
 	}
@@ -357,9 +357,9 @@ class Aabb2
 	}
 	
 	/**
-		Increases the size of the box by `dx`, `dy`.
+		Inflates or deflates the size of the box by `dx`, `dy`.
 	**/
-	public inline function inflate(dx:Float, dy:Float):Aabb2
+	public inline function offset(dx:Float, dy:Float):Aabb2
 	{
 		minX -= dx;
 		minY -= dy;
