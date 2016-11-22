@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2014 Michael Baczynski, http://www.polygonal.de
+Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -48,25 +48,6 @@ class Timeline
 	static var mIntervalLut:IntHashTable<TimelineNode>;
 	
 	static var mNodePool:ObjectPool<TimelineNode>;
-	
-	public static function init()
-	{
-		if (mInitialized) return;
-		mInitialized = true;
-		
-		Timebase.init();
-		
-		mNextId = 1;
-		mNextTick = 1;
-		
-		mBufferedIntervals = new ArrayedQueue<TimelineNode>(4096);
-		mActiveIntervals = new Dll<TimelineNode>();
-		mPendingIntervals = new Heap<TimelineNode>();
-		mIntervalLut = new IntHashTable<TimelineNode>(1 << 16);
-		
-		mNodePool = new ObjectPool<TimelineNode>(function() return new TimelineNode(), MAX_POOL_SIZE);
-	}
-	
 	public static function free()
 	{
 		if (!mInitialized) return;
@@ -98,6 +79,8 @@ class Timeline
 	**/
 	public static function schedule(listener:TimelineListener = null, duration:Float, delay:Float = 0, repeatCount:Int = 0, repeatInterval:Float = 0):Int
 	{
+		if (!mInitialized) init();
+		
 		assert(duration >= 0);
 		assert(delay >= 0);
 		assert(repeatCount >= 0 || repeatCount == -1);
@@ -143,6 +126,7 @@ class Timeline
 	public static function cancel(id:Int):Bool
 	{
 		if (!mInitialized) return false;
+		
 		if (id < 0) return false;
 		
 		var node = mIntervalLut.get(id);
@@ -282,8 +266,21 @@ class Timeline
 				walker = walker.next;
 		}
 	}
+	
+	static function init()
+	{
+		mNextId = 1;
+		mNextTick = 1;
+		
+		mBufferedIntervals = new ArrayedQueue<TimelineNode>(4096);
+		mActiveIntervals = new Dll<TimelineNode>();
+		mPendingIntervals = new Heap<TimelineNode>();
+		mIntervalLut = new IntHashTable<TimelineNode>(1 << 16);
+		mNodePool = new ObjectPool<TimelineNode>(function() return new TimelineNode(), MAX_POOL_SIZE);
+		
+		mInitialized = true;
+	}
 }
-
 
 private class TimelineListenerWrapper implements TimelineListener
 {
