@@ -204,9 +204,7 @@ class EntitySystem
 			assert(!_nameLut.exists(name), "Entity \"" + ClassTools.getUnqualifiedClassName(entity) + "\" already mapped to \"" + name + "\"");
 			_nameLut.set(name, entity);
 			entity.mBits |= E.BIT_IS_GLOBAL;
-			#if verbose
-			L.d("Entity \"" + ClassTools.getClassName(entity) + "\" mapped to \"" + name + "\"", "es");
-			#end
+			L.v("Entity \"" + ClassTools.getClassName(entity) + "\" mapped to \"" + name + "\"", "es");
 		}
 		
 		#if debug
@@ -230,10 +228,7 @@ class EntitySystem
 		
 		NUM_ACTIVE_ENTITIES++;
 		testCallbacks(entity, CallbackType.OnRegister);
-		
-		#if verbose
-		L.d('registered $entity', "es");
-		#end
+		L.v('registered $entity', "es");
 	}
 	
 	@:access(de.polygonal.core.es.EntityId)
@@ -272,9 +267,7 @@ class EntitySystem
 		NUM_ACTIVE_ENTITIES--;
 		testCallbacks(entity, CallbackType.OnUnregister);
 		
-		#if verbose
-		L.d('unregistered $entity', "es");
-		#end
+		L.v('unregistered $entity', "es");
 	}
 	
 	static function testCallbacks(e:Entity, type:CallbackType)

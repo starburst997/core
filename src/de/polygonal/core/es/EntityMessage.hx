@@ -76,8 +76,8 @@ class EntityMessage
 			for (i in 0...ids.length)
 			{
 				assert(Reflect.field(cl, names[i]) == ids[i]);
-				#if verbose
-				L.d(de.polygonal.Printf.format("%40s -> %s", [Type.getClassName(cl) + ":" + names[i], ids[i]]));
+				#if (verbose == "extra")
+				L.v(de.polygonal.Printf.format("%40s -> %s", [Type.getClassName(cl) + ":" + names[i], ids[i]]));
 				#end
 				_nameLut[ids[i]] = names[i];
 			}
