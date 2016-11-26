@@ -20,55 +20,57 @@ package de.polygonal.core.time;
 
 class JobHandler implements TimelineListener
 {
-	var _jobId:Int;
-	var _job:Job;
+	var mJob:Job;
+	var mId:Int;
 	
 	public function new(job:Job = null)
 	{
-		_job = job;
-		_jobId = -1;
+		mJob = job;
+		mId = -1;
 	}
 	
 	public function run(job:Job = null, duration:Float, delay = 0.):JobHandler
 	{
-		if (job != null) _job = job;
-		_jobId = Timeline.schedule(this, duration, delay);
+		if (job != null) mJob = job;
+		mId = Timeline.schedule(this, duration, delay);
 		return this;
 	}
 	
 	public function cancel()
 	{
-		if (_job != null && _jobId != -1)
-			Timeline.cancel(_jobId);
+		if (mJob != null && mId != -1)
+			Timeline.cancel(mId);
 	}
 	
-	function onInstant(id:Int, iteration:Int) {}
+	function onInstant(id:Int, iteration:Int)
+	{
+	}
 	
 	function onStart(id:Int, iteration:Int)
 	{
-		_job.onStart();
+		mJob.onStart();
 	}
 	
 	function onProgress(alpha:Float)
 	{
-		_job.onProgress(alpha);
+		mJob.onProgress(alpha);
 	}
 	
 	function onFinish(id:Int, iteration:Int)
 	{
-		if (_job != null)
+		if (mJob != null)
 		{
-			_job.onComplete();
-			_job = null;
+			mJob.onComplete();
+			mJob = null;
 		}
 	}
 	
 	function onCancel(id:Int)
 	{
-		if (_job != null)
+		if (mJob != null)
 		{
-			_job.onAbort();
-			_job = null;
+			mJob.onAbort();
+			mJob = null;
 		}
 	}
 }

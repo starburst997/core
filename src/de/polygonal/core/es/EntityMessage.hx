@@ -31,7 +31,6 @@ import de.polygonal.core.es.Entity as E;
 	A message object stores the message content.
 **/
 @:allow(de.polygonal.core.es.EntityMessageBuffer)
-@:allow(de.polygonal.core.es.ObservableEntity)
 @:access(de.polygonal.core.es.Entity)
 
 class EntityMessage

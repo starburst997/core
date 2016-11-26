@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
-import de.polygonal.core.es.Entity;
+import de.polygonal.core.es.Entity as E;
 import de.polygonal.core.es.EntitySystem;
 import de.polygonal.core.time.Timebase;
 import de.polygonal.core.time.TimebaseListener;
@@ -34,7 +34,7 @@ using de.polygonal.ds.tools.NativeArrayTools;
 	The top entity responsible for updating the entire entity hierachy
 **/
 @:access(de.polygonal.core.es.EntitySystem)
-class MainLoop extends Entity implements TimebaseListener
+class MainLoop extends E implements TimebaseListener
 {
 	var mBufferedEntities:NativeArray<E>;
 	var mStack:NativeArray<E>;
