@@ -45,6 +45,7 @@ class LogHandler
 		return value;
 	}
 	
+	var mMessage:LogMessage;
 	var mLevel:LogLevel;
 	var mMask:Int;
 	var mFormatFlags = LogFormat.PRESET_BRIEF_INFOS;
@@ -76,11 +77,15 @@ class LogHandler
 	
 	public function onMessage(message:LogMessage)
 	{
+		mMessage = message;
+		
 		if (mMask & (1 << message.lvl.getIndex()) == 0) return;
 		var flags = mFormatFlags;
 		if (mFormats != null && mFormats.exists(message.tag))
 			flags = mFormats.get(message.tag);
 		output(format(message, flags));
+		
+		mMessage = null;
 	}
 	
 	function format(message:LogMessage, flags:Int):String
