@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2012-2014 Michael Baczynski, http://www.polygonal.de
+Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,21 +18,28 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.log;
 
-#if !doc
-@:build(de.polygonal.core.event.ObserverMacro.create
-([
-	LOG_MESSAGE
-]))
-#end
-/**
- * Updates triggered by a `Log` object.
-**/
-class LogEvent
+@:build(de.polygonal.core.macro.IntConsts.build(
+[
+	PRINT_DATE,
+	PRINT_TIME,
+	PRINT_TIME_STEP,
+	
+	PRINT_LEVEL,
+	PRINT_NAME,
+	PRINT_TAG,
+	
+	PRINT_CLASS,
+	PRINT_CLASS_SHORT,
+	PRINT_METHOD,
+	PRINT_LINE
+], true, true))
+class LogFormat
 {
-	#if doc
-	/**
-		A log message was received.
-	**/
-	public static var LOG_MESSAGE:Int;
-	#end
+	public inline static var PRESET_RAW = 0;
+	
+	public inline static var PRESET_BRIEF = PRINT_TIME_STEP | PRINT_LEVEL | PRINT_NAME | PRINT_TAG;
+	
+	public inline static var PRESET_BRIEF_INFOS = PRESET_BRIEF | PRINT_LINE | PRINT_CLASS | PRINT_CLASS_SHORT | PRINT_METHOD;
+	
+	public inline static var PRESET_FULL = PRESET_BRIEF_INFOS | PRINT_DATE | PRINT_TIME;
 }

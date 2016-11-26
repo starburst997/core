@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2012-2014 Michael Baczynski, http://www.polygonal.de
+Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,17 +18,21 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.log;
 
-/**
-	An object that stores a logging message.
-**/
+@:allow(de.polygonal.core.log.LogHandler)
 class LogMessage
 {
-	public function new() {}
+	var log:Log;
+	var lvl:LogLevel;
+	var msg:String;
+	var tag:String;
+	var pos:haxe.PosInfos;
 	
-	public var id:Int;
-	public var msg:String;
-	public var tag:String;
-	public var outputLevel:Int;
-	public var posInfos:haxe.PosInfos;
-	public var log:Log;
+	public function new(log:Log, lvl:LogLevel, msg:String, tag:String, pos:haxe.PosInfos)
+	{
+		this.log = log;
+		this.lvl = lvl;
+		this.msg = msg;
+		this.tag = tag;
+		this.pos = pos;
+	}
 }

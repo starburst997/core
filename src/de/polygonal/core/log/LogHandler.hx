@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2012-2014 Michael Baczynski, http://www.polygonal.de
+Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,347 +18,220 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.log;
 
-import de.polygonal.core.event.IObservable;
-import de.polygonal.core.event.IObserver;
 import de.polygonal.core.fmt.StringTools;
+import de.polygonal.core.log.LogFormat.*;
 import de.polygonal.core.log.LogLevel;
 import de.polygonal.core.log.LogMessage;
 import de.polygonal.core.time.Timebase;
-import de.polygonal.core.util.Assert.assert;
+import de.polygonal.ds.tools.Bits;
 import haxe.ds.StringMap;
 
-using de.polygonal.ds.tools.Bits;
+import de.polygonal.core.log.LogFormat.*;
 
 /**
- * A log handler receives log messages from a log and exports them to various output devices.
+	Receives log messages from a log and exports them to various outputs.
 **/
-@:build(de.polygonal.core.macro.IntConsts.build(
-[
-	DATE, TIME, TICK, LEVEL, NAME, TAG, CLASS, CLASS_SHORT, METHOD, LINE
-], true, true))
-class LogHandler implements IObserver
+class LogHandler
 {
-	public inline static var FORMAT_RAW         = 0;
-	public inline static var FORMAT_BRIEF       = TICK | LEVEL | NAME | TAG;
-	public inline static var FORMAT_BRIEF_INFOS = TICK | LEVEL | NAME | TAG | LINE | CLASS | CLASS_SHORT | METHOD;
-	public inline static var FORMAT_FULL        = DATE | TIME | TICK | LEVEL | NAME | TAG | LINE | CLASS | CLASS_SHORT | METHOD;
+	public var level(get, set):LogLevel;
+	function get_level():LogLevel return mLevel;
+	function set_level(value:LogLevel):LogLevel
+	{
+		mLevel = value;
+		if (value == Off)
+			mMask = 0;
+		else
+			mMask = Bits.mask(LogLevel.getConstructors().length) & ~Bits.mask(value.getIndex());
+		return value;
+	}
 	
-	public static var DEFAULT_FORMAT = FORMAT_BRIEF_INFOS;
-	
-	var mLevel:Int;
+	var mLevel:LogLevel;
 	var mMask:Int;
-	var mBits:Int;
-	var mMessage:LogMessage;
-	var mTagFormat:StringMap<Int>;
+	var mFormatFlags = LogFormat.PRESET_BRIEF_INFOS;
+	var mFormats:StringMap<Int> = null;
+	var mArgs = new Array<Dynamic>();
+	var mVals = new Array<Dynamic>();
+	var mMatchLineEnds = ~/[\r\n]/;
+	var mMatchCR = ~/\r/g;
+	var mMatchCRLF = ~/\r\n/g;
 	
 	function new()
 	{
-		mLevel = 0;
-		mMask = 0;
-		mBits = 0;
-		mMessage = null;
-		mTagFormat = null;
-		
-		setLevel(LogLevel.DEBUG);
-		setFormat(0);
-		init();
+		level = Verbose;
 	}
 	
-	/**
-		Disposes this object by explicitly nullifying all references for GC'ing used resources.
-	**/
 	public function free() {}
 	
-	/**
-		Returns the active output level(s) encoded as a bitfield.
-	**/
-	public function getLevel():Int
+	public function setFormat(formatFlags:Int, tag:String = null)
 	{
-		return mLevel;
-	}
-	
-	/**
-		Returns the name(s) of the active output level(s).
-		@see `Log#getLevelName()`.
-	**/
-	public function getLevelName():String
-	{
-		if (mLevel.ones() > 1)
-		{
-			var a = new Array<String>();
-			var i = LogLevel.DEBUG;
-			while (i < LogLevel.ALL)
-			{
-				if ((mLevel & i) > 0)
-					a.push(LogLevel.getName(i));
-				i <<= 1;
-			}
-			return a.join("|");
-		}
-		
-		return LogLevel.getName(mLevel);
-	}
-	
-	/**
-		Sets the log level `x` specifying which message levels will be ultimately handled.
-		Example:
-		<pre class="prettyprint">
-		import de.polygonal.core.log.LogLevel;
-		import de.polygonal.core.log.Log;
-		import de.polygonal.core.log.handler.TraceHandler;
-		class Main
-		{
-		    static function main() {
-		        var log = Log.getLog("Foo");
-		        log.setLevel(LogLevel.DEBUG); //print DEBUG, INFO, WARN and ERROR logging messages
-		        var handler = new TraceHandler();
-		        handler.setLevel(Level.WARN); //log allows all levels, but the handler filters out everything except Level.WARN.
-		    }
-		}</pre>
-		@throws de.polygonal.core.util.AssertError invalid log level (debug only).
-	**/
-	public function setLevel(x:Int)
-	{
-		#if debug
-		assert((x & LogLevel.ALL) > 0, "(x & LogLevel.ALL) > 0");
-		#end
-		
-		mLevel = x;
-		
-		if (x.ones() > 1)
-		{
-			mMask = x;
-			return;
-		}
-		
-		mMask = LogLevel.ALL;
-		while (x > LogLevel.DEBUG)
-		{
-			x >>= 1;
-			mMask = mMask & ~x;
-		}
-	}
-	
-	/**
-		The current logging format encoded as a bitfield.
-	**/
-	public function getFormat():Int
-	{
-		return mBits;
-	}
-	
-	/**
-		Adds extra information to a logging message.
-		Example:
-		<pre class="prettyprint">
-		import de.polygonal.core.log.LogHandler;
-		import de.polygonal.core.log.handler.TraceHandler;
-		class Main
-		{
-		    static function main() {
-		        var handler = new TraceHandler();
-		        handler.setFormat(LogHandler.TIME | LogHandler.NAME);</pre>
-		    }
-		}</pre>
-	**/
-	public function setFormat(flags:Int, tag:String = null)
-	{
-		if (flags == 0) mBits = 0;
 		if (tag != null)
 		{
-			if (mTagFormat == null)
-				mTagFormat = new StringMap();
-			mTagFormat.set(tag, flags);
+			if (mFormats == null)
+				mFormats = new StringMap<Int>();
+			mFormats.set(tag, formatFlags);
 		}
 		else
-			mBits = flags;
+			mFormatFlags = formatFlags;
 	}
 	
-	public function onUpdate(type:Int, source:IObservable, userData:Dynamic)
+	public function onMessage(message:LogMessage)
 	{
-		if (type == LogEvent.LOG_MESSAGE)
-		{
-			mMessage = cast userData;
-			if (mMask & mMessage.outputLevel > 0)
-			{
-				var tmp = mBits;
-				if (mTagFormat != null && mTagFormat.exists(mMessage.tag))
-					mBits = mTagFormat.get(mMessage.tag);
-				
-				output(format());
-				
-				mBits = tmp;
-			}
-		}
+		if (mMask & (1 << message.lvl.getIndex()) == 0) return;
+		var flags = mFormatFlags;
+		if (mFormats != null && mFormats.exists(message.tag))
+			flags = mFormats.get(message.tag);
+		output(format(message, flags));
 	}
 	
-	function format():String
+	function format(message:LogMessage, flags:Int):String
 	{
-		var args:Array<String> = [];
-		var vals:Array<Dynamic> = [];
+		var f = flags;
+		if (f == 0) return message.msg;
 		
-		inline function has(mask:Int) return mBits & mask > 0;
+		var args = mArgs;
+		var vals = mVals;
+		
+		for (i in 0...args.length) args.pop();
+		for (i in 0...vals.length) vals.pop();
 		
 		var fmt, val;
 		
-		//date & time
-		fmt = "%s";
-		val = "";
-		if (has(DATE | TIME))
+		if (f & (PRINT_DATE | PRINT_TIME) > 0)
 		{
 			var date = Date.now().toString();
-			if (mBits & (DATE | TIME) == DATE | TIME)
-				val = date.substr(5); //mm-dd hh:mm:ss
-			else
-			if (has(TIME))
-				val = date.substr(11); //hh:mm:ss
-			else
-				val = date.substr(5, 5); //mm-dd
+			args.push("%s");
+			vals.push
+			(
+				if (f & (PRINT_DATE | PRINT_TIME) == PRINT_DATE | PRINT_TIME)
+					date.substr(5); //mm-dd hh:mm:ss
+				else
+				if (f & PRINT_TIME > 0)
+					date.substr(11); //hh:mm:ss
+				else
+					date.substr(5, 5) //mm-dd
+			);
 		}
-		args.push(fmt);
-		vals.push(val);
 		
-		//tick
-		if (has(TICK))
+		if (f & PRINT_TIME_STEP > 0)
 		{
-			fmt = "%s%d";
-			val = "";
-			if (has(DATE | TIME)) fmt = " " + fmt;
-			args.push(fmt);
-			
+			if (Timebase.context == None) f &= ~PRINT_TIME_STEP;
+		}
+		
+		if (f & PRINT_TIME_STEP > 0)
+		{
+			fmt = f & (PRINT_DATE | PRINT_TIME) > 0 ? " %s%d" : "%s%d";
 			switch (Timebase.context)
 			{
-				case None:
-					vals.push("?");
-					vals.push(0);
-				
 				case Tick:
+					args.push(fmt);
 					vals.push("T");
 					vals.push(Timebase.numTickCalls);
 				
 				case Draw: "D";
+					args.push(fmt);
 					vals.push("D");
 					vals.push(Timebase.numDrawCalls);
+				
+				case None:
 			};
 		}
 		
-		//level
-		fmt = "%s";
-		val = "";
-		if (has(LEVEL))
+		if (f & PRINT_LEVEL > 0)
 		{
-			val = LogLevel.getShortName(mMessage.outputLevel);
-			if (has(DATE | TIME | TICK)) fmt = " %s";
+			args.push(f & (PRINT_DATE | PRINT_TIME | PRINT_TIME_STEP) > 0 ? " %s" : "%s");
+			vals.push(message.lvl.getName().charAt(0));
 		}
-		args.push(fmt);
-		vals.push(val);
 		
-		//log name
-		fmt = "%s";
-		val = "";
-		if (has(NAME))
+		if (f & PRINT_NAME > 0)
 		{
-			if (has(LEVEL)) fmt = "/%s";
-			val = mMessage.log.name;
-		}
-		args.push(fmt);
-		vals.push(val);
-		
-		//message tag
-		fmt = "%s";
-		val = "";
-		if (has(TAG))
-		{
-			if (mMessage.tag != null)
+			args.push(f & PRINT_LEVEL > 0 ? "/%s" : "%s");
+			vals.push(message.log.name);
+			if (f & PRINT_TAG > 0)
 			{
-				val = mMessage.tag;
-				fmt = "/%s";
+				if (message.tag != null)
+				{
+					args.push("/%s");
+					vals.push(message.tag);
+				}
 			}
 		}
-		args.push(fmt);
-		vals.push(val);
 		
-		//position infos
-		if (mMessage.posInfos != null)
+		if (message.pos != null)
 		{
-			fmt = "%s";
-			if (has(CLASS | METHOD | LINE))
+			if (f & (PRINT_CLASS | PRINT_METHOD | PRINT_LINE) > 0)
 			{
 				fmt = "(";
-				
-				if (has(CLASS))
+				if (f & PRINT_CLASS > 0)
 				{
-					var className = mMessage.posInfos.className;
-					if (has(CLASS_SHORT))
+					var className = message.pos.className;
+					if (f & PRINT_CLASS_SHORT > 0)
 						className = className.substr(className.lastIndexOf(".") + 1);
 					if (className.length > 30)
 						className = StringTools.ellipsis(className, 30, 0);
-					
 					fmt += "%s";
 					vals.push(className);
 				}
-				
-				if (has(METHOD))
+				if (f & PRINT_METHOD > 0)
 				{
-					var methodName = mMessage.posInfos.methodName;
+					var methodName = message.pos.methodName;
 					if (methodName.length > 30) methodName = StringTools.ellipsis(methodName, 30, 0);
-					
-					fmt += has(CLASS) ? ".%s" : "%s";
+					fmt += (f & PRINT_CLASS > 0) ? ".%s" : "%s";
 					vals.push(methodName);
 				}
-				
-				if (has(LINE))
+				if (f & PRINT_LINE > 0)
 				{
-					fmt += has(CLASS | METHOD) ? " %04d" : "%04d";
-					vals.push(mMessage.posInfos.lineNumber);
+					fmt += (f & (PRINT_CLASS | PRINT_METHOD) > 0) ? " %04d" : "%04d";
+					vals.push(message.pos.lineNumber);
 				}
-				
 				fmt += ")";
+				args.push(fmt);
 			}
-			else
-				vals.push("");
-			args.push(fmt);
 		}
 		
-		//message
-		fmt = mBits == 0 ? "%s" : ": %s";
-		val = mMessage.msg;
-		var s = val;
-		if (Std.is(s, String) && s.indexOf("\n") != -1)
+		var s = message.msg;
+		if (mMatchLineEnds.match(s))
 		{
-			var pre = "";
-			if (has(LEVEL))
-				pre = LogLevel.getShortName(mMessage.outputLevel);
-			if (has(NAME))
+			s = mMatchCRLF.replace(s, "\n");
+			var lines = s.split("\n");
+			args.push("%s");
+			vals.push(":\n");
+			var k = lines.length;
+			for (i in 0...k)
 			{
-				if (has(LEVEL))
-					pre += "/";
-				pre += mMessage.log.name;
+				if (f & PRINT_LEVEL > 0)
+				{
+					args.push("%s");
+					vals.push(message.lvl.getName().charAt(0));
+				}
+				if (f & PRINT_NAME > 0)
+				{
+					args.push(f & PRINT_LEVEL > 0 ? "/%s" : "%s");
+					vals.push(message.log.name);
+					if (f & PRINT_TAG > 0)
+					{
+						if (message.tag != null)
+						{
+							args.push("/%s");
+							vals.push(message.tag);
+						}
+					}
+				}
+				fmt = i < k - 1 ? ": %s\n" : ": %s";
+				args.push(fmt);
+				vals.push(lines[i]);
 			}
-			if (has(TAG))
-				if (mMessage.tag != null)
-					pre += "/" + mMessage.tag;
-			
-			if (s.indexOf("\r") != -1)
-				s = s.split("\r").join("");
-			var tmp = [];
-			for (i in s.split("\n"))
-				if (i != "") tmp.push(i);
-			
-			if (mBits != FORMAT_RAW)
-				val = "\n" + pre + ": " + tmp.join("\n" + pre + ": ");
 		}
-		
-		args.push(fmt);
-		vals.push(val);
+		else
+		{
+			args.push(": %s");
+			vals.push(s);
+		}
 		
 		return Printf.format(args.join(""), vals);
 	}
 	
-	function output(msg:String) {}
-	
-	function init()
+	function output(msg:String)
 	{
-		mBits = DEFAULT_FORMAT;
+		return throw "override for implementation";
 	}
 }
