@@ -57,9 +57,8 @@ class Log
 	public function new(name:String)
 	{
 		this.name = name;
+		level = Debug;
 		mHandlers = new Sll<LogHandler>();
-		mLevel = Debug;
-		mMask = 1 << mLevel.getIndex();
 	}
 	
 	public function addHandler(handler:LogHandler)
