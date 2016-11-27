@@ -1,5 +1,5 @@
-bin/**
-tmp/**
-sandbox/**
-dump/**
+bin/
+tmp/
+sandbox/
+dump/
 *.hxproj
