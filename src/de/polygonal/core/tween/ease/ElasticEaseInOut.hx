@@ -20,7 +20,6 @@ package de.polygonal.core.tween.ease;
 
 import de.polygonal.core.math.Interpolation;
 import de.polygonal.core.math.Mathematics;
-import de.polygonal.core.util.Assert.assert;
 
 /**
 	Elastic easing in+out

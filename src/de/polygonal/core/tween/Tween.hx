@@ -30,7 +30,6 @@ import de.polygonal.core.time.Timeline;
 import de.polygonal.core.time.TimelineListener;
 import de.polygonal.core.tween.ease.Ease;
 import de.polygonal.core.tween.ease.EaseFactory;
-import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.ArrayList;
 import haxe.ds.StringMap;
 
