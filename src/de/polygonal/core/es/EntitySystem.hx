@@ -18,14 +18,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
-import de.polygonal.core.es.Entity in E;
+import de.polygonal.core.es.Entity;
+import de.polygonal.core.tools.ClassTools;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.core.util.ClassTools;
-import de.polygonal.ds.ArrayList;
 import de.polygonal.ds.IntIntHashTable;
 import de.polygonal.ds.NativeArray;
 import de.polygonal.ds.tools.NativeArrayTools;
 import haxe.ds.StringMap;
+import de.polygonal.core.es.Entity as E;
 
 using de.polygonal.ds.tools.NativeArrayTools;
 

@@ -19,10 +19,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.es;
 
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.core.es.Entity as E;
 import de.polygonal.ds.ArrayList;
 import de.polygonal.ds.tools.ObjectPool;
-import haxe.Timer;
+import de.polygonal.core.es.Entity as E;
 
 using de.polygonal.core.es.EntitySystem;
 using de.polygonal.ds.tools.NativeArrayTools;

@@ -20,9 +20,9 @@ package de.polygonal.core.es;
 
 import de.polygonal.core.es.EntityMessage;
 import de.polygonal.core.es.EntityMessageBuffer;
+import de.polygonal.core.tools.ClassTools;
 import de.polygonal.core.util.Assert.assert;
-import de.polygonal.core.util.ClassTools;
-import de.polygonal.core.es.EntitySystem in Es;
+import de.polygonal.core.es.EntitySystem as Es;
 import de.polygonal.ds.tools.Bits;
 
 using de.polygonal.core.es.EntitySystem;
