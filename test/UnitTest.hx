@@ -12,6 +12,7 @@ class UnitTest extends haxe.unit.TestRunner
 		super();
 		add(new TestEntity());
 		add(new TestMersenne());
+		add(new TestFileSequence());
 		run();
 	}
 }
