@@ -16,14 +16,12 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.util;
+package de.polygonal.core.tools;
 
 #if macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
 #end
-
-typedef D = de.polygonal.core.util.Assert;
 
 /**
 	Assertion macro
@@ -63,13 +61,13 @@ class Assert
 		
 		var p = Context.currentPos();
 		
-		var infoStr =
-		if (hasInfo)
-			EBinop(OpAdd, info, {expr: EConst(CString(" (" + new haxe.macro.Printer().printExpr(predicate) + ")")), pos: p});
-		else
-			EConst(CString(new haxe.macro.Printer().printExpr(predicate)));
+		var info =
+			if (hasInfo)
+				EBinop(OpAdd, info, {expr: EConst(CString(" (" + new haxe.macro.Printer().printExpr(predicate) + ")")), pos: p});
+			else
+				EConst(CString(new haxe.macro.Printer().printExpr(predicate)));
 		
-		var eif = {expr: EThrow({expr: ENew({name: "AssertError", pack: ["de", "polygonal", "core", "util"], params: []}, [{expr: infoStr, pos: p}]), pos: p}), pos: p};
+		var eif = {expr: EThrow({expr: ENew({name: "AssertError", pack: ["de", "polygonal", "core", "tools"], params: []}, [{expr: info, pos: p}]), pos: p}), pos: p};
 		var econd = {expr: EBinop(OpNotEq, {expr: EConst(CIdent("true")), pos: p}, predicate), pos: p};
 		return {expr: EIf(econd, eif, null), pos: p};
 	}

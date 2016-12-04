@@ -18,7 +18,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.time;
 
-import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.Sll;
 
 @:enum

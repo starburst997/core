@@ -19,7 +19,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.math;
 
 import de.polygonal.core.math.Vec2;
-import de.polygonal.core.util.Assert.assert;
 
 /**
 	A 3x2 transformation matrix which can represent any 2D affine transformation.

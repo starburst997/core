@@ -23,7 +23,6 @@ import de.polygonal.core.es.EntitySystem;
 import de.polygonal.core.time.Timebase;
 import de.polygonal.core.time.TimebaseListener;
 import de.polygonal.core.time.Timeline;
-import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.NativeArray;
 import de.polygonal.ds.tools.NativeArrayTools;
 

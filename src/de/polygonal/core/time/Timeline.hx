@@ -19,7 +19,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.time;
 
 import de.polygonal.core.math.Mathematics;
-import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.ArrayedQueue;
 import de.polygonal.ds.Cloneable;
 import de.polygonal.ds.Dll;

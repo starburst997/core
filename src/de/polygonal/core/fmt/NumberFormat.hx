@@ -21,7 +21,6 @@ package de.polygonal.core.fmt;
 import de.polygonal.core.math.Limits;
 import de.polygonal.core.math.Mathematics;
 import de.polygonal.ds.tools.Bits;
-import de.polygonal.core.util.Assert.assert;
 
 /**
 	Various utility functions for formatting numbers

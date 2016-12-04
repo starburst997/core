@@ -20,7 +20,6 @@ package de.polygonal.core.fmt;
 
 import de.polygonal.core.fmt.Ascii;
 import de.polygonal.core.math.random.Random;
-import de.polygonal.core.util.Assert.assert;
 
 import StringTools in HaxeStringTools;
 

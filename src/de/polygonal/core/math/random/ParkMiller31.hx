@@ -18,8 +18,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.math.random;
 
-import de.polygonal.core.util.Assert.assert;
-
 /**
 	A Park-Miller-Carta PRNG (pseudo random number generator).
 	

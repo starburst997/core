@@ -20,7 +20,6 @@ package de.polygonal.core.es;
 
 import de.polygonal.core.es.Entity;
 import de.polygonal.core.tools.ClassTools;
-import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.IntIntHashTable;
 import de.polygonal.ds.NativeArray;
 import de.polygonal.ds.tools.NativeArrayTools;

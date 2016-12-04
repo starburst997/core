@@ -18,7 +18,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
-import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.tools.ObjectPool;
 import de.polygonal.core.es.Entity as E;
 

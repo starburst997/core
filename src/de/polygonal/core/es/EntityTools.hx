@@ -18,8 +18,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.es;
 
-import de.polygonal.core.util.Assert.assert;
-
 import de.polygonal.core.es.Entity as E;
 import de.polygonal.core.es.EntitySystem as Es;
 

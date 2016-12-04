@@ -19,7 +19,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 package de.polygonal.core.es;
 
 import de.polygonal.core.es.Entity;
-import de.polygonal.core.util.Assert.assert;
 import de.polygonal.ds.ArrayList;
 import de.polygonal.ds.ArrayedQueue;
 import de.polygonal.ds.NativeArray;
