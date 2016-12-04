@@ -16,49 +16,49 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.util;
+package de.polygonal.core.tools;
 
 class ClassTools
 {
 	/**
-		Returns the qualified class name of `x`.
+		Returns the qualified class name of `value`.
 	**/
-	public static function getClassName(x:Dynamic):String
+	public static function getClassName(value:Dynamic):String
 	{
-		if (Std.is(x, Class))
-			return Type.getClassName(x);
+		if (Std.is(value, Class))
+			return Type.getClassName(value);
 		else
-		if (Type.getClass(x) != null)
-			return getClassName(Type.getClass(x));
+		if (Type.getClass(value) != null)
+			return getClassName(Type.getClass(value));
 		else
 			return "";
 	}
 	
 	/**
-		Returns the unqualified class name of `x`.
+		Returns the unqualified class name of `value`.
 	**/
-	public static function getUnqualifiedClassName(x:Dynamic):String
+	public static function getUnqualifiedClassName(value:Dynamic):String
 	{
-		if (Std.is(x, Class))
+		if (Std.is(value, Class))
 		{
-			var s = Type.getClassName(x);
+			var s = Type.getClassName(value);
 			return s.substr(s.lastIndexOf(".") + 1);
 		}
 		else
-		if (Type.getClass(x) != null)
-			return getUnqualifiedClassName(Type.getClass(x));
+		if (Type.getClass(value) != null)
+			return getUnqualifiedClassName(Type.getClass(value));
 		else
 			return "";
 	}
 	
 	/**
-		Extracts the package name from `x`.
+		Extracts the package name from `value`.
 	**/
-	public static function getPackageName(x:Dynamic):String
+	public static function getPackageName(value:Dynamic):String
 	{
-		if (Std.is(x, String))
+		if (Std.is(value, String))
 		{
-			var s:String = x;
+			var s:String = value;
 			var i = s.lastIndexOf(".");
 			if (i != -1)
 				return s.substr(0, i);
@@ -66,9 +66,9 @@ class ClassTools
 				return "";
 		}
 		else
-		if (Std.is(x, Class))
+		if (Std.is(value, Class))
 		{
-			var s = Type.getClassName(x);
+			var s = Type.getClassName(value);
 			var i = s.lastIndexOf(".");
 			if (i != -1)
 				return s.substr(0, i);
@@ -76,16 +76,15 @@ class ClassTools
 				return "";
 		}
 		else
-		if (Type.getClass(x) != null)
-			return getPackageName(Type.getClass(x));
+		if (Type.getClass(value) != null)
+			return getPackageName(Type.getClass(value));
 		else
 			throw "invalid argument";
 	}
-	
 	/**
-		Creates an instance of a class given by passing the fully qualified `name`.
+		Creates an instance of a class given a fully qualified class `name`.
 	**/
-	public static function createInstanceOfClassName<T>(name:String, ?args:Array<Dynamic>):T
+	public static function createInstance<T>(name:String, ?args:Array<Dynamic>):T
 	{
 		if (args == null) args = [];
 		return Type.createInstance(Type.resolveClass(name), args);
