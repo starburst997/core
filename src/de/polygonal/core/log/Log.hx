@@ -80,7 +80,7 @@ class Log
 	/**
 		Logs a `LogLevel.VERBOSE` message.
 	**/
-	public function v(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
+	public function v(msg:Dynamic, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		if (mMask & (1 << Verbose.getIndex()) > 0) output(Verbose, msg, tag, posInfos);
 	}
@@ -88,7 +88,7 @@ class Log
 	/**
 		Logs a `LogLevel.DEBUG` message.
 	**/
-	public function d(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
+	public function d(msg:Dynamic, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		if (mMask & (1 << Debug.getIndex()) > 0) output(Debug, msg, tag, posInfos);
 	}
@@ -96,7 +96,7 @@ class Log
 	/**
 		Logs a `LogLevel.INFO` message.
 	**/
-	public function i(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
+	public function i(msg:Dynamic, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		if (mMask & (1 << Info.getIndex()) > 0) output(Info, msg, tag, posInfos);
 	}
@@ -104,7 +104,7 @@ class Log
 	/**
 		Logs a `LogLevel.WARN` message.
 	**/
-	public function w(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
+	public function w(msg:Dynamic, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		if (mMask & (1 << Warn.getIndex()) > 0) output(Warn, msg, tag, posInfos);
 	}
@@ -112,18 +112,18 @@ class Log
 	/**
 		Logs a `LogLevel.ERROR` message.
 	**/
-	public function e(msg:String, ?tag:String, ?posInfos:haxe.PosInfos)
+	public function e(msg:Dynamic, ?tag:String, ?posInfos:haxe.PosInfos)
 	{
 		if (mMask & (1 << Error.getIndex()) > 0) output(Error, msg, tag, posInfos);
 	}
 	
-	function output(lvl:LogLevel, msg:String, tag:String, ?posInfos:haxe.PosInfos)
+	function output(lvl:LogLevel, msg:Dynamic, tag:String, ?posInfos:haxe.PosInfos)
 	{
 		if (mHandlers.isEmpty()) return;
 		if (inclTag != null && !inclTag.match(tag)) return;
 		if (exclTag != null &&  exclTag.match(tag)) return;
 		var n = mHandlers.head;
-		var message = new LogMessage(this, lvl, msg, tag, posInfos);
+		var message = new LogMessage(this, lvl, Std.string(msg), tag, posInfos);
 		while (n != null)
 		{
 			var next = n.next;
