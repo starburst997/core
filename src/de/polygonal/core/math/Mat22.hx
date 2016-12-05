@@ -341,7 +341,6 @@ class Mat22
 	
 	/**
 		Inverts and returns this matrix.
-		@throws de.polygonal.core.util.AssertError singular matrix (debug only).
 	**/
 	public function inverse():Mat22
 	{
@@ -360,7 +359,6 @@ class Mat22
 		Computes the matrix inverse and stores the result in `output`.
 		This matrix is left unchanged.
 		@return a reference to `output`.
-		@throws de.polygonal.core.util.AssertError singular matrix (debug only).
 	**/
 	public function inverseConst(output:Mat22):Mat22
 	{

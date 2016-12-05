@@ -388,7 +388,6 @@ class Mat33
 	
 	/**
 		Inverts and returns this matrix.
-		@throws de.polygonal.core.util.AssertError singular matrix (debug only).
 	**/
 	public function inverse():Mat33
 	{
@@ -417,7 +416,6 @@ class Mat33
 		Computes the matrix inverse and stores the result in `output`.
 		This matrix is left unchanged.
 		@return a reference to `output`.
-		@throws de.polygonal.core.util.AssertError singular matrix (debug only).
 	**/
 	public function inverseConst(output:Mat33):Mat33
 	{
