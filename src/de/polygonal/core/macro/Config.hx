@@ -18,7 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 */
 package de.polygonal.core.macro;
 
-import haxe.ds.ObjectMap;
+#if macro
 import haxe.macro.Context;
 import haxe.macro.Expr.Field;
 import haxe.macro.Expr.FieldType;
@@ -33,32 +33,14 @@ typedef Node =
 	var children:Array<Node>;
 	var a:Array<Field>;
 }
+#end
 
 class Config
 {
-	macro public static function build(filePath:String):Array<Field>
+	macro public static function build(path:String):Array<Field>
 	{
 		var module = Std.string(Context.getLocalModule());
-		Context.registerModuleDependency(module, filePath);
-		
-		function getValue(s:String):Dynamic
-		{
-			var r;
-			
-			r = ~/^(["'])(.*?)\1$/;
-			if (r.match(s)) return r.matched(2);
-			
-			r =  ~/^[-+]?[0-9]*\.[0-9]*$/;
-			if (r.match(s)) return Std.parseFloat(s);
-			
-			r = ~/^[-+]?\d+$/;
-			if (r.match(s)) return Std.parseInt(s);
-			
-			r = ~/^(true|false)$/;
-			if (r.match(s)) return (s == "true" ? true : false);
-			
-			return null;
-		}
+		Context.registerModuleDependency(module, path);
 		
 		function insert(obj:{}, path:Array<String>, pos:Int, val:Dynamic)
 		{
@@ -82,31 +64,28 @@ class Config
 			}
 		}
 		
-		var fileContents = File.getContent(filePath);
+		var contents = File.getContent(path);
 		var rawStruct = {};
 		var valStruct = {};
-		var s = fileContents;
-		s = new EReg("\r\n", "g").replace(s, "\n");
-		var lines = s.split("\n"), key, str, val:Dynamic, path;
-		var matchLine = ~/(\S+)\s+(\S+)/;
-		var matchComment = ~/^[\/#]/;
-		for (line in lines)
+		
+		var keyValuePairs = parse(contents);
+		var i = 0, k = keyValuePairs.length, key, val, a;
+		while (i < k)
 		{
-			if (matchComment.match(line)) continue;
-			if (!matchLine.match(line)) continue;
-			key = matchLine.matched(1);
-			str = matchLine.matched(2);
-			val = getValue(str);
-			if (val == null)
+			key = keyValuePairs[i++];
+			val = keyValuePairs[i++];
+			a = key.split(".");
+			insert(rawStruct, a, 0, val);
+			try 
 			{
-				var min = fileContents.indexOf(str);
-				var max = min + str.length;
-				Context.fatalError("invalid value",
-					Context.makePosition({min: min, max: max, file: filePath}));
+				insert(valStruct, a, 0, getValue(val));
 			}
-			path = key.split(".");
-			insert(rawStruct, path, 0, str);
-			insert(valStruct, path, 0, val);
+			catch(error:Dynamic)
+			{
+				var min = contents.indexOf(val);
+				var max = min + val.length;
+				Context.fatalError("invalid value", Context.makePosition({min: min, max: max, file: path}));
+			}
 		}
 		
 		function getNodeTree(o:Dynamic):Node
@@ -217,4 +196,71 @@ class Config
 		
 		return fields;
 	}
+	
+	static function parse(contents:String):Array<String>
+	{
+		var out = [];
+		var s = new EReg("\r\n", "g").replace(contents, "\n");
+		var lines = s.split("\n"), key, val, path;
+		var matchLine = ~/(\S+)\s+(\S+)/;
+		var matchComment = ~/^[\/#]/;
+		for (line in lines)
+		{
+			if (matchComment.match(line)) continue;
+			if (!matchLine.match(line)) continue;
+			key = matchLine.matched(1);
+			val = matchLine.matched(2);
+			out.push(key);
+			out.push(val);
+		}
+		return out;
+	}
+	
+	static function getValue(s:String):Dynamic
+	{
+		var r;
+		
+		r = ~/^(["'])(.*?)\1$/;
+		if (r.match(s)) return r.matched(2);
+		
+		r =  ~/^[-+]?[0-9]*\.[0-9]*$/;
+		if (r.match(s)) return Std.parseFloat(s);
+		
+		r = ~/^[-+]?\d+$/;
+		if (r.match(s)) return Std.parseInt(s);
+		
+		r = ~/^(true|false)$/;
+		if (r.match(s)) return (s == "true" ? true : false);
+		
+		throw 'invalid value $s';
+	}
+	
+	#if !macro
+	public static function overwrite(contents:String, obj:Dynamic)
+	{
+		function insert(parent:Dynamic, key:String, val:Dynamic)
+		{
+			var tmp = key.split(".");
+			var n = parent;
+			for (i in 0...tmp.length - 1)
+			{
+				var t = Reflect.field(n, tmp[i]);
+				assert(t != null);
+				Reflect.setField(n, tmp[i], t);
+				n = t;
+			}
+			Reflect.setField(n, tmp[tmp.length - 1], val);
+		}
+		
+		var keyValuePairs = parse(contents);
+		var i = 0;
+		var k = keyValuePairs.length;
+		while (i < k)
+		{
+			var key = keyValuePairs[i++];
+			var val = getValue(keyValuePairs[i++]);
+			insert(obj, key, val);
+		}
+	}
+	#end
 }
