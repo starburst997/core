@@ -71,12 +71,7 @@ class EntityMacro
 			doc: "All classes that inherit from Entity can be identified by an unique integer id.",
 			meta: [{name: ":keep", pos: p}],
 			access: [APublic, AStatic],
-			
-			#if aot //workaround for adobe iOS AOT compiler as it somehow messes up the integer values; doesn't seem to happen when using floats.
-			kind: FVar(TPath({pack: [], name: "Float", params: [], sub: null}), {expr: EConst(CFloat(Std.string(next))), pos: p}),
-			#else
 			kind: FVar(TPath({pack: [], name: "Int", params: [], sub: null}), {expr: EConst(CInt(Std.string(next))), pos: p}),
-			#end
 			pos: p
 		});
 		

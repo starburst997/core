@@ -67,11 +67,7 @@ class Entity
 	inline static function getEntityType<T:Entity>(clss:Class<T>):Int
 	{
 		#if flash
-			#if aot //TODO still needed?
-			return untyped Std.int(clss["ENTITY_TYPE"]); //Float->Int, see EntityMacro
-			#else
-			return untyped clss["ENTITY_TYPE"];
-			#end
+		return untyped clss["ENTITY_TYPE"];
 		#elseif js
 		return untyped clss["ENTITY_TYPE"];
 		#else
