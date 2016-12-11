@@ -32,7 +32,7 @@ class FileSequence
 		mTrailingDigitsOnly = trailingDigitsOnly;
 	}
 	
-	public function find(values:Array<String>):Array<{name:String, items:Array<String>}>
+	public function find(values:Array<String>):Array<{name:String, items:Array<String>, min:Int, max:Int}>
 	{
 		values = values.copy();
 		
@@ -268,17 +268,19 @@ class FileSequence
 		return c;
 	}
 	
-	function getSequences(sorted:Array<String>, name:String, output:Array<{name:String, items:Array<String>}>)
+	function getSequences(sorted:Array<String>, name:String, output:Array<{name:String, items:Array<String>, min:Int, max:Int}>)
 	{
 		var min = -1;
 		var max = -1;
 		
-		inline function add()
+		function add()
 		{
+			var i = min;
+			var j = max;
 			var sequence = [];
 			while (min <= max) sequence.push(sorted[min++]);
 			if (sequence.length > 1)
-				output.push({name: name, items: sequence});
+				output.push({name: name, items: sequence, min: i, max: j});
 		}
 		
 		var i = 0;
