@@ -16,17 +16,14 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics;
+package de.polygonal.core.math.ease;
 
 /**
-	Sinusoidal easing in+out
+	Exponential easing out
 	
 	See Robert Penner Easing Equations.
 **/
-class SinEaseInOut implements Interpolation<Float>
+class ExpEaseOut implements Interpolation<Float>
 {
 	public function new() {}
 	
@@ -35,6 +32,6 @@ class SinEaseInOut implements Interpolation<Float>
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return -.5 * (Math.cos(Mathematics.PI * t) - 1);
+		return (-Math.pow(2, -10 * t)) + 1;
 	}
 }

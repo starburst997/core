@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,30 +16,20 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
+package de.polygonal.core.math.ease;
 
 /**
-	Circular easing in+out
-	
-	See Robert Penner Easing Equations.
+	Linear interpolation (no easing)
 **/
-class CircularEaseInOut implements Interpolation<Float>
+class NullEase implements Interpolation<Float>
 {
 	public function new() {}
 	
 	/**
-		Computes the easing value using the given parameter `t` in the interval [0,1].
+		Simply returns `t`.
 	**/
 	public function interpolate(t:Float):Float
 	{
-		if (t < .5)
-			return -.5 * (Math.sqrt(1 - 4 * t * t) - 1);
-		else
-		{
-			t = t * 2 - 2;
-			return .5 * (Math.sqrt(1 - t * t) + 1);
-		}
+		return t;
 	}
 }

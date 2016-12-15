@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,22 +16,35 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
+package de.polygonal.core.math.ease;
 
 /**
-	Linear interpolation (no easing)
+	The "classic" flash easing with an easing value in the range [-100,100]
 **/
-class NullEase implements Interpolation<Float>
+class FlashEase implements Interpolation<Float>
 {
-	public function new() {}
+	public var acceleration:Float;
 	
 	/**
-		Simply returns `t`.
+		@param acceleration defines the easing value in the range [-100,100].
+	**/
+	public function new(acceleration:Float)
+	{
+		assert(acceleration >= - 100 && acceleration <= 100);
+		this.acceleration = Mathematics.fclampSym(acceleration, 100) / 100;
+	}
+	
+	/**
+		Computes the easing value using the given parameter `t` in the interval [0,1].
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return t;
+		return
+		if (acceleration == 0) t;
+		else
+		if (acceleration < 0)
+			t * (t * -acceleration + 1 + acceleration);
+		else
+			t * ((2 - t) * acceleration + (1 - acceleration));
 	}
 }

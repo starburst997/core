@@ -16,25 +16,39 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics;
+package de.polygonal.core.math.ease;
 
 /**
-	Sinusoidal easing in
+	Power easing in+out (quadratic, cubic, quartic, quintic)
 	
 	See Robert Penner Easing Equations.
 **/
-class SinEaseIn implements Interpolation<Float>
+class PowEaseInOut implements Interpolation<Float>
 {
-	public function new() {}
+	public inline static var DEGREE_QUADRATIC = 2;
+	public inline static var DEGREE_CUBIC     = 3;
+	public inline static var DEGREE_QUARTIC   = 4;
+	public inline static var DEGREE_QUINTIC   = 5;
+	
+	public var degree:Int;
+	
+	public function new(degree:Int)
+	{
+		assert(degree > 1 && degree < 6);
+		this.degree = degree;
+	}
 	
 	/**
 		Computes the easing value using the given parameter `t` in the interval [0,1].
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return 1 - Math.cos(t * Mathematics.PI_OVER_2);
+		if (t < .5)
+			return Math.pow(t * 2, degree) * .5;
+		else
+		{
+			var sgn = (degree & 1) == 0 ? -1 : 1;
+			return sgn * .5 * (Math.pow(t * 2 - 2, degree) + 2 * sgn);
+		}
 	}
 }

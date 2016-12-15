@@ -16,33 +16,24 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics;
+package de.polygonal.core.math.ease;
 
 /**
-	Elastic easing in+out
+	Back easing out
 	
 	See Robert Penner Easing Equations.
 **/
-class ElasticEaseInOut implements Interpolation<Float>
+class BackEaseOut implements Interpolation<Float>
 {
-	public var amplitude:Float;
-	public var period:Float;
+	public var overshoot:Float;
 	
 	/**
-		@param amplitude wave amplitude.
-		Default value equals zero.
-		@param period wave period.
-		Default value equals 0.3.
+		@param overshoot overshoot amount.
+		Default value of 0.1 produces an overshoot of 10%.
 	**/
-	public function new(amplitude = .0, period = .3)
+	public function new(overshoot = .1)
 	{
-		assert(period > 0);
-		
-		this.amplitude = amplitude;
-		this.period = period;
+		this.overshoot = Mathematics.lerp(0, 17.0158, overshoot);
 	}
 	
 	/**
@@ -50,27 +41,7 @@ class ElasticEaseInOut implements Interpolation<Float>
 	**/
 	public function interpolate(t:Float):Float
 	{
-		var s, a;
-		if (amplitude < 1)
-		{
-			a = 1.;
-			s = period * .25;
-		}
-		else
-		{
-			a = amplitude;
-			s = period / Mathematics.PI2 * Math.asin(1 / a);
-		}
-		
-		if (t < .5)
-		{
-			t = t * 2 - 1;
-			return -.5 * (a * Math.pow(2, 10 * t) * Math.sin((t - s) * (2 * Math.PI) / period));
-		}
-		else
-		{
-			t = t * 2 - 1;
-			return a * Math.pow(2, -10 * t) * Math.sin((t - s) * Mathematics.PI2 / period) * .5 + 1;
-		}
+		t -= 1;
+		return (t * t * ((overshoot + 1) * t + overshoot) + 1);
 	}
 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,52 +16,22 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics;
+package de.polygonal.core.math.ease;
 
 /**
-	Elastic easing out
+	Sinusoidal easing in
 	
 	See Robert Penner Easing Equations.
 **/
-class ElasticEaseOut implements Interpolation<Float>
+class SinEaseIn implements Interpolation<Float>
 {
-	public var amplitude:Float;
-	public var period:Float;
-	
-	/**
-		@param amplitude wave amplitude.
-		Default value equals zero.
-		@param period wave period.
-		Default value equals 0.3.
-	**/
-	public function new(amplitude = .0, period = .3)
-	{
-		assert(period > 0);
-		
-		this.amplitude = amplitude;
-		this.period = period;
-	}
+	public function new() {}
 	
 	/**
 		Computes the easing value using the given parameter `t` in the interval [0,1].
 	**/
 	public function interpolate(t:Float):Float
 	{
-		var s, a;
-		if (amplitude < 1)
-		{
-			a = 1.;
-			s = period * .25;
-		}
-		else
-		{
-			a = amplitude;
-			s = period / Mathematics.PI2 * Math.asin(1 / a);
-		}
-		
-		return a * Math.pow(2, -10 * t) * Math.sin((t - s) * Mathematics.PI2 / period) + 1;
+		return 1 - Math.cos(t * Mathematics.PI_OVER_2);
 	}
 }

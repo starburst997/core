@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,27 +16,30 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
+package de.polygonal.core.math.ease;
 
 /**
-	Power easing out (quadratic, cubic, quartic, quintic)
+	Elastic easing in+out
 	
 	See Robert Penner Easing Equations.
 **/
-class PowEaseOut implements Interpolation<Float>
+class ElasticEaseInOut implements Interpolation<Float>
 {
-	public inline static var DEGREE_QUADRATIC = 2;
-	public inline static var DEGREE_CUBIC     = 3;
-	public inline static var DEGREE_QUARTIC   = 4;
-	public inline static var DEGREE_QUINTIC   = 5;
+	public var amplitude:Float;
+	public var period:Float;
 	
-	public var degree:Int;
-	
-	public function new(degree:Int)
+	/**
+		@param amplitude wave amplitude.
+		Default value equals zero.
+		@param period wave period.
+		Default value equals 0.3.
+	**/
+	public function new(amplitude = .0, period = .3)
 	{
-		this.degree = degree;
+		assert(period > 0);
+		
+		this.amplitude = amplitude;
+		this.period = period;
 	}
 	
 	/**
@@ -44,6 +47,27 @@ class PowEaseOut implements Interpolation<Float>
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return Math.pow(t - 1, degree) * (degree & 1 == 0 ? -1 : 1) + 1;
+		var s, a;
+		if (amplitude < 1)
+		{
+			a = 1.;
+			s = period * .25;
+		}
+		else
+		{
+			a = amplitude;
+			s = period / Mathematics.PI2 * Math.asin(1 / a);
+		}
+		
+		if (t < .5)
+		{
+			t = t * 2 - 1;
+			return -.5 * (a * Math.pow(2, 10 * t) * Math.sin((t - s) * (2 * Math.PI) / period));
+		}
+		else
+		{
+			t = t * 2 - 1;
+			return a * Math.pow(2, -10 * t) * Math.sin((t - s) * Mathematics.PI2 / period) * .5 + 1;
+		}
 	}
 }

@@ -16,44 +16,49 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
+package de.polygonal.core.math.ease;
 
 /**
-	Bounce easing in
+	Elastic easing in
 	
 	See Robert Penner Easing Equations.
 **/
-class BounceEaseIn implements Interpolation<Float>
+class ElasticEaseIn implements Interpolation<Float>
 {
-	public function new() {}
+	var amplitude:Float;
+	var period:Float;
+	
+	/**
+		@param amplitude wave amplitude.
+		Default value equals zero.
+		@param period wave period.
+		Default value equals 0.3.
+	**/
+	public function new(amplitude = 0., period = .3)
+	{
+		assert(period > 0);
+		
+		this.amplitude = amplitude;
+		this.period = period;
+	}
 	
 	/**
 		Computes the easing value using the given parameter `t` in the interval [0,1].
 	**/
 	public function interpolate(t:Float):Float
 	{
-		t  = 1 - t;
+		var s, a;
+		if (amplitude < 1)
+		{
+			a = 1.;
+			s = period * .25;
+		}
+		else
+		{
+			a = amplitude;
+			s = period / Mathematics.PI2 * Math.asin(1 / a);
+		}
 		
-		if (t < 1 / 2.75)
-			return 1 - (7.5625 * t * t);
-		else
-		if (t < 2 / 2.75)
-		{
-			t -= 1.5 / 2.75;
-			return 1 - (7.5625 * t * t + .75);
-		}
-		else
-		if (t < 2.5 / 2.75)
-		{
-			t -= 2.25 / 2.75;
-			return 1 - (7.5625 * t * t + .9375);
-		}
-		else
-		{
-			t -= 2.625 / 2.75;
-			return 1 - (7.5625 * t * t + .984375);
-		}
+		return -(a * Math.pow(2, 10 * (t - 1)) * Math.sin((t - 1 - s) * Mathematics.PI2 / period));
 	}
 }

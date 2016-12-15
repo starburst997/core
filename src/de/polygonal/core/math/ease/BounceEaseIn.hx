@@ -16,34 +16,42 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics;
+package de.polygonal.core.math.ease;
 
 /**
-	Back easing in
+	Bounce easing in
 	
 	See Robert Penner Easing Equations.
 **/
-class BackEaseIn implements Interpolation<Float>
+class BounceEaseIn implements Interpolation<Float>
 {
-	public var overshoot:Float;
-	
-	/**
-		@param overshoot overshoot amount.
-		Default value of 0.1 produces an overshoot of 10%.
-	**/
-	public function new(overshoot = .1)
-	{
-		this.overshoot = Mathematics.lerp(0, 17.0158, overshoot);
-	}
+	public function new() {}
 	
 	/**
 		Computes the easing value using the given parameter `t` in the interval [0,1].
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return t * t * ((overshoot + 1) * t - overshoot);
+		t  = 1 - t;
+		
+		if (t < 1 / 2.75)
+			return 1 - (7.5625 * t * t);
+		else
+		if (t < 2 / 2.75)
+		{
+			t -= 1.5 / 2.75;
+			return 1 - (7.5625 * t * t + .75);
+		}
+		else
+		if (t < 2.5 / 2.75)
+		{
+			t -= 2.25 / 2.75;
+			return 1 - (7.5625 * t * t + .9375);
+		}
+		else
+		{
+			t -= 2.625 / 2.75;
+			return 1 - (7.5625 * t * t + .984375);
+		}
 	}
 }

@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,16 +16,14 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
+package de.polygonal.core.math.ease;
 
 /**
-	Circular easing out
+	Bounce easing out
 	
 	See Robert Penner Easing Equations.
 **/
-class CircularEaseOut implements Interpolation<Float>
+class BounceEaseOut implements Interpolation<Float>
 {
 	public function new() {}
 	
@@ -34,6 +32,24 @@ class CircularEaseOut implements Interpolation<Float>
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return Math.sqrt(1 - (t - 1) * (t - 1));
+		if (t < 1 / 2.75)
+			return 7.5625 * t * t;
+		else
+		if (t < 2 / 2.75)
+		{
+			t -= 1.5 / 2.75;
+			return 7.5625 * t * t + .75;
+		}
+		else
+		if (t < 2.5 / 2.75)
+		{
+			t -= 2.25 / 2.75;
+			return 7.5625 * t * t + .9375;
+		}
+		else
+		{
+			t -= 2.625 / 2.75;
+			return 7.5625 * t * t + .984375;
+		}
 	}
 }

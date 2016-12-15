@@ -16,36 +16,22 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
+package de.polygonal.core.math.ease;
 
 /**
-	Enumeration of all easing interpolations
+	Exponential easing in
 	
-	An easing interpolator defines the rate of change of an animation.
+	See Robert Penner Easing Equations.
 **/
-enum Ease
+class ExpEaseIn implements Interpolation<Float>
 {
-	None;
-	Flash(acceleration:Int);
-	PowIn(degree:Int);
-	PowOut(degree:Int);
-	PowInOut(degree:Int);
-	ExpIn;
-	ExpOut;
-	ExpInOut;
-	SinIn;
-	SinOut;
-	SinInOut;
-	CircularIn;
-	CircularOut;
-	CircularInOut;
-	BackIn(overshoot:Float);
-	BackOut(overshoot:Float);
-	BackInOut(overshoot:Float);
-	ElasticIn(amplitude:Float, period:Float);
-	ElasticOut(amplitude:Float, period:Float);
-	ElasticInOut(amplitude:Float, period:Float);
-	BounceIn;
-	BounceOut;
-	BounceInOut;
+	public function new() {}
+	
+	/**
+		Computes the easing value using the given parameter `t` in the interval [0,1].
+	**/
+	public function interpolate(t:Float):Float
+	{
+		return Math.pow(2, 10 * (t - 1));
+	}
 }

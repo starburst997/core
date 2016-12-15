@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,27 +16,24 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
+package de.polygonal.core.math.ease;
 
 /**
-	Power easing in (quadratic, cubic, quartic, quintic)
+	Back easing in
 	
 	See Robert Penner Easing Equations.
 **/
-class PowEaseIn implements Interpolation<Float>
+class BackEaseIn implements Interpolation<Float>
 {
-	public inline static var DEGREE_QUADRATIC = 2;
-	public inline static var DEGREE_CUBIC     = 3;
-	public inline static var DEGREE_QUARTIC   = 4;
-	public inline static var DEGREE_QUINTIC   = 5;
+	public var overshoot:Float;
 	
-	public var degree:Int;
-	
-	public function new(degree:Int)
+	/**
+		@param overshoot overshoot amount.
+		Default value of 0.1 produces an overshoot of 10%.
+	**/
+	public function new(overshoot = .1)
 	{
-		this.degree = degree;
+		this.overshoot = Mathematics.lerp(0, 17.0158, overshoot);
 	}
 	
 	/**
@@ -44,6 +41,6 @@ class PowEaseIn implements Interpolation<Float>
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return Math.pow(t, degree);
+		return t * t * ((overshoot + 1) * t - overshoot);
 	}
 }

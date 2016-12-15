@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,28 +16,16 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
+package de.polygonal.core.math.ease;
 
 /**
-	Power easing in+out (quadratic, cubic, quartic, quintic)
+	Bounce easing in+out
 	
 	See Robert Penner Easing Equations.
 **/
-class PowEaseInOut implements Interpolation<Float>
+class BounceEaseInOut implements Interpolation<Float>
 {
-	public inline static var DEGREE_QUADRATIC = 2;
-	public inline static var DEGREE_CUBIC     = 3;
-	public inline static var DEGREE_QUARTIC   = 4;
-	public inline static var DEGREE_QUINTIC   = 5;
-	
-	public var degree:Int;
-	
-	public function new(degree:Int)
-	{
-		this.degree = degree;
-	}
+	public function new() {}
 	
 	/**
 		Computes the easing value using the given parameter `t` in the interval [0,1].
@@ -45,11 +33,52 @@ class PowEaseInOut implements Interpolation<Float>
 	public function interpolate(t:Float):Float
 	{
 		if (t < .5)
-			return Math.pow(t * 2, degree) * .5;
+		{
+			t = 1 - t * 2;
+			
+			if (t < 1 / 2.75)
+				return (1 - (7.5625 * t * t)) * .5;
+			else
+			if (t < 2 / 2.75)
+			{
+				t -= 1.5 / 2.75;
+				return (1 - (7.5625 * t * t + .75)) * .5;
+			}
+			else
+			if (t < 2.5 / 2.75)
+			{
+				t -= 2.25 / 2.75;
+				return (1 - (7.5625 * t * t + .9375)) * .5;
+			}
+			else
+			{
+				t -= 2.625 / 2.75;
+				return (1 - (7.5625 * t * t + .984375)) * .5;
+			}
+		}
 		else
 		{
-			var sgn = (degree & 1) == 0 ? -1 : 1;
-			return sgn * .5 * (Math.pow(t * 2 - 2, degree) + 2 * sgn);
+			t = (t - .5) * 2;
+			
+			if (t < 1 / 2.75)
+				return (7.5625 * t * t) * .5 + .5;
+			else
+			if (t < 2 / 2.75)
+			{
+				t -= 1.5 / 2.75;
+				return (7.5625 * t * t + .75) * .5 + .5;
+			}
+			else
+			if (t < 2.5 / 2.75)
+			{
+				t -= 2.25 / 2.75;
+				return (7.5625 * t * t + .9375) * .5 + .5;
+			}
+			else
+			{
+				t -= 2.625 / 2.75;
+				return (7.5625 * t * t + .984375) * .5 + .5;
+			}
 		}
 	}
 }

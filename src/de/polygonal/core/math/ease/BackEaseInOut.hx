@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,24 +16,24 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics;
+package de.polygonal.core.math.ease;
 
 /**
-	The "classic" flash easing with an easing value in the range [-100,100]
+	Back easing in+out
+	
+	See Robert Penner Easing Equations.
 **/
-class FlashEase implements Interpolation<Float>
+class BackEaseInOut implements Interpolation<Float>
 {
-	public var acceleration:Float;
+	public var overshoot:Float;
 	
 	/**
-		@param acceleration defines the easing value in the range [-100,100].
+		@param overshoot overshoot amount.
+		Default value of 0.1 produces an overshoot of 10%.
 	**/
-	public function new(acceleration:Float)
+	public function new(overshoot = .1)
 	{
-		this.acceleration = Mathematics.fclampSym(acceleration, 100) / 100;
+		this.overshoot = Mathematics.lerp(0, 17.0158, overshoot) * 1.525;
 	}
 	
 	/**
@@ -41,12 +41,12 @@ class FlashEase implements Interpolation<Float>
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return
-		if (acceleration == 0) t;
+		if (t < .5)
+			return .5 * (4 * t * t * ((overshoot + 1) * 2 * t - overshoot));
 		else
-		if (acceleration < 0)
-			t * (t * -acceleration + 1 + acceleration);
-		else
-			t * ((2 - t) * acceleration + (1 - acceleration));
+		{
+			t = t * 2 - 2;
+			return .5 * (t * t * ((overshoot + 1) * t + overshoot) + 2);
+		}
 	}
 }

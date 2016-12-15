@@ -16,24 +16,33 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
+package de.polygonal.core.math.ease;
 
 /**
-	Circular easing in
+	Power easing out (quadratic, cubic, quartic, quintic)
 	
 	See Robert Penner Easing Equations.
 **/
-class CircularEaseIn implements Interpolation<Float>
+class PowEaseOut implements Interpolation<Float>
 {
-	public function new() {}
+	public inline static var DEGREE_QUADRATIC = 2;
+	public inline static var DEGREE_CUBIC     = 3;
+	public inline static var DEGREE_QUARTIC   = 4;
+	public inline static var DEGREE_QUINTIC   = 5;
+	
+	public var degree:Int;
+	
+	public function new(degree:Int)
+	{
+		assert(degree > 1 && degree < 6);
+		this.degree = degree;
+	}
 	
 	/**
 		Computes the easing value using the given parameter `t` in the interval [0,1].
 	**/
 	public function interpolate(t:Float):Float
 	{
-		return -(Math.sqrt(1 - t * t) - 1);
+		return Math.pow(t - 1, degree) * (degree & 1 == 0 ? -1 : 1) + 1;
 	}
 }

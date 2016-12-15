@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2016 Michael Baczynski, http://www.polygonal.de
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,35 +16,25 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween.ease;
-
-import de.polygonal.core.math.Interpolation;
-import de.polygonal.core.math.Mathematics;
+package de.polygonal.core.math.ease;
 
 /**
-	Back easing out
+	Exponential easing in+out
 	
 	See Robert Penner Easing Equations.
 **/
-class BackEaseOut implements Interpolation<Float>
+class ExpEaseInOut implements Interpolation<Float>
 {
-	public var overshoot:Float;
-	
-	/**
-		@param overshoot overshoot amount.
-		Default value of 0.1 produces an overshoot of 10%.
-	**/
-	public function new(overshoot = .1)
-	{
-		this.overshoot = Mathematics.lerp(0, 17.0158, overshoot);
-	}
+	public function new() {}
 	
 	/**
 		Computes the easing value using the given parameter `t` in the interval [0,1].
 	**/
 	public function interpolate(t:Float):Float
 	{
-		t -= 1;
-		return (t * t * ((overshoot + 1) * t + overshoot) + 1);
+		if (t < .5)
+			return Math.pow(2, 10 * ((t * 2) - 1)) * .5;
+		else
+			return (-Math.pow(2, -10 * ((t * 2) - 1)) + 2) * .5;
 	}
 }

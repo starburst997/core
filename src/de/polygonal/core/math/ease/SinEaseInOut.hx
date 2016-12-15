@@ -16,10 +16,22 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FO
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-package de.polygonal.core.tween;
+package de.polygonal.core.math.ease;
 
-interface TweenTarget
+/**
+	Sinusoidal easing in+out
+	
+	See Robert Penner Easing Equations.
+**/
+class SinEaseInOut implements Interpolation<Float>
 {
-	function get():Float;
-	function set(x:Float):Void;
+	public function new() {}
+	
+	/**
+		Computes the easing value using the given parameter `t` in the interval [0,1].
+	**/
+	public function interpolate(t:Float):Float
+	{
+		return -.5 * (Math.cos(Mathematics.PI * t) - 1);
+	}
 }
