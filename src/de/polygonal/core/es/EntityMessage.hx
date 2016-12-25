@@ -58,8 +58,8 @@ class EntityMessage
 		if (o == null) return;
 		Reflect.deleteField(meta, s);
 		
-		MESSAGE_COUNT = cast o[0];
-		MAX_ID = cast o[1];
+		MESSAGE_COUNT = Std.parseInt(o[0]);
+		MAX_ID = Std.parseInt(o[1]);
 		
 		#if debug
 		var fields = Reflect.fields(meta);
@@ -71,8 +71,8 @@ class EntityMessage
 			var names:Array<String> = Reflect.field(meta, field)[1];
 			for (i in 0...ids.length)
 			{
+				#if flash
 				assert(Reflect.field(cl, names[i]) == ids[i]);
-				#if (verbose == "extra")
 				L.v(de.polygonal.Printf.format("%40s -> %s", [Type.getClassName(cl) + ":" + names[i], ids[i]]));
 				#end
 				_nameLut[ids[i]] = names[i];
