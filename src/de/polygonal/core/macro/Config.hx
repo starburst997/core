@@ -22,6 +22,7 @@ package de.polygonal.core.macro;
 import haxe.macro.Context;
 import haxe.macro.Expr.Field;
 import haxe.macro.Expr.FieldType;
+import sys.FileSystem;
 import sys.io.File;
 import Type.ValueType;
 using Reflect;
@@ -63,6 +64,8 @@ class Config
 				}
 			}
 		}
+		
+		if (!FileSystem.exists(path)) Context.fatalError('file "$path" not found', Context.currentPos());
 		
 		var contents = File.getContent(path);
 		var rawStruct = {};
