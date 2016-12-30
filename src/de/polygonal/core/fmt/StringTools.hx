@@ -251,6 +251,26 @@ class StringTools
 		return n;
 	}
 	
+	#if cpp
+	static var _init = function():Bool
+	{
+		cpp.NativeArray.reserve(_tmp = [], 4);
+		return true;
+	}();
+	
+	static var _tmp:Array<Int>;
+	#end
+	
+	public static inline function fromCharCode(value:Int):String
+	{
+		#if cpp
+		_tmp[0] = value;
+		return untyped __global__.__hxcpp_char_array_to_utf8_string(_tmp);
+		#else
+		return String.fromCharCode(value);
+		#end
+	}
+	
 	public static function hashCode(x:String):Int
 	{
 		var hash = 0;
