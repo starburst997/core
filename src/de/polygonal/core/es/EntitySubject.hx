@@ -55,7 +55,9 @@ class EntitySubject extends Entity
 	
 	override public function free()
 	{
-		for (i in mObserverTable) i.free();
+		for (i in 0...mObserverTable.length)
+			if (mObserverTable[i] != null)
+				mObserverTable[i].free();
 		mObserverTable.nullify();
 		mObserverTable = null;
 		mStatus.free();
