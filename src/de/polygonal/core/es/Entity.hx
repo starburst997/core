@@ -448,8 +448,12 @@ class Entity
 		EntityMessaging.flushBuffer(onFinish);
 	
 	#if !debug @:extern #end
-	public inline function findChild<T:Entity>(?name:String, ?clss:Class<T>):T
+	public inline function findChild<T:Entity>(clss:Class<T>, ?name:String):T
 		return EntityTools.findChild(this, name, clss);
+	
+	#if !debug @:extern #end
+	public inline function findChildByName(?name:String):Entity
+		return EntityTools.findChild(this, name);
 	
 	#if !debug @:extern #end
 	public inline function findSibling<T:Entity>(?name:String, ?clss:Class<T>):T
