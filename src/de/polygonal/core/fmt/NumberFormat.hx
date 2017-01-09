@@ -155,7 +155,7 @@ class NumberFormat
 	**/
 	public static function groupDigits(x:Int, thousandsSeparator = "."):String
 	{
-		var s:String = x + "";
+		var s = x + "";
 		
 		if (x < 1000000)
 		{
