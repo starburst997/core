@@ -60,6 +60,7 @@ class Interval
 	
 	public function new(duration:Float = 0)
 	{
+		assert(duration >= 0);
 		this.duration = duration;
 	}
 	
