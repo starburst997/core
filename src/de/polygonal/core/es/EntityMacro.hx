@@ -52,13 +52,14 @@ class EntityMacro
 		ids.push(next);
 		#end
 		
-		function field(pkg:String)
+		if (c.isPrivate) Context.fatalError(c.module + "." + c.name + ": private Entity classes are not supported", Context.currentPos());
+		
+		function field()
 		{
-			var p = Context.currentPos();
-			var a = pkg.split(".");
-			var e = {expr: EConst(CIdent(a[0])), pos: p};
-			for (i in 1...a.length) e = {expr: EField(e, a[i]), pos: p};
-			return FVar(null, e);
+			if (c.superClass == null || c.isPrivate)
+				return FVar(null, macro null);
+			
+			return FVar(null, Context.parse(c.superClass.t.toString(), Context.currentPos()));
 		}
 		
 		var fields = Context.getBuildFields();
@@ -76,16 +77,16 @@ class EntityMacro
 		});
 		
 		//add "public static var SUPER_CLASS = x"
-		var superClass:String = null;
-		if (c.superClass != null) superClass = c.superClass.t.get().module;
-		if (superClass == null) superClass = "null";
+		var superClass:String = "null";
+		if (c.superClass != null) superClass = c.superClass.t.toString();
+		
 		fields.push(
 		{
 			name: "SUPER_CLASS",
 			doc: "The superclass of this class.",
 			meta: [{name: ":keep", pos: p}],
 			access: [APublic, AStatic],
-			kind: field(superClass),
+			kind: field(),
 			pos: p
 		});
 		
