@@ -124,7 +124,7 @@ class Timebase
 	static var _time:Time;
 	static var _listenerList:Sll<TimebaseListener>;
 	static var _paused:Bool;
-	static var _RemainingFreezeTime:Float;
+	static var _remainingFreezeTime = 0.;
 	static var _accumulator = 0.;
 	static var _fpsTicks = 0;
 	static var _fpsTime = 0.;
@@ -190,7 +190,7 @@ class Timebase
 	**/
 	public static function freeze(seconds:Float)
 	{
-		_RemainingFreezeTime = seconds;
+		_remainingFreezeTime = seconds;
 		_accumulator = 0;
 	}
 	
@@ -236,9 +236,9 @@ class Timebase
 			_fpsTicks = 0;
 		}
 		
-		if (_RemainingFreezeTime > 0.)
+		if (_remainingFreezeTime > 0.)
 		{
-			_RemainingFreezeTime -= timeDelta;
+			_remainingFreezeTime -= timeDelta;
 			onTick(0.);
 			onDraw(1.);
 			return;
