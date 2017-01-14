@@ -70,12 +70,9 @@ class EntitySystem
 	#end
 	
 	static var _names:NativeArray<String>;
-	
 	static var _callbacks:NativeArray<Array<Entity->Bool>>;
-	
 	static var _globalEntityLut:NativeArray<E>;
 	static var _superLut:IntIntHashTable;
-	
 	static var _nextInner:Int;
 	static var _free:Int;
 	
@@ -123,6 +120,28 @@ class EntitySystem
 		
 		_nextInner = 0;
 		_free = 1;
+	}
+	
+	public static function free()
+	{
+		_freeList.nullify();
+		_freeList = null;
+		
+		#if alchemy
+		_next.free();
+		_tree.free();
+		#end
+		_next = null;
+		_tree = null;
+		
+		_names.nullify();
+		_names = null;
+		_callbacks.nullify();
+		_callbacks = null;
+		_globalEntityLut.nullify();
+		_globalEntityLut = null;
+		_superLut.free();
+		_superLut = null;
 	}
 	
 	#if debug
