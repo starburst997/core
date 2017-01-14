@@ -48,7 +48,7 @@ class MainLoop extends E implements TimebaseListener
 		assert(EntitySystem.lookup(MainLoop) == null,
 			"MainLoop instance already created, use EntitySystem.lookup(MainLoop);");
 		
-		super(MainLoop.ENTITY_NAME, true);
+		super(true);
 		
 		//*2 because every entity can be updated twice (pre/post visit)
 		mBufferedEntities = NativeArrayTools.alloc(EntitySystem.MAX_SUPPORTED_ENTITIES * 2);

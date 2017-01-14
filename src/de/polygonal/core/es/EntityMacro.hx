@@ -52,6 +52,8 @@ class EntityMacro
 		ids.push(next);
 		#end
 		
+		if (next > 1024) Context.fatalError("Entity type out of bounds", Context.currentPos());
+		
 		if (c.isPrivate) Context.fatalError(c.module + "." + c.name + ": private Entity classes are not supported", Context.currentPos());
 		
 		function field()

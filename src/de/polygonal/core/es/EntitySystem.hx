@@ -73,7 +73,7 @@ class EntitySystem
 	
 	static var _callbacks:NativeArray<Array<Entity->Bool>>;
 	
-	static var _nameLut:StringMap<E>;
+	static var _globalEntityLut:NativeArray<E>;
 	static var _superLut:IntIntHashTable;
 	
 	static var _nextInner:Int;
@@ -114,11 +114,11 @@ class EntitySystem
 		var k = CallbackType.getConstructors().length;
 		_callbacks = NativeArrayTools.alloc(k);
 		for (i in 0...k) _callbacks.set(i, new Array<Entity->Bool>());
-
+		
 		EntityMessage.init();
 		EntityMessaging.init();
 		
-		_nameLut = new StringMap<E>();
+		_globalEntityLut = NativeArrayTools.alloc(1024);
 		_superLut = new IntIntHashTable(1024);
 		
 		_nextInner = 0;
@@ -149,23 +149,9 @@ class EntitySystem
 	/**
 		Returns the global entity that matches the given `name`. If `name` is omitted, "`clss`.ENTITY_NAME" is used.
 	**/
-	public static function lookup<T:Entity>(?name:String, ?clss:Class<T>):T
+	public static function lookup<T:Entity>(clss:Class<T>):T
 	{
-		assert(name != null || clss != null);
-		
-		if (name == null)
-		{
-			name =
-			#if flash
-			untyped clss.ENTITY_NAME;
-			#elseif js
-			untyped clss["ENTITY_NAME"];
-			#else
-			Reflect.field(clss, "ENTITY_NAME");
-			#end
-		}
-		
-		return cast _nameLut.get(name);
+		return cast _globalEntityLut.get(Entity.getEntityType(clss));
 	}
 	
 	public static function registerCallback(type:CallbackType, func:Entity->Bool)
@@ -184,7 +170,7 @@ class EntitySystem
 		EntityMessage.gc();
 	}
 	
-	static function register(entity:E, name:String, global:Bool)
+	static function register(entity:E, global:Bool)
 	{
 		if (_freeList == null) init();
 		
@@ -200,17 +186,16 @@ class EntitySystem
 		
 		if (global)
 		{
-			assert(!_nameLut.exists(name), "Entity \"" + ClassTools.getUnqualifiedClassName(entity) + "\" already mapped to \"" + name + "\"");
-			_nameLut.set(name, entity);
+			var type2 = Entity.getEntityType(Type.getClass(entity));
+			if (entity.type != type2) throw 2;
+			
+			assert(_globalEntityLut.get(entity.type) == null);
+			_globalEntityLut.set(entity.type, entity);
+			
 			entity.mBits |= E.BIT_IS_GLOBAL;
-			L.v("Entity \"" + ClassTools.getClassName(entity) + "\" mapped to \"" + name + "\"", "es");
+			
+			L.v('Registered global entity (${ClassTools.getClassName(entity)}[${entity.type}])', "es");
 		}
-		
-		#if debug
-		entity.name = name;
-		#else
-		setName(entity, name);
-		#end
 		
 		var lut = _superLut;
 		if (!lut.hasKey(entity.type))
@@ -251,7 +236,7 @@ class EntitySystem
 		//remove <name,entity> mapping
 		if (entity.mBits & E.BIT_IS_GLOBAL > 0)
 		{
-			_nameLut.remove(entity.name);
+			_globalEntityLut.set(entity.type, null);
 			entity.mBits &= ~E.BIT_IS_GLOBAL;
 		}
 		

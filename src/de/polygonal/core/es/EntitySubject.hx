@@ -39,9 +39,9 @@ class EntitySubject extends Entity
 	var mStatus:IntIntHashTable;
 	var mRecipients:ArrayList<Entity>;
 	
-	public function new(name:String = null, isGlobal:Null<Bool> = false)
+	public function new(isGlobal = false)
 	{
-		super(name, isGlobal);
+		super(isGlobal);
 		
 		mObserverTable = NativeArrayTools.alloc(EntityMessage.MAX_ID + 1).init(null);
 		mObserverTable.set(0, new ArrayList(4));

@@ -116,7 +116,7 @@ class Entity
 	#if !debug @:extern #end
 	@:noCompletion inline function set_phase(value:Int):Int { assert(value >= 0 && value < MAX_PHASE, 'phase out of range $NUM_PHASE_BITS'); mBits |= value << NUM_FLAG_BITS; return value; }
 	
-	public function new(?name:String, global:Bool = false)
+	public function new(global = false)
 	{
 		#if debug
 		//assign at runtime; prevent problems with compiler caching macros
@@ -143,17 +143,7 @@ class Entity
 		
 		mBits = (_getType() << (NUM_FLAG_BITS + NUM_PHASE_BITS)) | (BIT_PARENTLESS | BIT_SKIP_POST_TICK | BIT_SKIP_POST_DRAW);
 		
-		if (name == null)
-		{
-			if (global) name = Reflect.field(Type.getClass(this), "ENTITY_NAME");
-			
-			#if debug
-			if (name == null)
-				name = "[object " + ClassTools.getClassName(this) + "]";
-			#end
-		}
-		
-		Es.register(this, name, global);
+		Es.register(this, global);
 	}
 	
 	/**
@@ -504,7 +494,7 @@ class Entity
 	#end
 	
 	#if !debug @:extern #end
-	inline function lookup<T:Entity>(?name:String, ?clss:Class<T>):T return Es.lookup(name, clss);
+	inline function lookup<T:Entity>(clss:Class<T>):T return Es.lookup(clss);
 	
 	@:noCompletion function onAdd() {}
 	
