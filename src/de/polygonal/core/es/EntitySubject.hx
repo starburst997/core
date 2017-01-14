@@ -267,9 +267,9 @@ class EntitySubject extends Entity
 		return ids != null && ids.size > 0;
 	}
 	
-	public function addCallback(message:Int, func:Void->Void)
+	public function setCallback(message:Int, callback:Void->Void)
 	{
-		new MessageCallback(this, message, func);
+		new EntityMessageCallback(this, message, callback);
 	}
 	
 	@:access(de.polygonal.core.es.EntitySystem)
@@ -330,25 +330,5 @@ class EntitySubject extends Entity
 		}
 		
 		return output;
-	}
-}
-
-private class MessageCallback extends Entity
-{
-	var mFunc:Void->Void;
-	
-	public function new(subject:EntitySubject, message:Int, func:Void->Void)
-	{
-		super();
-		subject.subscribe(this, message);
-		mFunc = func;
-	}
-	
-	override function onMessage(message:EntityMessage)
-	{
-		mFunc();
-		mFunc = null;
-		message.sender.as(EntitySubject).unsubscribe(this);
-		free();
 	}
 }
