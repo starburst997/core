@@ -144,6 +144,8 @@ class Timebase
 		_time = time;
 		_time.setTimingEventHandler(handleTimeUpdate);
 		
+		_past = time.now();
+		
 		elapsedTime = elapsedGameTime = timeDelta = gameTimeDelta = 0;
 		numTickCalls = numDrawCalls = 0;
 	}
