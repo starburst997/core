@@ -5,6 +5,7 @@
 	"url": "https://github.com/polygonal/core",
 	"tags": ["cross", "utility"],
 	"contributors" : ["mbaczynski"],
+	"classPath": "src/",
 	"version": "1.0.4",
 	"releasenote": "See README",
 	"dependencies":
